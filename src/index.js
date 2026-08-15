@@ -1,45 +1,142 @@
 import postgres from "postgres";
 
+const ALLOWED_ORIGINS = [
+  "https://itpcmc2024.github.io"
+];
+
+function corsHeaders(request) {
+  const origin = request.headers.get("Origin") || "";
+
+  const allowOrigin = ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+    "Vary": "Origin",
+    "Content-Type": "application/json; charset=utf-8",
+    "X-Robots-Tag": "noindex, nofollow"
+  };
+}
+
+function json(request, data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: corsHeaders(request)
+  });
+}
+
 export default {
-  async fetch(request, env, ctx) {
-    let sql;
+  async fetch(request, env) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders(request)
+      });
+    }
+
+    const url = new URL(request.url);
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+
+    const sql = postgres(env.HYPERDRIVE.connectionString, {
+      max: 5,
+      fetch_types: false,
+      prepare: true
+    });
 
     try {
-      sql = postgres(env.HYPERDRIVE.connectionString, {
-        max: 5,
-        fetch_types: false,
-      });
 
-      const result = await sql`
-        SELECT
-          current_database() AS database,
-          current_user AS "user",
-          version() AS version,
-          NOW() AS server_time
-      `;
+      // =====================================================
+      // HOME
+      // =====================================================
+      if (path === "/") {
+        return json(request, {
+          success: true,
+          app: "SK Alumni API",
+          version: "1.0.0",
+          status: "online",
+          endpoints: [
+            "/api/health",
+            "/api/settings/public"
+          ]
+        });
+      }
 
-      return Response.json({
-        success: true,
-        message: "SK Alumni PostgreSQL connected successfully",
-        data: result,
-      });
+      // =====================================================
+      // HEALTH CHECK
+      // =====================================================
+      if (path === "/api/health" && request.method === "GET") {
+        const result = await sql`
+          SELECT
+            current_database() AS database,
+            NOW() AS server_time
+        `;
+
+        return json(request, {
+          success: true,
+          service: "sk-alumni-api",
+          database: result[0].database,
+          server_time: result[0].server_time
+        });
+      }
+
+      // =====================================================
+      // PUBLIC SETTINGS
+      // =====================================================
+      if (path === "/api/settings/public" && request.method === "GET") {
+
+        const rows = await sql`
+          SELECT
+            setting_key,
+            setting_value
+          FROM app_settings
+          WHERE setting_key IN (
+            'APP_NAME',
+            'APP_VERSION',
+            'MEMBERSHIP_FEE_YEARLY',
+            'MEMBERSHIP_FEE_MONTHLY',
+            'PROMPTPAY',
+            'CONTACT_EMAIL'
+          )
+          ORDER BY setting_key
+        `;
+
+        const settings = {};
+
+        for (const row of rows) {
+          settings[row.setting_key] = row.setting_value;
+        }
+
+        return json(request, {
+          success: true,
+          data: settings
+        });
+      }
+
+      // =====================================================
+      // NOT FOUND
+      // =====================================================
+      return json(request, {
+        success: false,
+        message: "API endpoint not found"
+      }, 404);
 
     } catch (error) {
-      console.error("Database error:", error);
 
-      return Response.json(
-        {
-          success: false,
-          message: "Database connection failed",
-          error: error.message,
-        },
-        { status: 500 }
-      );
+      console.error("SK Alumni API Error:", error);
+
+      return json(request, {
+        success: false,
+        message: "Internal server error"
+      }, 500);
 
     } finally {
-      if (sql) {
-        await sql.end().catch(() => {});
-      }
+
+      await sql.end().catch(() => {});
+
     }
-  },
+  }
 };
