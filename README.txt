@@ -1,17 +1,23 @@
-SK Alumni Register V1.5 – Cute Pastel Refined
+SK Alumni System V1.7 – Pastel Light Admin
+Generated: 2026-08-15
 
-ไฟล์สำหรับแทน V1.4:
-1. register.html
-2. assets/association-logo.jpg
-3. assets/cute-register.jpg
-4. assets/mosque-reference.jpg
+สิ่งที่เปลี่ยนในเวอร์ชันนี้
+- คงหน้า register.html จาก V1.6 (Cute Pastel Quote Row) ไว้เหมือนเดิม
+- ปรับ admin.html เป็นโทน Pastel Light สว่าง อ่านง่าย
+- การ์ดสถิติ: ฟ้าอ่อน / เหลืองอ่อน / เขียวมิ้นต์ / ชมพูอ่อน
+- ตารางสมาชิกพื้นขาว อ่านง่าย และ Responsive ด้วย horizontal scroll
+- Modal รายละเอียดสมาชิกพื้นสว่าง พร้อมปุ่มอนุมัติ/ยกเลิก/บันทึก
+- Admin API Key ไม่ฝังในไฟล์ HTML; กรอกผ่านหน้าล็อกอินและเลือกจำคีย์ได้
+- รองรับ API response ได้หลายรูปแบบ และมี fallback endpoint สำหรับระบบปัจจุบัน
 
-การอัปเดต:
-- Hero เปลี่ยนเป็นภาพมัสยิดจริง mosque-reference.jpg พร้อม overlay ละมุน
-- Hero chips: ครอบครัวศิษย์เก่า / สานสัมพันธ์ / ร่วมกันพัฒนา / สู่อนาคตที่ดี
-- Header: ระบบสมาชิกสมาคมศิษย์เก่า / นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)
-- Footer ตัดบรรทัด Nurul Islam ออก
-- ปรับฟอนต์หน้าบ้านเป็น Noto Sans Thai + Mitr ให้อ่านง่ายและไม่แข็ง
-- ฟังก์ชัน API, Smart Address, validation และ consent จาก V1.4 คงเดิม
+วิธีอัปเดตแบบปลอดภัย
+1) ใน GitHub repository sk-alumni-api ให้แทนที่เฉพาะ admin.html ก่อน
+2) ไม่จำเป็นต้องแทนที่ register.html ถ้า V1.6 ใช้งานดีอยู่แล้ว
+3) assets เดิมใช้ต่อได้ โดยเฉพาะ assets/association-logo.jpg
+4) Commit changes
+5) เปิด .../sk-alumni-api/admin.html แล้วกด Command + Shift + R บน Mac
+6) Login ด้วย Admin API Key เดิม
 
-หลังอัปโหลด GitHub ให้กด Cmd + Shift + R บน Mac
+หมายเหตุ
+- หาก Admin API เดิมของ Worker ใช้ endpoint ที่ต่างจาก fallback ที่หน้าเว็บรองรับ ระบบจะแจ้ง error ชัดเจนโดยไม่แก้ฐานข้อมูลเอง
+- ไม่มีการเปลี่ยน PostgreSQL schema หรือ Worker API ในแพ็กนี้
