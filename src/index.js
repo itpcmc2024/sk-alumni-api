@@ -89,8 +89,12 @@ export default {
           endpoints: [
             "GET /api/health",
             "GET /api/settings/public",
+            "GET /api/members",
             "GET /api/members/:memberCode",
-            "POST /api/members/register"
+            "POST /api/members/register",
+            "PATCH /api/members/:memberCode",
+            "POST /api/members/:memberCode/approve",
+            "POST /api/members/:memberCode/cancel"
           ]
         });
       }
@@ -504,6 +508,215 @@ export default {
         });
       }
 
+// =====================================================
+// MEMBER LIST
+// GET /api/members
+// =====================================================
+if (path === "/api/members" && request.method === "GET") {
+  const search = clean(url.searchParams.get("search"));
+  const status = clean(url.searchParams.get("status"));
+  const limit = Math.min(
+    Math.max(Number(url.searchParams.get("limit")) || 20, 1),
+    100
+  );
+  const offset = Math.max(Number(url.searchParams.get("offset")) || 0, 0);
+
+  const result = await client.query(
+    `
+    SELECT
+      member_code,
+      prefix,
+      full_name,
+      phone,
+      email,
+      status,
+      member_start,
+      member_expire,
+      registered_at
+    FROM public.members
+    WHERE
+      ($1::text IS NULL
+        OR member_code ILIKE '%' || $1 || '%'
+        OR full_name ILIKE '%' || $1 || '%'
+        OR phone ILIKE '%' || $1 || '%'
+        OR email ILIKE '%' || $1 || '%')
+      AND
+      ($2::text IS NULL OR status = $2)
+    ORDER BY registered_at DESC
+    LIMIT $3 OFFSET $4
+    `,
+    [search, status, limit, offset]
+  );
+
+  return json(request, {
+    success: true,
+    data: result.rows
+  });
+}
+
+// =====================================================
+// UPDATE MEMBER
+// PATCH /api/members/:memberCode
+// =====================================================
+if (
+  path.startsWith("/api/members/") &&
+  request.method === "PATCH"
+) {
+  const memberCode = decodeURIComponent(
+    path.substring("/api/members/".length)
+  ).trim();
+
+  const body = await request.json();
+
+  const prefix = clean(body.prefix);
+  const firstName = clean(body.first_name);
+  const lastName = clean(body.last_name);
+  const arabicName = clean(body.arabic_name);
+  const phone = clean(body.phone);
+  const email = clean(body.email);
+  const lineId = clean(body.line_id);
+
+  const fullName = [prefix, firstName, lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  const result = await client.query(
+    `
+    UPDATE public.members
+    SET
+      prefix = COALESCE($2, prefix),
+      first_name = COALESCE($3, first_name),
+      last_name = COALESCE($4, last_name),
+      full_name = CASE
+        WHEN $3 IS NOT NULL OR $4 IS NOT NULL OR $2 IS NOT NULL
+        THEN $5
+        ELSE full_name
+      END,
+      arabic_name = COALESCE($6, arabic_name),
+      phone = COALESCE($7, phone),
+      email = COALESCE($8, email),
+      line_id = COALESCE($9, line_id),
+      updated_at = NOW()
+    WHERE member_code = $1
+    RETURNING *
+    `,
+    [
+      memberCode,
+      prefix,
+      firstName,
+      lastName,
+      fullName,
+      arabicName,
+      phone,
+      email,
+      lineId
+    ]
+  );
+
+  if (result.rows.length === 0) {
+    return json(request, {
+      success: false,
+      message: "ไม่พบข้อมูลสมาชิก"
+    }, 404);
+  }
+
+  return json(request, {
+    success: true,
+    message: "แก้ไขข้อมูลสมาชิกเรียบร้อยแล้ว",
+    data: result.rows[0]
+  });
+}
+
+// =====================================================
+// APPROVE MEMBER
+// POST /api/members/:memberCode/approve
+// =====================================================
+if (
+  path.endsWith("/approve") &&
+  request.method === "POST"
+) {
+  const memberCode = decodeURIComponent(
+    path
+      .replace("/api/members/", "")
+      .replace("/approve", "")
+  ).trim();
+
+  const result = await client.query(
+    `
+    UPDATE public.members
+    SET
+      status = 'active',
+      member_start = CURRENT_DATE,
+      member_expire = CURRENT_DATE + INTERVAL '1 year',
+      updated_at = NOW()
+    WHERE member_code = $1
+    RETURNING
+      member_code,
+      full_name,
+      status,
+      member_start,
+      member_expire
+    `,
+    [memberCode]
+  );
+
+  if (result.rows.length === 0) {
+    return json(request, {
+      success: false,
+      message: "ไม่พบข้อมูลสมาชิก"
+    }, 404);
+  }
+
+  return json(request, {
+    success: true,
+    message: "อนุมัติสมาชิกเรียบร้อยแล้ว",
+    data: result.rows[0]
+  });
+}
+
+// =====================================================
+// CANCEL MEMBER
+// POST /api/members/:memberCode/cancel
+// =====================================================
+if (
+  path.endsWith("/cancel") &&
+  request.method === "POST"
+) {
+  const memberCode = decodeURIComponent(
+    path
+      .replace("/api/members/", "")
+      .replace("/cancel", "")
+  ).trim();
+
+  const result = await client.query(
+    `
+    UPDATE public.members
+    SET
+      status = 'cancelled',
+      updated_at = NOW()
+    WHERE member_code = $1
+    RETURNING
+      member_code,
+      full_name,
+      status
+    `,
+    [memberCode]
+  );
+
+  if (result.rows.length === 0) {
+    return json(request, {
+      success: false,
+      message: "ไม่พบข้อมูลสมาชิก"
+    }, 404);
+  }
+
+  return json(request, {
+    success: true,
+    message: "ยกเลิกสมาชิกเรียบร้อยแล้ว",
+    data: result.rows[0]
+  });
+}
+     
       // =====================================================
       // NOT FOUND
       // =====================================================
