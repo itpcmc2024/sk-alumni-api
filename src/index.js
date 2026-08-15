@@ -60,7 +60,8 @@ export default {
           status: "online",
           endpoints: [
             "/api/health",
-            "/api/settings/public"
+            "/api/settings/public",
+            "/api/members/:memberCode"
           ]
         });
       }
