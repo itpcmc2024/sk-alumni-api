@@ -28,15 +28,15 @@
       color: #334155;
 
       background:
-        radial-gradient(circle at 0% 0%, #dcfce7 0, transparent 30%),
-        radial-gradient(circle at 100% 5%, #fef3c7 0, transparent 27%),
-        radial-gradient(circle at 10% 100%, #e0f2fe 0, transparent 30%),
-        radial-gradient(circle at 100% 100%, #fce7f3 0, transparent 26%),
-        #f8fffb;
+        radial-gradient(circle at 0% 0%, #dff8e8 0, transparent 32%),
+        radial-gradient(circle at 100% 0%, #fef3c7 0, transparent 28%),
+        radial-gradient(circle at 0% 100%, #dff4ff 0, transparent 30%),
+        radial-gradient(circle at 100% 100%, #fde7f3 0, transparent 30%),
+        #f8fff9;
     }
 
     .glass-header {
-      background: rgba(255,255,255,.91);
+      background: rgba(255,255,255,.92);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
     }
@@ -45,8 +45,8 @@
       background: rgba(255,255,255,.95);
       border: 1px solid #dcebe2;
       box-shadow:
-        0 12px 36px rgba(15, 118, 110, .07),
-        0 2px 8px rgba(15, 23, 42, .03);
+        0 12px 36px rgba(22,163,74,.07),
+        0 2px 8px rgba(15,23,42,.03);
     }
 
     .input-field {
@@ -58,7 +58,7 @@
       color: #334155;
 
       border: 1px solid #cbded2;
-      border-radius: 15px;
+      border-radius: 16px;
 
       outline: none;
       transition: .2s ease;
@@ -83,11 +83,6 @@
       border-color: #fb7185 !important;
       background: #fff7f8 !important;
       box-shadow: 0 0 0 4px rgba(251,113,133,.10) !important;
-    }
-
-    .label-title {
-      color: #475569;
-      font-weight: 600;
     }
 
     .required {
@@ -126,10 +121,25 @@
       color: #c026d3;
     }
 
-    .hero-badge {
-      background: linear-gradient(135deg, #dcfce7, #ecfccb);
-      color: #15803d;
-      border: 1px solid #bbf7d0;
+    .hero-card {
+      background:
+        linear-gradient(
+          135deg,
+          rgba(236,253,245,.96),
+          rgba(255,255,255,.97),
+          rgba(254,249,195,.80)
+        );
+
+      border: 1px solid #d1fae5;
+      box-shadow:
+        0 18px 48px rgba(22,163,74,.08);
+    }
+
+    .logo-shell {
+      background: #ffffff;
+      border: 5px solid #ecfdf5;
+      box-shadow:
+        0 12px 30px rgba(22,163,74,.14);
     }
 
     .submit-button {
@@ -137,20 +147,30 @@
         135deg,
         #34a56f,
         #42b883,
-        #67c6a3
+        #6dc7a5
       );
 
-      box-shadow: 0 10px 22px rgba(52,165,111,.22);
+      box-shadow:
+        0 10px 22px rgba(52,165,111,.22);
+
+      transition: .2s ease;
     }
 
-    .submit-button:hover {
-      filter: brightness(.97);
+    .submit-button:not(:disabled):hover {
       transform: translateY(-1px);
+      filter: brightness(.97);
+    }
+
+    .submit-button:disabled {
+      background: #cbd5e1;
+      box-shadow: none;
+      color: #94a3b8;
+      cursor: not-allowed;
     }
 
     .mini-status {
-      border-radius: 12px;
-      padding: 9px 12px;
+      border-radius: 14px;
+      padding: 10px 13px;
       font-size: 13px;
     }
 
@@ -171,21 +191,10 @@
       color: #0369a1;
       border: 1px solid #bae6fd;
     }
-
-    @media (max-width: 640px) {
-      .pastel-card {
-        border-radius: 22px;
-      }
-    }
   </style>
 </head>
 
-
 <body>
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
 
 <header class="glass-header border-b border-emerald-100 sticky top-0 z-30">
 
@@ -193,14 +202,14 @@
 
     <div class="flex items-center gap-4">
 
-      <div
-        class="w-14 h-14 rounded-2xl
-               bg-gradient-to-br from-emerald-100 via-green-100 to-yellow-100
-               text-emerald-600
-               flex items-center justify-center
-               shadow-sm"
-      >
-        <i data-lucide="graduation-cap"></i>
+      <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl logo-shell overflow-hidden flex items-center justify-center">
+
+        <img
+          src="assets/association-logo.jpg"
+          alt="โลโก้สมาคมนูรุ้ลอิสลามสัมพันธ์"
+          class="w-full h-full object-contain p-1"
+        >
+
       </div>
 
       <div class="min-w-0">
@@ -212,9 +221,15 @@
           ทะเบียนศิษย์เก่า สมาคมนูรุ้ลอิสลามสัมพันธ์ สุเหร่าเขียว
         </h1>
 
-        <p class="text-sm text-emerald-600 mt-1">
-          SK Alumni Member System
-        </p>
+        <div class="flex items-center gap-2 mt-1 text-sm text-emerald-600">
+
+          <span>🌿</span>
+
+          <span>
+            SK Alumni Member System
+          </span>
+
+        </div>
 
       </div>
 
@@ -225,41 +240,69 @@
 </header>
 
 
-<!-- =====================================================
-     MAIN
-===================================================== -->
-
 <main class="max-w-5xl mx-auto px-4 py-7 md:py-9">
 
-  <!-- HERO -->
+  <section class="hero-card rounded-3xl p-5 md:p-7 mb-7">
 
-  <div class="mb-7">
+    <div class="flex flex-col md:flex-row md:items-center gap-5">
 
-    <div
-      class="hero-badge inline-flex items-center gap-2
-             px-4 py-2 rounded-full text-sm font-semibold mb-4"
-    >
-      <i data-lucide="sparkles" class="w-4 h-4"></i>
-      ยินดีต้อนรับศิษย์เก่า
+      <div class="hidden md:flex w-24 h-24 rounded-3xl bg-white border border-emerald-100 items-center justify-center shadow-sm">
+
+        <img
+          src="assets/association-logo.jpg"
+          alt="Association Logo"
+          class="w-20 h-20 object-contain"
+        >
+
+      </div>
+
+      <div class="flex-1">
+
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-emerald-700 border border-emerald-100 text-sm font-semibold mb-3">
+
+          <span>✨</span>
+
+          <span>
+            ยินดีต้อนรับศิษย์เก่าทุกคน
+          </span>
+
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-700">
+          ลงทะเบียนศิษย์เก่า
+        </h2>
+
+        <p class="text-slate-500 mt-2 leading-relaxed">
+          กรอกข้อมูลให้ครบถ้วน แล้วส่งข้อมูลเข้าสู่ทะเบียนศิษย์เก่า
+          เพื่อใช้สำหรับการติดต่อ ข่าวสาร และกิจกรรมของสมาคม
+        </p>
+
+      </div>
+
+      <div class="hidden lg:flex flex-col gap-2 text-sm">
+
+        <div class="px-4 py-2 rounded-2xl bg-pink-100 text-pink-700">
+          💗 เชื่อมโยงศิษย์เก่า
+        </div>
+
+        <div class="px-4 py-2 rounded-2xl bg-sky-100 text-sky-700">
+          🫶 พบปะกิจกรรม
+        </div>
+
+        <div class="px-4 py-2 rounded-2xl bg-yellow-100 text-yellow-700">
+          🌟 สร้างความสัมพันธ์
+        </div>
+
+      </div>
+
     </div>
 
-    <h2 class="text-2xl md:text-3xl font-bold text-slate-700">
-      ลงทะเบียนศิษย์เก่า
-    </h2>
-
-    <p class="text-slate-500 mt-2 leading-relaxed">
-      กรุณากรอกข้อมูลให้ครบถ้วน เพื่อจัดทำทะเบียนศิษย์เก่า
-      และใช้สำหรับการติดต่อข่าวสารของสมาคม
-    </p>
-
-  </div>
+  </section>
 
 
   <form id="registerForm" class="space-y-6">
 
-    <!-- =================================================
-         PERSONAL
-    ================================================== -->
+    <!-- PERSONAL -->
 
     <section class="pastel-card rounded-3xl p-5 md:p-6">
 
@@ -276,21 +319,18 @@
           </h3>
 
           <p class="text-sm text-slate-400">
-            แนะนำตัวให้เรารู้จักกันหน่อย
+            แนะนำตัวให้เรารู้จักกันหน่อย 😊
           </p>
 
         </div>
 
       </div>
 
-
       <div class="grid md:grid-cols-3 gap-4">
-
-        <!-- PREFIX -->
 
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             คำนำหน้า
             <span class="required">*</span>
           </label>
@@ -301,45 +341,21 @@
             required
             onchange="handlePrefixChange()"
           >
-
-            <option value="">
-              -- เลือกคำนำหน้า --
-            </option>
-
-            <option value="นาย">
-              นาย
-            </option>
-
-            <option value="นาง">
-              นาง
-            </option>
-
-            <option value="นางสาว">
-              นางสาว
-            </option>
-
-            <option value="ด.ช.">
-              ด.ช.
-            </option>
-
-            <option value="ด.ญ.">
-              ด.ญ.
-            </option>
-
-            <option value="OTHER">
-              อื่นๆ
-            </option>
-
+            <option value="">-- เลือกคำนำหน้า --</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+            <option value="ด.ช.">ด.ช.</option>
+            <option value="ด.ญ.">ด.ญ.</option>
+            <option value="OTHER">อื่นๆ</option>
           </select>
 
         </div>
 
 
-        <!-- OTHER PREFIX -->
-
         <div id="prefixOtherBox" class="hidden">
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             ระบุคำนำหน้า
             <span class="required">*</span>
           </label>
@@ -355,11 +371,9 @@
         </div>
 
 
-        <!-- FIRST NAME -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             ชื่อ
             <span class="required">*</span>
           </label>
@@ -367,20 +381,18 @@
           <input
             id="firstName"
             type="text"
+            class="input-field"
             required
             maxlength="120"
-            class="input-field"
             placeholder="ชื่อ"
           >
 
         </div>
 
 
-        <!-- LAST NAME -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             นามสกุล
             <span class="required">*</span>
           </label>
@@ -388,28 +400,26 @@
           <input
             id="lastName"
             type="text"
+            class="input-field"
             required
             maxlength="120"
-            class="input-field"
             placeholder="นามสกุล"
           >
 
         </div>
 
 
-        <!-- ARABIC NAME -->
-
         <div class="md:col-span-3">
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             ชื่อภาษาอาหรับ
           </label>
 
           <input
             id="arabicName"
             type="text"
-            maxlength="250"
             class="input-field"
+            maxlength="250"
             placeholder="ถ้ามี"
           >
 
@@ -420,9 +430,7 @@
     </section>
 
 
-    <!-- =================================================
-         CONTACT
-    ================================================== -->
+    <!-- CONTACT -->
 
     <section class="pastel-card rounded-3xl p-5 md:p-6">
 
@@ -439,21 +447,18 @@
           </h3>
 
           <p class="text-sm text-slate-400">
-            สำหรับติดต่อและส่งข่าวสารถึงกัน
+            ไว้ติดต่อกันและส่งข่าวสารดี ๆ 💌
           </p>
 
         </div>
 
       </div>
 
-
       <div class="grid md:grid-cols-2 gap-4">
-
-        <!-- PHONE -->
 
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             เบอร์โทรศัพท์
             <span class="required">*</span>
           </label>
@@ -462,7 +467,6 @@
             id="phone"
             type="tel"
             inputmode="numeric"
-            pattern="[0-9]*"
             maxlength="10"
             required
             class="input-field"
@@ -471,17 +475,15 @@
           >
 
           <p class="text-xs text-slate-400 mt-1.5">
-            กรอกได้เฉพาะตัวเลข 9–10 หลัก
+            ตัวเลขเท่านั้น 9–10 หลัก
           </p>
 
         </div>
 
 
-        <!-- EMAIL -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             Email
           </label>
 
@@ -505,11 +507,9 @@
         </div>
 
 
-        <!-- LINE -->
-
         <div class="md:col-span-2">
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             LINE ID
           </label>
 
@@ -528,9 +528,7 @@
     </section>
 
 
-    <!-- =================================================
-         ADDRESS
-    ================================================== -->
+    <!-- ADDRESS -->
 
     <section class="pastel-card rounded-3xl p-5 md:p-6">
 
@@ -547,7 +545,7 @@
           </h3>
 
           <p class="text-sm text-slate-400">
-            ระบบช่วยค้นหาพื้นที่จากรหัสไปรษณีย์
+            ให้ระบบช่วยเลือกพื้นที่ให้ง่ายขึ้น 🏡
           </p>
 
         </div>
@@ -565,11 +563,9 @@
 
       <div class="grid md:grid-cols-2 gap-4">
 
-        <!-- ADDRESS LINE -->
-
         <div class="md:col-span-2">
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             บ้านเลขที่ / หมู่ / ซอย / ถนน
           </label>
 
@@ -584,11 +580,9 @@
         </div>
 
 
-        <!-- POSTAL -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             รหัสไปรษณีย์
           </label>
 
@@ -596,7 +590,6 @@
             id="postalCode"
             type="text"
             inputmode="numeric"
-            pattern="[0-9]*"
             maxlength="5"
             class="input-field"
             placeholder="เช่น 11110"
@@ -613,11 +606,9 @@
         </div>
 
 
-        <!-- PROVINCE -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             จังหวัด
           </label>
 
@@ -626,19 +617,15 @@
             class="input-field"
             disabled
           >
-            <option value="">
-              -- เลือกจังหวัด --
-            </option>
+            <option value="">-- เลือกจังหวัด --</option>
           </select>
 
         </div>
 
 
-        <!-- DISTRICT -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             อำเภอ / เขต
           </label>
 
@@ -647,19 +634,15 @@
             class="input-field"
             disabled
           >
-            <option value="">
-              -- เลือกอำเภอ / เขต --
-            </option>
+            <option value="">-- เลือกอำเภอ / เขต --</option>
           </select>
 
         </div>
 
 
-        <!-- SUBDISTRICT -->
-
         <div>
 
-          <label class="block text-sm label-title mb-2">
+          <label class="block text-sm font-semibold mb-2">
             ตำบล / แขวง
           </label>
 
@@ -668,9 +651,7 @@
             class="input-field"
             disabled
           >
-            <option value="">
-              -- เลือกตำบล / แขวง --
-            </option>
+            <option value="">-- เลือกตำบล / แขวง --</option>
           </select>
 
         </div>
@@ -680,9 +661,7 @@
     </section>
 
 
-    <!-- =================================================
-         CONSENT
-    ================================================== -->
+    <!-- CONSENT -->
 
     <section class="pastel-card rounded-3xl p-5 md:p-6">
 
@@ -695,11 +674,11 @@
         <div>
 
           <h3 class="text-lg font-bold text-slate-700">
-            การยืนยันข้อมูล
+            ยืนยันข้อมูล
           </h3>
 
           <p class="text-sm text-slate-400">
-            อีกนิดเดียวก็เรียบร้อยแล้ว
+            เช็กอีกครั้งก่อนส่งนะคะ 🌷
           </p>
 
         </div>
@@ -710,7 +689,7 @@
       <label
         class="flex items-start gap-3
                p-4 rounded-2xl
-               bg-emerald-50/70
+               bg-gradient-to-r from-emerald-50 to-green-50
                border border-emerald-100
                cursor-pointer"
       >
@@ -739,9 +718,7 @@
     </section>
 
 
-    <!-- =================================================
-         BUTTONS
-    ================================================== -->
+    <!-- BUTTONS -->
 
     <div class="flex flex-col md:flex-row gap-3 justify-end">
 
@@ -760,11 +737,11 @@
       <button
         id="submitButton"
         type="submit"
+        disabled
         class="submit-button
                px-8 py-3 rounded-2xl
-               text-white font-bold
-               flex items-center justify-center gap-2
-               transition"
+               font-bold
+               flex items-center justify-center gap-2"
       >
 
         <i data-lucide="send-horizontal" class="w-5 h-5"></i>
@@ -778,25 +755,30 @@
   </form>
 
 
-  <!-- =================================================
-       FOOTER
-  ================================================== -->
+  <footer class="text-center text-slate-400 text-sm pt-12 pb-8">
 
-  <footer
-    class="text-center text-slate-400
-           text-sm pt-12 pb-8"
-  >
+    <div class="flex items-center justify-center gap-2 mb-2">
+
+      <img
+        src="assets/association-logo.jpg"
+        alt=""
+        class="w-7 h-7 object-contain"
+      >
+
+      <span>
+        ทะเบียนศิษย์เก่า
+      </span>
+
+    </div>
+
     © 2026 SK Alumni Member System by Kimhan
+
   </footer>
 
 </main>
 
 
 <script>
-
-// =====================================================
-// CONFIG
-// =====================================================
 
 const API_BASE =
   "https://sk-alumni-api.itpcmc2024.workers.dev";
@@ -805,15 +787,14 @@ const DEFAULT_APP_NAME =
   "ทะเบียนศิษย์เก่า สมาคมนูรุ้ลอิสลามสัมพันธ์ สุเหร่าเขียว";
 
 
-// ใช้ข้อมูลแยก 3 ชุด เพื่อให้ความสัมพันธ์ชัดเจน
 const PROVINCE_URL =
-  "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province.json";
+  "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/province.json";
 
 const DISTRICT_URL =
-  "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/district.json";
+  "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/district.json";
 
 const SUBDISTRICT_URL =
-  "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/sub_district.json";
+  "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/sub_district.json";
 
 
 let provinces = [];
@@ -824,16 +805,12 @@ let addressReady = false;
 let postalFilteredSubdistricts = [];
 
 
-// =====================================================
-// ELEMENT
-// =====================================================
-
-const $ = (id) =>
+const $ = id =>
   document.getElementById(id);
 
 
 // =====================================================
-// INITIALIZE
+// INIT
 // =====================================================
 
 document.addEventListener(
@@ -847,6 +824,10 @@ document.addEventListener(
     bindEmailValidation();
 
     bindAddressEvents();
+
+    bindConsent();
+
+    updateSubmitButton();
 
     await Promise.all([
       loadSystemSettings(),
@@ -911,6 +892,34 @@ async function loadSystemSettings() {
 
 
 // =====================================================
+// CONSENT BUTTON
+// =====================================================
+
+function bindConsent() {
+
+  $("consent").addEventListener(
+    "change",
+    updateSubmitButton
+  );
+
+}
+
+
+function updateSubmitButton() {
+
+  const button =
+    $("submitButton");
+
+  const checked =
+    $("consent").checked;
+
+  button.disabled =
+    !checked;
+
+}
+
+
+// =====================================================
 // PREFIX
 // =====================================================
 
@@ -919,34 +928,32 @@ function handlePrefixChange() {
   const selected =
     $("prefixSelect").value;
 
-  const otherBox =
-    $("prefixOtherBox");
-
-  const otherInput =
-    $("prefixOther");
-
-
   if (selected === "OTHER") {
 
-    otherBox.classList.remove(
-      "hidden"
-    );
+    $("prefixOtherBox")
+      .classList
+      .remove("hidden");
 
-    otherInput.required = true;
+    $("prefixOther").required =
+      true;
 
     setTimeout(
-      () => otherInput.focus(),
+      () =>
+        $("prefixOther").focus(),
       50
     );
 
   } else {
 
-    otherBox.classList.add(
-      "hidden"
-    );
+    $("prefixOtherBox")
+      .classList
+      .add("hidden");
 
-    otherInput.required = false;
-    otherInput.value = "";
+    $("prefixOther").required =
+      false;
+
+    $("prefixOther").value =
+      "";
 
   }
 
@@ -956,7 +963,8 @@ function handlePrefixChange() {
 function getPrefixValue() {
 
   if (
-    $("prefixSelect").value === "OTHER"
+    $("prefixSelect").value ===
+    "OTHER"
   ) {
 
     return cleanValue(
@@ -973,25 +981,18 @@ function getPrefixValue() {
 
 
 // =====================================================
-// PHONE PROTECTION
+// PHONE + POSTAL PROTECTION
 // =====================================================
 
 function bindInputProtection() {
 
-  const phone =
-    $("phone");
-
-  const postal =
-    $("postalCode");
-
-
-  // โทรศัพท์ - ตัวเลขเท่านั้น
-  phone.addEventListener(
+  $("phone").addEventListener(
     "input",
     () => {
 
-      phone.value =
-        phone.value
+      $("phone").value =
+        $("phone")
+          .value
           .replace(/\D/g, "")
           .slice(0, 10);
 
@@ -999,33 +1000,13 @@ function bindInputProtection() {
   );
 
 
-  phone.addEventListener(
-    "paste",
-    () => {
-
-      setTimeout(
-        () => {
-
-          phone.value =
-            phone.value
-              .replace(/\D/g, "")
-              .slice(0, 10);
-
-        },
-        0
-      );
-
-    }
-  );
-
-
-  // รหัสไปรษณีย์ - ตัวเลขเท่านั้น
-  postal.addEventListener(
+  $("postalCode").addEventListener(
     "input",
     () => {
 
-      postal.value =
-        postal.value
+      $("postalCode").value =
+        $("postalCode")
+          .value
           .replace(/\D/g, "")
           .slice(0, 5);
 
@@ -1036,41 +1017,31 @@ function bindInputProtection() {
 
 
 // =====================================================
-// EMAIL VALIDATION
+// EMAIL
 // =====================================================
 
 function bindEmailValidation() {
 
-  const email =
-    $("email");
-
-
-  email.addEventListener(
+  $("email").addEventListener(
     "blur",
-    validateEmailField
+    () =>
+      validateEmailField(
+        true
+      )
   );
 
 
-  email.addEventListener(
+  $("email").addEventListener(
     "input",
     () => {
 
-      if (!email.value.trim()) {
-
-        clearEmailError();
-        return;
-
-      }
-
-
-      // ถ้าเคยผิด แล้วผู้ใช้เริ่มแก้
       if (
-        email.classList.contains(
-          "input-error"
-        )
+        !$("email")
+          .value
+          .trim()
       ) {
 
-        validateEmailField(false);
+        clearEmailError();
 
       }
 
@@ -1086,37 +1057,39 @@ function isValidEmail(value) {
     return true;
   }
 
-
-  return /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/
+  return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
     .test(value);
 
 }
 
 
-function validateEmailField(showMessage = true) {
-
-  const email =
-    $("email");
+function validateEmailField(
+  showAlert = false
+) {
 
   const emailValue =
-    email.value.trim();
+    $("email").value.trim();
 
 
   if (!emailValue) {
 
     clearEmailError();
+
     return true;
 
   }
 
 
   if (
-    !isValidEmail(emailValue)
+    !isValidEmail(
+      emailValue
+    )
   ) {
 
-    email.classList.add(
-      "input-error"
-    );
+    $("email")
+      .classList
+      .add("input-error");
+
 
     $("emailHelp").textContent =
       "รูปแบบอีเมลไม่ถูกต้อง เช่น name@example.com";
@@ -1125,13 +1098,13 @@ function validateEmailField(showMessage = true) {
       "text-xs text-rose-500 mt-1.5 font-medium";
 
 
-    if (showMessage) {
+    if (showAlert) {
 
       Swal.fire({
         icon: "warning",
         title: "รูปแบบอีเมลไม่ถูกต้อง",
         text: "กรุณากรอกอีเมล เช่น name@example.com",
-        confirmButtonText: "ตกลง"
+        confirmButtonText: "กลับไปแก้ไข"
       });
 
     }
@@ -1152,7 +1125,9 @@ function clearEmailError() {
 
   $("email")
     .classList
-    .remove("input-error");
+    .remove(
+      "input-error"
+    );
 
   $("emailHelp").textContent =
     "หากกรอก ต้องเป็นรูปแบบอีเมลที่ถูกต้อง";
@@ -1164,7 +1139,7 @@ function clearEmailError() {
 
 
 // =====================================================
-// THAI ADDRESS LOAD
+// THAI ADDRESS
 // =====================================================
 
 async function loadThaiAddress() {
@@ -1207,9 +1182,7 @@ async function loadThaiAddress() {
       !subdistrictResponse.ok
     ) {
 
-      throw new Error(
-        "ไม่สามารถดาวน์โหลดข้อมูลที่อยู่ได้"
-      );
+      throw new Error();
 
     }
 
@@ -1230,37 +1203,34 @@ async function loadThaiAddress() {
       !Array.isArray(subdistricts)
     ) {
 
-      throw new Error(
-        "รูปแบบข้อมูลที่อยู่ไม่ถูกต้อง"
-      );
+      throw new Error();
 
     }
 
 
-    addressReady = true;
+    addressReady =
+      true;
+
 
     populateProvinceSelect(
       provinces
     );
 
 
-    $("province").disabled = false;
+    $("province").disabled =
+      false;
 
 
     setAddressStatus(
       "ready",
-      "✨ พร้อมใช้งานแล้ว — กรอกรหัสไปรษณีย์ 5 หลัก หรือเลือกจังหวัดได้เลย"
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Thai Address Error:",
-      error
+      "✨ พร้อมใช้งานแล้ว — กรอกรหัสไปรษณีย์ หรือเลือกจังหวัดได้เลย"
     );
 
 
-    addressReady = false;
+  } catch {
+
+    addressReady =
+      false;
 
 
     setAddressStatus(
@@ -1281,8 +1251,8 @@ function setAddressStatus(
   const element =
     $("addressDataStatus");
 
-
-  element.textContent = text;
+  element.textContent =
+    text;
 
 
   if (type === "loading") {
@@ -1290,7 +1260,9 @@ function setAddressStatus(
     element.className =
       "mini-status address-loading mb-5";
 
-  } else if (type === "error") {
+  } else if (
+    type === "error"
+  ) {
 
     element.className =
       "mini-status address-error mb-5";
@@ -1338,7 +1310,7 @@ function bindAddressEvents() {
 
 
 // =====================================================
-// ADDRESS HELPERS
+// DATA NAME HELPERS
 // =====================================================
 
 function provinceName(row) {
@@ -1370,12 +1342,19 @@ function subdistrictName(row) {
 
 function rowZip(row) {
 
-  return String(
-    row?.zip_code ?? ""
-  ).padStart(5, "0");
+  const raw =
+    String(
+      row?.zip_code ?? ""
+    ).trim();
+
+  return raw;
 
 }
 
+
+// =====================================================
+// SELECT HELPERS
+// =====================================================
 
 function uniqueById(rows) {
 
@@ -1386,9 +1365,8 @@ function uniqueById(rows) {
   for (const row of rows) {
 
     if (
-      row &&
-      row.id !== undefined &&
-      row.id !== null
+      row?.id !== undefined &&
+      row?.id !== null
     ) {
 
       map.set(
@@ -1408,22 +1386,23 @@ function uniqueById(rows) {
 }
 
 
-function sortThai(rows, getName) {
+function sortThai(
+  rows,
+  getName
+) {
 
-  return [...rows].sort(
-    (a, b) =>
-      getName(a).localeCompare(
-        getName(b),
-        "th"
-      )
-  );
+  return [...rows]
+    .sort(
+      (a, b) =>
+        getName(a)
+          .localeCompare(
+            getName(b),
+            "th"
+          )
+    );
 
 }
 
-
-// =====================================================
-// SELECT OPTIONS
-// =====================================================
 
 function fillSelect(
   select,
@@ -1432,7 +1411,8 @@ function fillSelect(
   getName
 ) {
 
-  select.innerHTML = "";
+  select.innerHTML =
+    "";
 
 
   const empty =
@@ -1440,7 +1420,9 @@ function fillSelect(
       "option"
     );
 
-  empty.value = "";
+  empty.value =
+    "";
+
   empty.textContent =
     placeholder;
 
@@ -1496,7 +1478,8 @@ function resetDistrict() {
   $("district").innerHTML =
     `<option value="">-- เลือกอำเภอ / เขต --</option>`;
 
-  $("district").disabled = true;
+  $("district").disabled =
+    true;
 
 }
 
@@ -1506,13 +1489,14 @@ function resetSubdistrict() {
   $("subdistrict").innerHTML =
     `<option value="">-- เลือกตำบล / แขวง --</option>`;
 
-  $("subdistrict").disabled = true;
+  $("subdistrict").disabled =
+    true;
 
 }
 
 
 // =====================================================
-// POSTAL CODE → ADDRESS
+// POSTAL → AREA
 // =====================================================
 
 function handlePostalCode() {
@@ -1523,23 +1507,29 @@ function handlePostalCode() {
 
 
   const postal =
-    $("postalCode").value.trim();
+    $("postalCode")
+      .value
+      .trim();
 
 
-  if (postal.length < 5) {
+  if (
+    postal.length < 5
+  ) {
 
-    postalFilteredSubdistricts = [];
+    postalFilteredSubdistricts =
+      [];
+
 
     populateProvinceSelect(
       provinces
     );
 
-    $("province").disabled =
-      false;
 
-    $("province").value = "";
+    $("province").value =
+      "";
 
     resetDistrict();
+
     resetSubdistrict();
 
 
@@ -1557,7 +1547,8 @@ function handlePostalCode() {
   const matchedSubs =
     subdistricts.filter(
       row =>
-        rowZip(row) === postal
+        rowZip(row) ===
+        postal
     );
 
 
@@ -1565,20 +1556,25 @@ function handlePostalCode() {
     matchedSubs;
 
 
-  if (!matchedSubs.length) {
+  if (
+    !matchedSubs.length
+  ) {
 
     populateProvinceSelect(
       provinces
     );
 
-    $("province").value = "";
+
+    $("province").value =
+      "";
 
     resetDistrict();
+
     resetSubdistrict();
 
 
     $("postalHelp").textContent =
-      "ไม่พบพื้นที่ที่ตรงกับรหัสไปรษณีย์นี้";
+      "ไม่พบพื้นที่สำหรับรหัสไปรษณีย์นี้";
 
     $("postalHelp").className =
       "text-xs text-rose-500 mt-1.5 font-medium";
@@ -1588,7 +1584,6 @@ function handlePostalCode() {
   }
 
 
-  // หา district จากตำบลที่ตรง postcode
   const districtIds =
     new Set(
       matchedSubs.map(
@@ -1609,7 +1604,6 @@ function handlePostalCode() {
     );
 
 
-  // หา province จาก districts
   const provinceIds =
     new Set(
       matchedDistricts.map(
@@ -1640,15 +1634,15 @@ function handlePostalCode() {
 
 
   $("postalHelp").textContent =
-    `พบ ${matchedSubs.length} ตำบล/แขวงที่ใช้รหัส ${postal}`;
+    `พบ ${matchedSubs.length} พื้นที่สำหรับรหัส ${postal}`;
 
   $("postalHelp").className =
     "text-xs text-emerald-600 mt-1.5 font-medium";
 
 
-  // ถ้าจังหวัดเดียว เลือกให้เลย
   if (
-    matchedProvinces.length === 1
+    matchedProvinces.length ===
+    1
   ) {
 
     $("province").value =
@@ -1660,9 +1654,11 @@ function handlePostalCode() {
 
   } else {
 
-    $("province").value = "";
+    $("province").value =
+      "";
 
     resetDistrict();
+
     resetSubdistrict();
 
   }
@@ -1676,42 +1672,17 @@ function handlePostalCode() {
 
 function handleProvinceChange() {
 
-  if (!addressReady) {
-    return;
-  }
-
-
   const provinceId =
     $("province").value;
 
 
   resetDistrict();
+
   resetSubdistrict();
 
 
   if (!provinceId) {
     return;
-  }
-
-
-  let allowedDistrictIds = null;
-
-
-  // ถ้ามาจากการกรอก postcode
-  if (
-    postalFilteredSubdistricts.length
-  ) {
-
-    allowedDistrictIds =
-      new Set(
-        postalFilteredSubdistricts.map(
-          row =>
-            String(
-              row.district_id
-            )
-        )
-      );
-
   }
 
 
@@ -1727,7 +1698,20 @@ function handleProvinceChange() {
     );
 
 
-  if (allowedDistrictIds) {
+  if (
+    postalFilteredSubdistricts.length
+  ) {
+
+    const allowedDistrictIds =
+      new Set(
+        postalFilteredSubdistricts.map(
+          row =>
+            String(
+              row.district_id
+            )
+        )
+      );
+
 
     rows =
       rows.filter(
@@ -1752,8 +1736,9 @@ function handleProvinceChange() {
     false;
 
 
-  // ถ้าเหลืออำเภอเดียว เลือกให้เลย
-  if (rows.length === 1) {
+  if (
+    rows.length === 1
+  ) {
 
     $("district").value =
       String(rows[0].id);
@@ -1770,11 +1755,6 @@ function handleProvinceChange() {
 // =====================================================
 
 function handleDistrictChange() {
-
-  if (!addressReady) {
-    return;
-  }
-
 
   const districtId =
     $("district").value;
@@ -1800,19 +1780,21 @@ function handleDistrictChange() {
     );
 
 
-  // ถ้ามี postcode กรองอีกชั้น
   if (
     postalFilteredSubdistricts.length
   ) {
 
     const postal =
-      $("postalCode").value.trim();
+      $("postalCode")
+        .value
+        .trim();
 
 
     rows =
       rows.filter(
         row =>
-          rowZip(row) === postal
+          rowZip(row) ===
+          postal
       );
 
   }
@@ -1830,8 +1812,9 @@ function handleDistrictChange() {
     false;
 
 
-  // เหลือตำบลเดียว เลือกให้ทันที
-  if (rows.length === 1) {
+  if (
+    rows.length === 1
+  ) {
 
     $("subdistrict").value =
       String(rows[0].id);
@@ -1844,7 +1827,7 @@ function handleDistrictChange() {
 
 
 // =====================================================
-// SUBDISTRICT → POSTAL CODE
+// SUBDISTRICT → POSTAL
 // =====================================================
 
 function handleSubdistrictChange() {
@@ -1866,22 +1849,17 @@ function handleSubdistrictChange() {
     );
 
 
-  if (!row) {
-    return;
-  }
-
-
-  const zip =
-    rowZip(row);
-
-
-  if (zip) {
+  if (
+    row &&
+    rowZip(row)
+  ) {
 
     $("postalCode").value =
-      zip;
+      rowZip(row);
+
 
     $("postalHelp").textContent =
-      `รหัสไปรษณีย์ ${zip}`;
+      `รหัสไปรษณีย์ ${rowZip(row)}`;
 
     $("postalHelp").className =
       "text-xs text-emerald-600 mt-1.5 font-medium";
@@ -1892,22 +1870,19 @@ function handleSubdistrictChange() {
 
 
 // =====================================================
-// GET ADDRESS NAMES
+// SELECTED NAMES
 // =====================================================
 
 function getSelectedProvinceName() {
-
-  const id =
-    $("province").value;
-
 
   const row =
     provinces.find(
       item =>
         String(item.id) ===
-        String(id)
+        String(
+          $("province").value
+        )
     );
-
 
   return row
     ? provinceName(row)
@@ -1918,17 +1893,14 @@ function getSelectedProvinceName() {
 
 function getSelectedDistrictName() {
 
-  const id =
-    $("district").value;
-
-
   const row =
     districts.find(
       item =>
         String(item.id) ===
-        String(id)
+        String(
+          $("district").value
+        )
     );
-
 
   return row
     ? districtName(row)
@@ -1939,17 +1911,14 @@ function getSelectedDistrictName() {
 
 function getSelectedSubdistrictName() {
 
-  const id =
-    $("subdistrict").value;
-
-
   const row =
     subdistricts.find(
       item =>
         String(item.id) ===
-        String(id)
+        String(
+          $("subdistrict").value
+        )
     );
-
 
   return row
     ? subdistrictName(row)
@@ -1959,7 +1928,7 @@ function getSelectedSubdistrictName() {
 
 
 // =====================================================
-// COMMON VALUE
+// VALIDATION
 // =====================================================
 
 function cleanValue(value) {
@@ -1970,10 +1939,6 @@ function cleanValue(value) {
 
 }
 
-
-// =====================================================
-// FORM VALIDATION
-// =====================================================
 
 function validateForm() {
 
@@ -2005,8 +1970,7 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณาระบุคำนำหน้า",
-      confirmButtonText: "ตกลง"
+      title: "กรุณาระบุคำนำหน้า"
     });
 
     return false;
@@ -2018,11 +1982,8 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณาระบุชื่อ",
-      confirmButtonText: "ตกลง"
+      title: "กรุณาระบุชื่อ"
     });
-
-    $("firstName").focus();
 
     return false;
 
@@ -2033,26 +1994,8 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณาระบุนามสกุล",
-      confirmButtonText: "ตกลง"
+      title: "กรุณาระบุนามสกุล"
     });
-
-    $("lastName").focus();
-
-    return false;
-
-  }
-
-
-  if (!phone) {
-
-    Swal.fire({
-      icon: "warning",
-      title: "กรุณาระบุเบอร์โทรศัพท์",
-      confirmButtonText: "ตกลง"
-    });
-
-    $("phone").focus();
 
     return false;
 
@@ -2068,8 +2011,7 @@ function validateForm() {
     Swal.fire({
       icon: "warning",
       title: "เบอร์โทรศัพท์ไม่ถูกต้อง",
-      text: "กรุณากรอกเฉพาะตัวเลข 9–10 หลัก",
-      confirmButtonText: "ตกลง"
+      text: "กรุณากรอกตัวเลข 9–10 หลัก"
     });
 
     $("phone").focus();
@@ -2079,28 +2021,22 @@ function validateForm() {
   }
 
 
-  // ตรวจอีเมลทั้ง HTML5 + custom
-  if (email) {
+  if (
+    email &&
+    !validateEmailField(
+      false
+    )
+  ) {
 
-    if (
-      !$("email").checkValidity() ||
-      !isValidEmail(email)
-    ) {
+    Swal.fire({
+      icon: "warning",
+      title: "รูปแบบอีเมลไม่ถูกต้อง",
+      text: "กรุณากรอกอีเมล เช่น name@example.com"
+    });
 
-      validateEmailField(false);
+    $("email").focus();
 
-      Swal.fire({
-        icon: "warning",
-        title: "รูปแบบอีเมลไม่ถูกต้อง",
-        text: "กรุณากรอกอีเมล เช่น name@example.com",
-        confirmButtonText: "กลับไปแก้ไข"
-      });
-
-      $("email").focus();
-
-      return false;
-
-    }
+    return false;
 
   }
 
@@ -2111,9 +2047,7 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณายืนยันข้อมูล",
-      text: "ต้องยืนยันความถูกต้องของข้อมูลก่อนส่ง",
-      confirmButtonText: "ตกลง"
+      title: "กรุณายืนยันความถูกต้องของข้อมูล"
     });
 
     return false;
@@ -2140,9 +2074,7 @@ async function submitRegistration(
   if (
     !validateForm()
   ) {
-
     return;
-
   }
 
 
@@ -2154,10 +2086,11 @@ async function submitRegistration(
       title:
         "ยืนยันการลงทะเบียนศิษย์เก่า?",
 
-      html:
-        "กรุณาตรวจสอบข้อมูลให้ถูกต้อง<br>ก่อนส่งข้อมูลเข้าสู่ระบบ",
+      text:
+        "กรุณาตรวจสอบข้อมูลให้เรียบร้อยก่อนส่ง",
 
-      showCancelButton: true,
+      showCancelButton:
+        true,
 
       confirmButtonText:
         "ยืนยันลงทะเบียน",
@@ -2174,9 +2107,7 @@ async function submitRegistration(
   if (
     !confirmed.isConfirmed
   ) {
-
     return;
-
   }
 
 
@@ -2184,12 +2115,8 @@ async function submitRegistration(
     $("submitButton");
 
 
-  submitButton.disabled = true;
-
-  submitButton.classList.add(
-    "opacity-60",
-    "cursor-not-allowed"
-  );
+  submitButton.disabled =
+    true;
 
 
   Swal.fire({
@@ -2198,14 +2125,13 @@ async function submitRegistration(
       "กำลังบันทึกข้อมูล...",
 
     text:
-      "รอสักครู่นะคะ",
+      "รอสักครู่นะคะ 🌿",
 
     allowOutsideClick:
       false,
 
-    didOpen: () => {
-      Swal.showLoading();
-    }
+    didOpen: () =>
+      Swal.showLoading()
 
   });
 
@@ -2296,21 +2222,8 @@ async function submitRegistration(
       );
 
 
-    let result;
-
-
-    try {
-
-      result =
-        await response.json();
-
-    } catch {
-
-      throw new Error(
-        "ระบบตอบกลับข้อมูลไม่ถูกต้อง"
-      );
-
-    }
+    const result =
+      await response.json();
 
 
     if (!response.ok) {
@@ -2332,49 +2245,35 @@ async function submitRegistration(
 
           html: `
 
-            <div style="line-height:1.8">
-
-              <div>
-                ${
-                  escapeHtml(
-                    result.message ||
-                    "พบข้อมูลเดิมในระบบ"
-                  )
-                }
-              </div>
-
+            <p>
               ${
-                result.member_code
-                ? `
-                  <div style="
-                    margin-top:14px;
-                    font-size:13px;
-                    color:#64748b;
-                  ">
-                    รหัสสมาชิก
-                  </div>
-
-                  <div style="
-                    font-size:24px;
-                    font-weight:700;
-                    color:#16a34a;
-                  ">
-                    ${
-                      escapeHtml(
-                        result.member_code
-                      )
-                    }
-                  </div>
-                `
-                : ""
+                escapeHtml(
+                  result.message ||
+                  "พบข้อมูลเดิมในระบบ"
+                )
               }
+            </p>
 
-            </div>
+            ${
+              result.member_code
+              ? `
+                <div style="
+                  margin-top:14px;
+                  font-size:25px;
+                  font-weight:800;
+                  color:#16a34a;
+                ">
+                  ${
+                    escapeHtml(
+                      result.member_code
+                    )
+                  }
+                </div>
+              `
+              : ""
+            }
 
-          `,
-
-          confirmButtonText:
-            "ตกลง"
+          `
 
         });
 
@@ -2410,28 +2309,24 @@ async function submitRegistration(
 
       html: `
 
-        <div style="
-          text-align:center;
-          line-height:1.7;
-        ">
+        <div style="line-height:1.7">
 
           <div>
-            ระบบได้รับข้อมูลการลงทะเบียนแล้ว
+            ระบบได้รับข้อมูลของคุณแล้ว
           </div>
 
           <div style="
-            margin-top:15px;
-            font-size:13px;
+            margin-top:14px;
             color:#64748b;
+            font-size:13px;
           ">
-            รหัสสมาชิกของคุณ
+            รหัสสมาชิก
           </div>
 
           <div style="
             font-size:30px;
             font-weight:800;
             color:#16a34a;
-            margin-top:2px;
           ">
             ${
               escapeHtml(
@@ -2444,10 +2339,8 @@ async function submitRegistration(
             margin-top:12px;
             color:#64748b;
           ">
-            สถานะ
-            <strong style="
-              color:#d97706;
-            ">
+            สถานะ:
+            <strong style="color:#d97706">
               รออนุมัติ
             </strong>
           </div>
@@ -2482,23 +2375,14 @@ async function submitRegistration(
 
       text:
         error.message ||
-        "เกิดข้อผิดพลาดในการทำงาน",
-
-      confirmButtonText:
-        "ตกลง"
+        "เกิดข้อผิดพลาด"
 
     });
 
 
   } finally {
 
-    submitButton.disabled =
-      false;
-
-    submitButton.classList.remove(
-      "opacity-60",
-      "cursor-not-allowed"
-    );
+    updateSubmitButton();
 
   }
 
@@ -2526,10 +2410,7 @@ async function clearForm() {
         "ล้างข้อมูล",
 
       cancelButtonText:
-        "ยกเลิก",
-
-      confirmButtonColor:
-        "#f59e0b"
+        "ยกเลิก"
 
     });
 
@@ -2547,7 +2428,8 @@ async function clearForm() {
 
 function resetWholeForm() {
 
-  $("registerForm").reset();
+  $("registerForm")
+    .reset();
 
 
   $("prefixOtherBox")
@@ -2559,11 +2441,11 @@ function resetWholeForm() {
     false;
 
 
-  clearEmailError();
-
-
   postalFilteredSubdistricts =
     [];
+
+
+  clearEmailError();
 
 
   if (addressReady) {
@@ -2579,14 +2461,15 @@ function resetWholeForm() {
 
 
   resetDistrict();
+
   resetSubdistrict();
 
 
   $("postalHelp").textContent =
     "กรอก 5 หลัก แล้วระบบจะกรองพื้นที่ให้อัตโนมัติ";
 
-  $("postalHelp").className =
-    "text-xs text-slate-400 mt-1.5";
+
+  updateSubmitButton();
 
 
   window.scrollTo({
@@ -2598,7 +2481,7 @@ function resetWholeForm() {
 
 
 // =====================================================
-// ESCAPE HTML
+// ESCAPE
 // =====================================================
 
 function escapeHtml(value) {
