@@ -1,39 +1,44 @@
-// Trigger Cloudflare first build
-import postgres from "postgres";
+import pg from "pg";
+
+const { Client } = pg;
 
 export default {
   async fetch(request, env, ctx) {
-    try {
-      const sql = postgres(env.HYPERDRIVE.connectionString, {
-        max: 5,
-        fetch_types: false
-      });
+    const client = new Client({
+      connectionString: env.HYPERDRIVE.connectionString,
+    });
 
-      const result = await sql`
+    try {
+      await client.connect();
+
+      const result = await client.query(`
         SELECT
           current_database() AS database,
-          current_user AS user,
+          current_user AS "user",
           version() AS version,
           NOW() AS server_time
-      `;
-
-      await sql.end();
+      `);
 
       return Response.json({
         success: true,
         message: "SK Alumni PostgreSQL connected successfully",
-        data: result
+        data: result.rows,
       });
 
     } catch (error) {
+      console.error("Database error:", error);
+
       return Response.json(
         {
           success: false,
           message: "Database connection failed",
-          error: error.message
+          error: error.message,
         },
         { status: 500 }
       );
+
+    } finally {
+      await client.end().catch(() => {});
     }
-  }
+  },
 };
