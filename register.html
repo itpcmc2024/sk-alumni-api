@@ -14,33 +14,84 @@
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont,
                    "Segoe UI", sans-serif;
+
+      background:
+        radial-gradient(circle at top left, #fef3c7 0, transparent 32%),
+        radial-gradient(circle at top right, #e0e7ff 0, transparent 30%),
+        radial-gradient(circle at bottom left, #fce7f3 0, transparent 28%),
+        #f8fafc;
+    }
+
+    .pastel-card {
+      background: rgba(255,255,255,.93);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 16px 40px rgba(15,23,42,.07);
+    }
+
+    .input-field {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #1e293b;
+      outline: none;
+      transition: .2s;
+    }
+
+    .input-field:focus {
+      border-color: #818cf8;
+      box-shadow: 0 0 0 4px rgba(129,140,248,.12);
+    }
+
+    .input-field:disabled {
+      background: #f1f5f9;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .section-title {
+      color: #334155;
+    }
+
+    .help-text {
+      color: #64748b;
+    }
+
+    .required {
+      color: #f43f5e;
     }
   </style>
 </head>
 
-<body class="min-h-screen bg-slate-950 text-slate-100">
+<body class="min-h-screen text-slate-800">
 
-<header class="border-b border-slate-800 bg-slate-900">
+<!-- =====================================================
+     HEADER
+===================================================== -->
+<header class="bg-white/85 backdrop-blur border-b border-slate-200">
 
   <div class="max-w-5xl mx-auto px-4 py-5">
 
     <div class="flex items-center gap-4">
 
-      <div class="w-12 h-12 rounded-xl bg-indigo-950
+      <div class="w-14 h-14 rounded-2xl
+                  bg-gradient-to-br from-violet-200 to-pink-200
+                  text-violet-700
                   flex items-center justify-center
-                  text-indigo-300 border border-indigo-800">
+                  shadow-sm">
 
-        <i data-lucide="users"></i>
+        <i data-lucide="graduation-cap"></i>
 
       </div>
 
       <div>
 
-        <h1 class="text-xl md:text-2xl font-bold">
+        <h1 class="text-xl md:text-2xl font-bold text-slate-800">
           SK Alumni Member
         </h1>
 
-        <p class="text-sm text-slate-400">
+        <p class="text-sm text-slate-500">
           ระบบสมาชิกศิษย์เก่า
         </p>
 
@@ -55,36 +106,42 @@
 
 <main class="max-w-5xl mx-auto px-4 py-8">
 
-  <div class="mb-6">
+  <div class="mb-7">
 
-    <h2 class="text-2xl md:text-3xl font-bold">
-      สมัครสมาชิก
+    <div class="inline-flex items-center gap-2
+                px-4 py-2 rounded-full
+                bg-violet-100 text-violet-700
+                text-sm font-medium mb-3">
+
+      <i data-lucide="sparkles" class="w-4 h-4"></i>
+      สมัครสมาชิกใหม่
+
+    </div>
+
+    <h2 class="text-2xl md:text-3xl font-bold text-slate-800">
+      แบบฟอร์มสมัครสมาชิก
     </h2>
 
-    <p class="text-slate-400 mt-2">
+    <p class="text-slate-500 mt-2">
       กรุณากรอกข้อมูลให้ครบถ้วนเพื่อยื่นคำขอสมัครสมาชิก
     </p>
 
   </div>
 
 
-  <form
-    id="registerForm"
-    class="space-y-6"
-  >
+  <form id="registerForm" class="space-y-6">
 
     <!-- ==================================================
-         PERSONAL INFORMATION
+         PERSONAL
     =================================================== -->
 
-    <section class="bg-slate-900 border border-slate-800
-                    rounded-2xl p-5 md:p-6">
+    <section class="pastel-card rounded-3xl p-5 md:p-6">
 
       <div class="flex items-center gap-3 mb-5">
 
-        <div class="w-10 h-10 rounded-xl bg-indigo-950
-                    flex items-center justify-center
-                    text-indigo-300">
+        <div class="w-11 h-11 rounded-2xl
+                    bg-pink-100 text-pink-600
+                    flex items-center justify-center">
 
           <i data-lucide="user-round"></i>
 
@@ -92,11 +149,11 @@
 
         <div>
 
-          <h3 class="text-lg font-semibold">
+          <h3 class="text-lg font-semibold section-title">
             ข้อมูลส่วนตัว
           </h3>
 
-          <p class="text-sm text-slate-400">
+          <p class="text-sm help-text">
             ข้อมูลสำหรับจัดทำทะเบียนสมาชิก
           </p>
 
@@ -109,43 +166,54 @@
 
         <div>
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             คำนำหน้า
-            <span class="text-rose-400">*</span>
+            <span class="required">*</span>
           </label>
 
           <select
-            id="prefix"
+            id="prefixSelect"
             required
             class="input-field"
+            onchange="handlePrefixChange()"
           >
-
-            <option value="">
-              -- เลือก --
-            </option>
-
-            <option value="นาย">
-              นาย
-            </option>
-
-            <option value="นาง">
-              นาง
-            </option>
-
-            <option value="นางสาว">
-              นางสาว
-            </option>
-
+            <option value="">-- เลือก --</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+            <option value="ด.ช.">ด.ช.</option>
+            <option value="ด.ญ.">ด.ญ.</option>
+            <option value="OTHER">อื่นๆ</option>
           </select>
+
+        </div>
+
+
+        <div
+          id="prefixOtherBox"
+          class="hidden"
+        >
+
+          <label class="block text-sm font-medium mb-2">
+            ระบุคำนำหน้า
+            <span class="required">*</span>
+          </label>
+
+          <input
+            id="prefixOther"
+            type="text"
+            class="input-field"
+            placeholder="กรอกคำนำหน้า"
+          >
 
         </div>
 
 
         <div>
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             ชื่อ
-            <span class="text-rose-400">*</span>
+            <span class="required">*</span>
           </label>
 
           <input
@@ -161,9 +229,9 @@
 
         <div>
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             นามสกุล
-            <span class="text-rose-400">*</span>
+            <span class="required">*</span>
           </label>
 
           <input
@@ -179,7 +247,7 @@
 
         <div class="md:col-span-3">
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             ชื่อภาษาอาหรับ
           </label>
 
@@ -201,14 +269,13 @@
          CONTACT
     =================================================== -->
 
-    <section class="bg-slate-900 border border-slate-800
-                    rounded-2xl p-5 md:p-6">
+    <section class="pastel-card rounded-3xl p-5 md:p-6">
 
       <div class="flex items-center gap-3 mb-5">
 
-        <div class="w-10 h-10 rounded-xl bg-emerald-950
-                    flex items-center justify-center
-                    text-emerald-300">
+        <div class="w-11 h-11 rounded-2xl
+                    bg-emerald-100 text-emerald-600
+                    flex items-center justify-center">
 
           <i data-lucide="phone"></i>
 
@@ -216,11 +283,11 @@
 
         <div>
 
-          <h3 class="text-lg font-semibold">
+          <h3 class="text-lg font-semibold section-title">
             ข้อมูลติดต่อ
           </h3>
 
-          <p class="text-sm text-slate-400">
+          <p class="text-sm help-text">
             สำหรับติดต่อและตรวจสอบข้อมูลสมาชิก
           </p>
 
@@ -233,26 +300,32 @@
 
         <div>
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             เบอร์โทรศัพท์
-            <span class="text-rose-400">*</span>
+            <span class="required">*</span>
           </label>
 
           <input
             id="phone"
             type="tel"
             required
-            maxlength="20"
+            inputmode="numeric"
+            maxlength="10"
             class="input-field"
             placeholder="08xxxxxxxx"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
           >
+
+          <p class="text-xs text-slate-400 mt-1">
+            กรอกได้เฉพาะตัวเลข สูงสุด 10 หลัก
+          </p>
 
         </div>
 
 
         <div>
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             Email
           </label>
 
@@ -263,12 +336,16 @@
             placeholder="example@email.com"
           >
 
+          <p class="text-xs text-slate-400 mt-1">
+            หากกรอก ต้องอยู่ในรูปแบบอีเมลที่ถูกต้อง
+          </p>
+
         </div>
 
 
         <div class="md:col-span-2">
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             LINE ID
           </label>
 
@@ -290,14 +367,13 @@
          ADDRESS
     =================================================== -->
 
-    <section class="bg-slate-900 border border-slate-800
-                    rounded-2xl p-5 md:p-6">
+    <section class="pastel-card rounded-3xl p-5 md:p-6">
 
       <div class="flex items-center gap-3 mb-5">
 
-        <div class="w-10 h-10 rounded-xl bg-amber-950
-                    flex items-center justify-center
-                    text-amber-300">
+        <div class="w-11 h-11 rounded-2xl
+                    bg-amber-100 text-amber-600
+                    flex items-center justify-center">
 
           <i data-lucide="map-pin"></i>
 
@@ -305,12 +381,12 @@
 
         <div>
 
-          <h3 class="text-lg font-semibold">
+          <h3 class="text-lg font-semibold section-title">
             ที่อยู่
           </h3>
 
-          <p class="text-sm text-slate-400">
-            ที่อยู่ปัจจุบันของสมาชิก
+          <p class="text-sm help-text">
+            เลือกพื้นที่ได้ง่ายโดยใช้รหัสไปรษณีย์
           </p>
 
         </div>
@@ -322,7 +398,7 @@
 
         <div class="md:col-span-2">
 
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             บ้านเลขที่ / หมู่ / ถนน
           </label>
 
@@ -338,61 +414,79 @@
 
         <div>
 
-          <label class="block text-sm text-slate-300 mb-2">
-            ตำบล / แขวง
-          </label>
-
-          <input
-            id="subdistrict"
-            type="text"
-            class="input-field"
-          >
-
-        </div>
-
-
-        <div>
-
-          <label class="block text-sm text-slate-300 mb-2">
-            อำเภอ / เขต
-          </label>
-
-          <input
-            id="district"
-            type="text"
-            class="input-field"
-          >
-
-        </div>
-
-
-        <div>
-
-          <label class="block text-sm text-slate-300 mb-2">
-            จังหวัด
-          </label>
-
-          <input
-            id="province"
-            type="text"
-            class="input-field"
-          >
-
-        </div>
-
-
-        <div>
-
-          <label class="block text-sm text-slate-300 mb-2">
+          <label class="block text-sm font-medium mb-2">
             รหัสไปรษณีย์
           </label>
 
           <input
             id="postalCode"
             type="text"
-            maxlength="10"
+            inputmode="numeric"
+            maxlength="5"
             class="input-field"
+            placeholder="เช่น 11110"
+            oninput="handlePostalInput()"
           >
+
+          <p
+            id="postalHelp"
+            class="text-xs text-slate-400 mt-1"
+          >
+            เมื่อกรอกครบ 5 หลัก ระบบจะกรองพื้นที่ให้
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm font-medium mb-2">
+            จังหวัด
+          </label>
+
+          <select
+            id="province"
+            class="input-field"
+            onchange="handleProvinceChange()"
+          >
+            <option value="">-- เลือกจังหวัด --</option>
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm font-medium mb-2">
+            อำเภอ / เขต
+          </label>
+
+          <select
+            id="district"
+            class="input-field"
+            disabled
+            onchange="handleDistrictChange()"
+          >
+            <option value="">-- เลือกอำเภอ / เขต --</option>
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm font-medium mb-2">
+            ตำบล / แขวง
+          </label>
+
+          <select
+            id="subdistrict"
+            class="input-field"
+            disabled
+            onchange="handleSubdistrictChange()"
+          >
+            <option value="">-- เลือกตำบล / แขวง --</option>
+          </select>
 
         </div>
 
@@ -405,24 +499,23 @@
          CONSENT
     =================================================== -->
 
-    <section class="bg-slate-900 border border-slate-800
-                    rounded-2xl p-5 md:p-6">
+    <section class="pastel-card rounded-3xl p-5 md:p-6">
 
       <label class="flex items-start gap-3 cursor-pointer">
 
         <input
           id="consent"
           type="checkbox"
-          class="mt-1 w-5 h-5"
+          class="mt-1 w-5 h-5 accent-violet-600"
         >
 
         <div>
 
-          <div class="font-medium">
+          <div class="font-medium text-slate-700">
             ยืนยันและยอมรับเงื่อนไขการสมัครสมาชิก
           </div>
 
-          <p class="text-sm text-slate-400 mt-1">
+          <p class="text-sm text-slate-500 mt-1">
             ข้าพเจ้ายืนยันว่าข้อมูลที่กรอกเป็นข้อมูลที่ถูกต้อง
             และยินยอมให้ระบบจัดเก็บข้อมูลเพื่อใช้ในการบริหารจัดการสมาชิก
           </p>
@@ -435,7 +528,7 @@
 
 
     <!-- ==================================================
-         SUBMIT
+         ACTION
     =================================================== -->
 
     <div class="flex flex-col md:flex-row gap-3 justify-end">
@@ -443,8 +536,9 @@
       <button
         type="button"
         onclick="clearForm()"
-        class="px-6 py-3 rounded-xl
-               bg-slate-800 hover:bg-slate-700"
+        class="px-6 py-3 rounded-2xl
+               bg-white border border-slate-300
+               hover:bg-slate-50 text-slate-600"
       >
         ล้างข้อมูล
       </button>
@@ -452,17 +546,15 @@
       <button
         id="submitButton"
         type="submit"
-        class="px-8 py-3 rounded-xl
-               bg-indigo-600 hover:bg-indigo-500
-               font-semibold flex items-center
-               justify-center gap-2"
+        class="px-8 py-3 rounded-2xl
+               bg-gradient-to-r from-violet-500 to-pink-500
+               hover:from-violet-600 hover:to-pink-600
+               text-white font-semibold
+               shadow-lg shadow-violet-200
+               flex items-center justify-center gap-2"
       >
 
-        <i
-          data-lucide="send"
-          class="w-5 h-5"
-        ></i>
-
+        <i data-lucide="send" class="w-5 h-5"></i>
         ส่งใบสมัครสมาชิก
 
       </button>
@@ -472,10 +564,8 @@
   </form>
 
 
-  <footer class="text-center text-slate-500 text-sm py-10">
-
+  <footer class="text-center text-slate-400 text-sm py-10">
     SK Alumni Member System
-
   </footer>
 
 </main>
@@ -486,24 +576,24 @@
 const API_BASE =
   "https://sk-alumni-api.itpcmc2024.workers.dev";
 
+const GEO_URL =
+  "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/sub_district_with_district_and_province.json";
+
+let geoData = [];
+let activePostalRows = [];
+
+
+// =====================================================
+// INIT
+// =====================================================
 
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
-
-    document
-      .querySelectorAll(".input-field")
-      .forEach(el => {
-
-        el.className =
-          "input-field w-full bg-slate-950 " +
-          "border border-slate-700 rounded-xl " +
-          "px-4 py-3 outline-none " +
-          "focus:border-indigo-500";
-
-      });
+  async () => {
 
     lucide.createIcons();
+
+    await loadThaiAddressData();
 
   }
 );
@@ -517,21 +607,562 @@ document
   );
 
 
-function value(id) {
+// =====================================================
+// PREFIX
+// =====================================================
 
-  const el =
-    document.getElementById(id);
+function handlePrefixChange() {
 
-  if (!el) return "";
+  const selected =
+    document
+      .getElementById("prefixSelect")
+      .value;
 
-  return el.value.trim();
+  const box =
+    document
+      .getElementById("prefixOtherBox");
+
+  const other =
+    document
+      .getElementById("prefixOther");
+
+
+  if (selected === "OTHER") {
+
+    box.classList.remove("hidden");
+    other.required = true;
+    other.focus();
+
+  } else {
+
+    box.classList.add("hidden");
+    other.required = false;
+    other.value = "";
+
+  }
 
 }
 
 
+function getPrefixValue() {
+
+  const selected =
+    value("prefixSelect");
+
+  if (selected === "OTHER") {
+    return value("prefixOther");
+  }
+
+  return selected;
+
+}
+
+
+// =====================================================
+// THAI ADDRESS DATA
+// =====================================================
+
+async function loadThaiAddressData() {
+
+  try {
+
+    const response =
+      await fetch(GEO_URL);
+
+    if (!response.ok) {
+      throw new Error();
+    }
+
+    geoData =
+      await response.json();
+
+    populateAllProvinces();
+
+  } catch {
+
+    document
+      .getElementById("postalHelp")
+      .textContent =
+      "ไม่สามารถโหลดข้อมูลที่อยู่ได้ กรุณาลองรีเฟรชหน้า";
+
+  }
+
+}
+
+
+function normalizeRow(row) {
+
+  return {
+    postalCode:
+      String(
+        row.zip_code ??
+        row.postal_code ??
+        row.postalCode ??
+        ""
+      ),
+
+    province:
+      row.province?.name_th ??
+      row.province_name_th ??
+      row.provinceNameTh ??
+      "",
+
+    district:
+      row.district?.name_th ??
+      row.district_name_th ??
+      row.districtNameTh ??
+      "",
+
+    subdistrict:
+      row.name_th ??
+      row.sub_district_name_th ??
+      row.subdistrictNameTh ??
+      ""
+  };
+
+}
+
+
+function normalizedGeo() {
+
+  return geoData
+    .map(normalizeRow)
+    .filter(row =>
+      row.province &&
+      row.district &&
+      row.subdistrict
+    );
+
+}
+
+
+function uniqueSorted(values) {
+
+  return [
+    ...new Set(
+      values.filter(Boolean)
+    )
+  ].sort(
+    (a, b) =>
+      a.localeCompare(
+        b,
+        "th"
+      )
+  );
+
+}
+
+
+function setSelectOptions(
+  selectId,
+  values,
+  placeholder
+) {
+
+  const select =
+    document
+      .getElementById(selectId);
+
+  select.innerHTML =
+    `<option value="">${placeholder}</option>`;
+
+  for (const item of values) {
+
+    const option =
+      document.createElement("option");
+
+    option.value = item;
+    option.textContent = item;
+
+    select.appendChild(option);
+
+  }
+
+}
+
+
+function populateAllProvinces() {
+
+  const provinces =
+    uniqueSorted(
+      normalizedGeo()
+        .map(row => row.province)
+    );
+
+  setSelectOptions(
+    "province",
+    provinces,
+    "-- เลือกจังหวัด --"
+  );
+
+}
+
+
+// =====================================================
+// POSTAL CODE SEARCH
+// =====================================================
+
+function handlePostalInput() {
+
+  const postalInput =
+    document
+      .getElementById("postalCode");
+
+  postalInput.value =
+    postalInput.value.replace(
+      /[^0-9]/g,
+      ""
+    );
+
+  const postal =
+    postalInput.value;
+
+
+  if (postal.length < 5) {
+
+    activePostalRows = [];
+
+    populateAllProvinces();
+
+    resetDistrict();
+    resetSubdistrict();
+
+    document
+      .getElementById("postalHelp")
+      .textContent =
+      "เมื่อกรอกครบ 5 หลัก ระบบจะกรองพื้นที่ให้";
+
+    return;
+
+  }
+
+
+  activePostalRows =
+    normalizedGeo()
+      .filter(
+        row =>
+          row.postalCode === postal
+      );
+
+
+  if (!activePostalRows.length) {
+
+    populateAllProvinces();
+
+    resetDistrict();
+    resetSubdistrict();
+
+    document
+      .getElementById("postalHelp")
+      .textContent =
+      "ไม่พบพื้นที่สำหรับรหัสไปรษณีย์นี้";
+
+    return;
+
+  }
+
+
+  const provinces =
+    uniqueSorted(
+      activePostalRows
+        .map(row => row.province)
+    );
+
+
+  setSelectOptions(
+    "province",
+    provinces,
+    "-- เลือกจังหวัด --"
+  );
+
+
+  document
+    .getElementById("postalHelp")
+    .textContent =
+    `พบ ${activePostalRows.length} พื้นที่`;
+
+
+  if (provinces.length === 1) {
+
+    document
+      .getElementById("province")
+      .value =
+      provinces[0];
+
+    handleProvinceChange();
+
+  }
+
+}
+
+
+// =====================================================
+// PROVINCE
+// =====================================================
+
+function handleProvinceChange() {
+
+  const province =
+    value("province");
+
+  resetDistrict();
+  resetSubdistrict();
+
+
+  if (!province) {
+    return;
+  }
+
+
+  const source =
+    activePostalRows.length
+      ? activePostalRows
+      : normalizedGeo();
+
+
+  const districts =
+    uniqueSorted(
+      source
+        .filter(
+          row =>
+            row.province === province
+        )
+        .map(
+          row => row.district
+        )
+    );
+
+
+  setSelectOptions(
+    "district",
+    districts,
+    "-- เลือกอำเภอ / เขต --"
+  );
+
+
+  document
+    .getElementById("district")
+    .disabled = false;
+
+
+  if (districts.length === 1) {
+
+    document
+      .getElementById("district")
+      .value =
+      districts[0];
+
+    handleDistrictChange();
+
+  }
+
+}
+
+
+// =====================================================
+// DISTRICT
+// =====================================================
+
+function handleDistrictChange() {
+
+  const province =
+    value("province");
+
+  const district =
+    value("district");
+
+
+  resetSubdistrict();
+
+
+  if (
+    !province ||
+    !district
+  ) {
+    return;
+  }
+
+
+  const source =
+    activePostalRows.length
+      ? activePostalRows
+      : normalizedGeo();
+
+
+  const subdistricts =
+    uniqueSorted(
+      source
+        .filter(
+          row =>
+            row.province === province &&
+            row.district === district
+        )
+        .map(
+          row => row.subdistrict
+        )
+    );
+
+
+  setSelectOptions(
+    "subdistrict",
+    subdistricts,
+    "-- เลือกตำบล / แขวง --"
+  );
+
+
+  document
+    .getElementById("subdistrict")
+    .disabled = false;
+
+
+  if (subdistricts.length === 1) {
+
+    document
+      .getElementById("subdistrict")
+      .value =
+      subdistricts[0];
+
+    handleSubdistrictChange();
+
+  }
+
+}
+
+
+// =====================================================
+// SUBDISTRICT
+// =====================================================
+
+function handleSubdistrictChange() {
+
+  const province =
+    value("province");
+
+  const district =
+    value("district");
+
+  const subdistrict =
+    value("subdistrict");
+
+
+  if (
+    !province ||
+    !district ||
+    !subdistrict
+  ) {
+    return;
+  }
+
+
+  const match =
+    normalizedGeo()
+      .find(
+        row =>
+          row.province === province &&
+          row.district === district &&
+          row.subdistrict === subdistrict
+      );
+
+
+  if (
+    match &&
+    match.postalCode
+  ) {
+
+    document
+      .getElementById("postalCode")
+      .value =
+      match.postalCode;
+
+  }
+
+}
+
+
+function resetDistrict() {
+
+  setSelectOptions(
+    "district",
+    [],
+    "-- เลือกอำเภอ / เขต --"
+  );
+
+  document
+    .getElementById("district")
+    .disabled = true;
+
+}
+
+
+function resetSubdistrict() {
+
+  setSelectOptions(
+    "subdistrict",
+    [],
+    "-- เลือกตำบล / แขวง --"
+  );
+
+  document
+    .getElementById("subdistrict")
+    .disabled = true;
+
+}
+
+
+// =====================================================
+// VALUE
+// =====================================================
+
+function value(id) {
+
+  const element =
+    document
+      .getElementById(id);
+
+  if (!element) {
+    return "";
+  }
+
+  return String(
+    element.value || ""
+  ).trim();
+
+}
+
+
+// =====================================================
+// VALIDATION
+// =====================================================
+
+function validatePhone(phone) {
+
+  return /^[0-9]{9,10}$/.test(phone);
+
+}
+
+
+function validateEmail(email) {
+
+  if (!email) {
+    return true;
+  }
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+}
+
+
+// =====================================================
+// SUBMIT
+// =====================================================
+
 async function submitRegistration(event) {
 
   event.preventDefault();
+
+
+  const prefix =
+    getPrefixValue();
 
   const firstName =
     value("firstName");
@@ -542,10 +1173,25 @@ async function submitRegistration(event) {
   const phone =
     value("phone");
 
+  const email =
+    value("email");
+
   const consent =
     document
       .getElementById("consent")
       .checked;
+
+
+  if (!prefix) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "กรุณาระบุคำนำหน้า"
+    });
+
+    return;
+
+  }
 
 
   if (!firstName) {
@@ -584,12 +1230,37 @@ async function submitRegistration(event) {
   }
 
 
+  if (!validatePhone(phone)) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "เบอร์โทรศัพท์ไม่ถูกต้อง",
+      text: "กรุณากรอกเฉพาะตัวเลข 9–10 หลัก"
+    });
+
+    return;
+
+  }
+
+
+  if (!validateEmail(email)) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "รูปแบบอีเมลไม่ถูกต้อง",
+      text: "ตัวอย่าง: name@example.com"
+    });
+
+    return;
+
+  }
+
+
   if (!consent) {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณายอมรับเงื่อนไข",
-      text: "ต้องยอมรับเงื่อนไขก่อนส่งใบสมัครสมาชิก"
+      title: "กรุณายอมรับเงื่อนไข"
     });
 
     return;
@@ -606,7 +1277,7 @@ async function submitRegistration(event) {
         "ยืนยันส่งใบสมัครสมาชิก?",
 
       text:
-        "กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยัน",
+        "กรุณาตรวจสอบข้อมูลให้ถูกต้อง",
 
       showCancelButton: true,
 
@@ -625,9 +1296,10 @@ async function submitRegistration(event) {
 
 
   const submitButton =
-    document.getElementById(
-      "submitButton"
-    );
+    document
+      .getElementById(
+        "submitButton"
+      );
 
 
   submitButton.disabled = true;
@@ -675,7 +1347,7 @@ async function submitRegistration(event) {
           body: JSON.stringify({
 
             prefix:
-              value("prefix"),
+              prefix,
 
             first_name:
               firstName,
@@ -690,7 +1362,7 @@ async function submitRegistration(event) {
               phone,
 
             email:
-              value("email"),
+              email,
 
             line_id:
               value("lineId"),
@@ -720,21 +1392,8 @@ async function submitRegistration(event) {
       );
 
 
-    let result;
-
-
-    try {
-
-      result =
-        await response.json();
-
-    } catch {
-
-      throw new Error(
-        "ไม่สามารถอ่านข้อมูลตอบกลับจากระบบได้"
-      );
-
-    }
+    const result =
+      await response.json();
 
 
     if (!response.ok) {
@@ -746,7 +1405,6 @@ async function submitRegistration(event) {
 
         Swal.close();
 
-
         await Swal.fire({
 
           icon: "warning",
@@ -756,37 +1414,32 @@ async function submitRegistration(event) {
 
           html: `
 
-            <div style="text-align:center">
+            <p>
+              ${escapeHtml(
+                result.message ||
+                "พบข้อมูลสมาชิกเดิม"
+              )}
+            </p>
 
-              <p>
-                ${escapeHtml(
-                  result.message ||
-                  "พบข้อมูลสมาชิกเดิม"
-                )}
-              </p>
+            ${
+              result.member_code
+              ? `
+                <div style="
+                  margin-top:15px;
+                  font-size:22px;
+                  font-weight:bold;
+                ">
+                  ${escapeHtml(
+                    result.member_code
+                  )}
+                </div>
+              `
+              : ""
+            }
 
-              ${
-                result.member_code
-                ? `
-                  <p style="
-                    margin-top:12px;
-                    font-weight:bold;
-                    font-size:18px;
-                  ">
-                    รหัสสมาชิก:
-                    ${escapeHtml(
-                      result.member_code
-                    )}
-                  </p>
-                `
-                : ""
-              }
-
-            </div>
           `
 
         });
-
 
         return;
 
@@ -794,10 +1447,8 @@ async function submitRegistration(event) {
 
 
       throw new Error(
-
         result.message ||
         "ไม่สามารถสมัครสมาชิกได้"
-
       );
 
     }
@@ -821,38 +1472,36 @@ async function submitRegistration(event) {
 
       html: `
 
-        <div style="text-align:center">
+        <p>
+          ระบบได้รับใบสมัครของท่านแล้ว
+        </p>
 
-          <p>
-            ระบบได้รับใบสมัครของท่านแล้ว
-          </p>
+        <p style="
+          margin-top:14px;
+          color:#64748b;
+        ">
+          รหัสสมาชิก
+        </p>
 
-          <p style="
-            margin-top:16px;
-            color:#64748b;
-          ">
-            รหัสสมาชิก
-          </p>
-
-          <div style="
-            font-size:28px;
-            font-weight:700;
-            margin-top:4px;
-          ">
-            ${escapeHtml(memberCode)}
-          </div>
-
-          <p style="
-            margin-top:16px;
-            color:#64748b;
-          ">
-            สถานะเริ่มต้น:
-            <strong>
-              รออนุมัติ
-            </strong>
-          </p>
-
+        <div style="
+          margin-top:4px;
+          font-size:28px;
+          font-weight:700;
+          color:#7c3aed;
+        ">
+          ${escapeHtml(memberCode)}
         </div>
+
+        <p style="
+          margin-top:14px;
+          color:#64748b;
+        ">
+          สถานะ:
+          <strong>
+            รออนุมัติ
+          </strong>
+        </p>
+
       `,
 
       confirmButtonText:
@@ -861,11 +1510,7 @@ async function submitRegistration(event) {
     });
 
 
-    document
-      .getElementById(
-        "registerForm"
-      )
-      .reset();
+    resetWholeForm();
 
 
   } catch (error) {
@@ -900,6 +1545,10 @@ async function submitRegistration(event) {
 }
 
 
+// =====================================================
+// CLEAR
+// =====================================================
+
 async function clearForm() {
 
   const result =
@@ -926,40 +1575,65 @@ async function clearForm() {
   }
 
 
+  resetWholeForm();
+
+}
+
+
+function resetWholeForm() {
+
   document
     .getElementById(
       "registerForm"
     )
     .reset();
 
+
+  document
+    .getElementById(
+      "prefixOtherBox"
+    )
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "prefixOther"
+    )
+    .required = false;
+
+
+  activePostalRows = [];
+
+  populateAllProvinces();
+
+  resetDistrict();
+  resetSubdistrict();
+
+
+  document
+    .getElementById("postalHelp")
+    .textContent =
+    "เมื่อกรอกครบ 5 หลัก ระบบจะกรองพื้นที่ให้";
+
 }
 
+
+// =====================================================
+// ESCAPE
+// =====================================================
 
 function escapeHtml(value) {
 
   return String(
     value ?? ""
   )
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 }
 
