@@ -1,4 +1,4 @@
-import postgres from "postgres";
+import { Client } from "pg";
 
 const ALLOWED_ORIGINS = [
   "https://itpcmc2024.github.io"
@@ -42,20 +42,20 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
+    if (!env.HYPERDRIVE?.connectionString) {
+      return json(request, {
+        success: false,
+        message: "Hyperdrive binding not found"
+      }, 500);
+    }
+
+    const client = new Client({
+      connectionString: env.HYPERDRIVE.connectionString
+    });
+
     try {
 
-      if (!env.HYPERDRIVE?.connectionString) {
-        return json(request, {
-          success: false,
-          message: "Hyperdrive binding not found"
-        }, 500);
-      }
-
-      const sql = postgres(env.HYPERDRIVE.connectionString, {
-        max: 5,
-        fetch_types: false,
-        prepare: true
-      });
+      await client.connect();
 
       // =====================================================
       // HOME
@@ -64,7 +64,7 @@ export default {
         return json(request, {
           success: true,
           app: "SK Alumni API",
-          version: "1.0.1",
+          version: "1.0.2",
           status: "online",
           endpoints: [
             "/api/health",
@@ -75,25 +75,22 @@ export default {
       }
 
       // =====================================================
-      // HEALTH CHECK
+      // HEALTH
       // =====================================================
-      if (
-        path === "/api/health" &&
-        request.method === "GET"
-      ) {
+      if (path === "/api/health" && request.method === "GET") {
 
-        const result = await sql`
+        const result = await client.query(`
           SELECT
             current_database() AS database,
             NOW() AS server_time
-        `;
+        `);
 
         return json(request, {
           success: true,
           service: "sk-alumni-api",
-          version: "1.0.1",
-          database: result[0]?.database || null,
-          server_time: result[0]?.server_time || null
+          version: "1.0.2",
+          database: result.rows[0]?.database || null,
+          server_time: result.rows[0]?.server_time || null
         });
       }
 
@@ -105,11 +102,11 @@ export default {
         request.method === "GET"
       ) {
 
-        const rows = await sql`
+        const result = await client.query(`
           SELECT
             setting_key,
             setting_value
-          FROM app_settings
+          FROM public.app_settings
           WHERE setting_key IN (
             'APP_NAME',
             'APP_VERSION',
@@ -119,11 +116,11 @@ export default {
             'CONTACT_EMAIL'
           )
           ORDER BY setting_key
-        `;
+        `);
 
         const settings = {};
 
-        for (const row of rows) {
+        for (const row of result.rows) {
           settings[row.setting_key] = row.setting_value;
         }
 
@@ -135,101 +132,80 @@ export default {
 
       // =====================================================
       // MEMBER LOOKUP
-      // GET /api/members/:memberCode
       // =====================================================
       if (
         path.startsWith("/api/members/") &&
         request.method === "GET"
       ) {
 
-        try {
+        const memberCode = decodeURIComponent(
+          path.substring("/api/members/".length)
+        ).trim();
 
-          const memberCode = decodeURIComponent(
-            path.substring("/api/members/".length)
-          ).trim();
-
-          if (!memberCode) {
-            return json(request, {
-              success: false,
-              message: "กรุณาระบุรหัสสมาชิก"
-            }, 400);
-          }
-
-          const rows = await sql`
-            SELECT
-              m.member_code,
-              m.prefix,
-              m.full_name,
-              m.arabic_name,
-              m.status,
-              m.member_start,
-              m.member_expire,
-              m.registered_at,
-              a.subdistrict,
-              a.district,
-              a.province,
-              a.postal_code
-            FROM public.members AS m
-            LEFT JOIN public.addresses AS a
-              ON a.member_code = m.member_code
-            WHERE m.member_code = ${memberCode}
-            LIMIT 1
-          `;
-
-          if (rows.length === 0) {
-            return json(request, {
-              success: true,
-              found: false,
-              member_code: memberCode,
-              message: "ไม่พบข้อมูลสมาชิก"
-            });
-          }
-
-          const member = rows[0];
-
-          return json(request, {
-            success: true,
-            found: true,
-            data: {
-              member_code: member.member_code,
-              prefix: member.prefix,
-              full_name: member.full_name,
-              arabic_name: member.arabic_name,
-              status: member.status,
-              member_start: member.member_start,
-              member_expire: member.member_expire,
-              registered_at: member.registered_at,
-              address: {
-                subdistrict: member.subdistrict,
-                district: member.district,
-                province: member.province,
-                postal_code: member.postal_code
-              }
-            }
-          });
-
-        } catch (error) {
-
-          console.error(
-            "MEMBER LOOKUP ERROR:",
-            error?.message || String(error)
-          );
-
+        if (!memberCode) {
           return json(request, {
             success: false,
-            stage: "member_lookup",
-            message: "Member lookup failed",
-
-            // ชั่วคราวสำหรับทดสอบ
-            error: error?.message || String(error),
-            code: error?.code || null
-          }, 500);
+            message: "กรุณาระบุรหัสสมาชิก"
+          }, 400);
         }
+
+        const result = await client.query(
+          `
+          SELECT
+            m.member_code,
+            m.prefix,
+            m.full_name,
+            m.arabic_name,
+            m.status,
+            m.member_start,
+            m.member_expire,
+            m.registered_at,
+            a.subdistrict,
+            a.district,
+            a.province,
+            a.postal_code
+          FROM public.members AS m
+          LEFT JOIN public.addresses AS a
+            ON a.member_code = m.member_code
+          WHERE m.member_code = $1
+          LIMIT 1
+          `,
+          [memberCode]
+        );
+
+        if (result.rows.length === 0) {
+          return json(request, {
+            success: true,
+            found: false,
+            member_code: memberCode,
+            message: "ไม่พบข้อมูลสมาชิก"
+          });
+        }
+
+        const member = result.rows[0];
+
+        return json(request, {
+          success: true,
+          found: true,
+          data: {
+            member_code: member.member_code,
+            prefix: member.prefix,
+            full_name: member.full_name,
+            arabic_name: member.arabic_name,
+            status: member.status,
+            member_start: member.member_start,
+            member_expire: member.member_expire,
+            registered_at: member.registered_at,
+            address: {
+              subdistrict: member.subdistrict,
+              district: member.district,
+              province: member.province,
+              postal_code: member.postal_code
+            }
+          }
+        });
       }
 
-      // =====================================================
-      // NOT FOUND
-      // =====================================================
       return json(request, {
         success: false,
         message: "API endpoint not found"
@@ -237,19 +213,21 @@ export default {
 
     } catch (error) {
 
-      console.error(
-        "SK Alumni API ERROR:",
-        error?.message || String(error)
-      );
+      console.error("SK Alumni API ERROR:", error);
 
       return json(request, {
         success: false,
         message: "Internal server error",
-
-        // ชั่วคราวสำหรับทดสอบ
         error: error?.message || String(error),
         code: error?.code || null
       }, 500);
+
+    } finally {
+
+      try {
+        await client.end();
+      } catch (_) {}
+
     }
   }
 };
