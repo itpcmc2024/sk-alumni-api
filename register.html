@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>สมัครสมาชิก | SK Alumni</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-slate-100">
+
+<header class="border-b border-slate-800 bg-slate-900">
+
+  <div class="max-w-5xl mx-auto px-4 py-5">
+
+    <div class="flex items-center gap-4">
+
+      <div class="w-12 h-12 rounded-xl bg-indigo-950
+                  flex items-center justify-center
+                  text-indigo-300 border border-indigo-800">
+
+        <i data-lucide="users"></i>
+
+      </div>
+
+      <div>
+
+        <h1 class="text-xl md:text-2xl font-bold">
+          SK Alumni Member
+        </h1>
+
+        <p class="text-sm text-slate-400">
+          ระบบสมาชิกศิษย์เก่า
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+  <div class="mb-6">
+
+    <h2 class="text-2xl md:text-3xl font-bold">
+      สมัครสมาชิก
+    </h2>
+
+    <p class="text-slate-400 mt-2">
+      กรุณากรอกข้อมูลให้ครบถ้วนเพื่อยื่นคำขอสมัครสมาชิก
+    </p>
+
+  </div>
+
+
+  <form
+    id="registerForm"
+    class="space-y-6"
+  >
+
+    <!-- ==================================================
+         PERSONAL INFORMATION
+    =================================================== -->
+
+    <section class="bg-slate-900 border border-slate-800
+                    rounded-2xl p-5 md:p-6">
+
+      <div class="flex items-center gap-3 mb-5">
+
+        <div class="w-10 h-10 rounded-xl bg-indigo-950
+                    flex items-center justify-center
+                    text-indigo-300">
+
+          <i data-lucide="user-round"></i>
+
+        </div>
+
+        <div>
+
+          <h3 class="text-lg font-semibold">
+            ข้อมูลส่วนตัว
+          </h3>
+
+          <p class="text-sm text-slate-400">
+            ข้อมูลสำหรับจัดทำทะเบียนสมาชิก
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="grid md:grid-cols-3 gap-4">
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            คำนำหน้า
+            <span class="text-rose-400">*</span>
+          </label>
+
+          <select
+            id="prefix"
+            required
+            class="input-field"
+          >
+
+            <option value="">
+              -- เลือก --
+            </option>
+
+            <option value="นาย">
+              นาย
+            </option>
+
+            <option value="นาง">
+              นาง
+            </option>
+
+            <option value="นางสาว">
+              นางสาว
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            ชื่อ
+            <span class="text-rose-400">*</span>
+          </label>
+
+          <input
+            id="firstName"
+            type="text"
+            required
+            class="input-field"
+            placeholder="ชื่อ"
+          >
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            นามสกุล
+            <span class="text-rose-400">*</span>
+          </label>
+
+          <input
+            id="lastName"
+            type="text"
+            required
+            class="input-field"
+            placeholder="นามสกุล"
+          >
+
+        </div>
+
+
+        <div class="md:col-span-3">
+
+          <label class="block text-sm text-slate-300 mb-2">
+            ชื่อภาษาอาหรับ
+          </label>
+
+          <input
+            id="arabicName"
+            type="text"
+            class="input-field"
+            placeholder="ถ้ามี"
+          >
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         CONTACT
+    =================================================== -->
+
+    <section class="bg-slate-900 border border-slate-800
+                    rounded-2xl p-5 md:p-6">
+
+      <div class="flex items-center gap-3 mb-5">
+
+        <div class="w-10 h-10 rounded-xl bg-emerald-950
+                    flex items-center justify-center
+                    text-emerald-300">
+
+          <i data-lucide="phone"></i>
+
+        </div>
+
+        <div>
+
+          <h3 class="text-lg font-semibold">
+            ข้อมูลติดต่อ
+          </h3>
+
+          <p class="text-sm text-slate-400">
+            สำหรับติดต่อและตรวจสอบข้อมูลสมาชิก
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="grid md:grid-cols-2 gap-4">
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            เบอร์โทรศัพท์
+            <span class="text-rose-400">*</span>
+          </label>
+
+          <input
+            id="phone"
+            type="tel"
+            required
+            maxlength="20"
+            class="input-field"
+            placeholder="08xxxxxxxx"
+          >
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            Email
+          </label>
+
+          <input
+            id="email"
+            type="email"
+            class="input-field"
+            placeholder="example@email.com"
+          >
+
+        </div>
+
+
+        <div class="md:col-span-2">
+
+          <label class="block text-sm text-slate-300 mb-2">
+            LINE ID
+          </label>
+
+          <input
+            id="lineId"
+            type="text"
+            class="input-field"
+            placeholder="LINE ID"
+          >
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         ADDRESS
+    =================================================== -->
+
+    <section class="bg-slate-900 border border-slate-800
+                    rounded-2xl p-5 md:p-6">
+
+      <div class="flex items-center gap-3 mb-5">
+
+        <div class="w-10 h-10 rounded-xl bg-amber-950
+                    flex items-center justify-center
+                    text-amber-300">
+
+          <i data-lucide="map-pin"></i>
+
+        </div>
+
+        <div>
+
+          <h3 class="text-lg font-semibold">
+            ที่อยู่
+          </h3>
+
+          <p class="text-sm text-slate-400">
+            ที่อยู่ปัจจุบันของสมาชิก
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="grid md:grid-cols-2 gap-4">
+
+        <div class="md:col-span-2">
+
+          <label class="block text-sm text-slate-300 mb-2">
+            บ้านเลขที่ / หมู่ / ถนน
+          </label>
+
+          <input
+            id="addressLine"
+            type="text"
+            class="input-field"
+            placeholder="เช่น 99/9 หมู่ 1"
+          >
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            ตำบล / แขวง
+          </label>
+
+          <input
+            id="subdistrict"
+            type="text"
+            class="input-field"
+          >
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            อำเภอ / เขต
+          </label>
+
+          <input
+            id="district"
+            type="text"
+            class="input-field"
+          >
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            จังหวัด
+          </label>
+
+          <input
+            id="province"
+            type="text"
+            class="input-field"
+          >
+
+        </div>
+
+
+        <div>
+
+          <label class="block text-sm text-slate-300 mb-2">
+            รหัสไปรษณีย์
+          </label>
+
+          <input
+            id="postalCode"
+            type="text"
+            maxlength="10"
+            class="input-field"
+          >
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         CONSENT
+    =================================================== -->
+
+    <section class="bg-slate-900 border border-slate-800
+                    rounded-2xl p-5 md:p-6">
+
+      <label class="flex items-start gap-3 cursor-pointer">
+
+        <input
+          id="consent"
+          type="checkbox"
+          class="mt-1 w-5 h-5"
+        >
+
+        <div>
+
+          <div class="font-medium">
+            ยืนยันและยอมรับเงื่อนไขการสมัครสมาชิก
+          </div>
+
+          <p class="text-sm text-slate-400 mt-1">
+            ข้าพเจ้ายืนยันว่าข้อมูลที่กรอกเป็นข้อมูลที่ถูกต้อง
+            และยินยอมให้ระบบจัดเก็บข้อมูลเพื่อใช้ในการบริหารจัดการสมาชิก
+          </p>
+
+        </div>
+
+      </label>
+
+    </section>
+
+
+    <!-- ==================================================
+         SUBMIT
+    =================================================== -->
+
+    <div class="flex flex-col md:flex-row gap-3 justify-end">
+
+      <button
+        type="button"
+        onclick="clearForm()"
+        class="px-6 py-3 rounded-xl
+               bg-slate-800 hover:bg-slate-700"
+      >
+        ล้างข้อมูล
+      </button>
+
+      <button
+        id="submitButton"
+        type="submit"
+        class="px-8 py-3 rounded-xl
+               bg-indigo-600 hover:bg-indigo-500
+               font-semibold flex items-center
+               justify-center gap-2"
+      >
+
+        <i
+          data-lucide="send"
+          class="w-5 h-5"
+        ></i>
+
+        ส่งใบสมัครสมาชิก
+
+      </button>
+
+    </div>
+
+  </form>
+
+
+  <footer class="text-center text-slate-500 text-sm py-10">
+
+    SK Alumni Member System
+
+  </footer>
+
+</main>
+
+
+<script>
+
+const API_BASE =
+  "https://sk-alumni-api.itpcmc2024.workers.dev";
+
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    document
+      .querySelectorAll(".input-field")
+      .forEach(el => {
+
+        el.className =
+          "input-field w-full bg-slate-950 " +
+          "border border-slate-700 rounded-xl " +
+          "px-4 py-3 outline-none " +
+          "focus:border-indigo-500";
+
+      });
+
+    lucide.createIcons();
+
+  }
+);
+
+
+document
+  .getElementById("registerForm")
+  .addEventListener(
+    "submit",
+    submitRegistration
+  );
+
+
+function value(id) {
+
+  const el =
+    document.getElementById(id);
+
+  if (!el) return "";
+
+  return el.value.trim();
+
+}
+
+
+async function submitRegistration(event) {
+
+  event.preventDefault();
+
+  const firstName =
+    value("firstName");
+
+  const lastName =
+    value("lastName");
+
+  const phone =
+    value("phone");
+
+  const consent =
+    document
+      .getElementById("consent")
+      .checked;
+
+
+  if (!firstName) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "กรุณาระบุชื่อ"
+    });
+
+    return;
+
+  }
+
+
+  if (!lastName) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "กรุณาระบุนามสกุล"
+    });
+
+    return;
+
+  }
+
+
+  if (!phone) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "กรุณาระบุเบอร์โทรศัพท์"
+    });
+
+    return;
+
+  }
+
+
+  if (!consent) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "กรุณายอมรับเงื่อนไข",
+      text: "ต้องยอมรับเงื่อนไขก่อนส่งใบสมัครสมาชิก"
+    });
+
+    return;
+
+  }
+
+
+  const confirmed =
+    await Swal.fire({
+
+      icon: "question",
+
+      title:
+        "ยืนยันส่งใบสมัครสมาชิก?",
+
+      text:
+        "กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยัน",
+
+      showCancelButton: true,
+
+      confirmButtonText:
+        "ยืนยันสมัครสมาชิก",
+
+      cancelButtonText:
+        "ตรวจสอบอีกครั้ง"
+
+    });
+
+
+  if (!confirmed.isConfirmed) {
+    return;
+  }
+
+
+  const submitButton =
+    document.getElementById(
+      "submitButton"
+    );
+
+
+  submitButton.disabled = true;
+
+  submitButton.classList.add(
+    "opacity-50"
+  );
+
+
+  Swal.fire({
+
+    title:
+      "กำลังส่งใบสมัคร...",
+
+    text:
+      "กรุณารอสักครู่",
+
+    allowOutsideClick: false,
+
+    didOpen: () => {
+      Swal.showLoading();
+    }
+
+  });
+
+
+  try {
+
+    const response =
+      await fetch(
+
+        `${API_BASE}/api/members/register`,
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body: JSON.stringify({
+
+            prefix:
+              value("prefix"),
+
+            first_name:
+              firstName,
+
+            last_name:
+              lastName,
+
+            arabic_name:
+              value("arabicName"),
+
+            phone:
+              phone,
+
+            email:
+              value("email"),
+
+            line_id:
+              value("lineId"),
+
+            address_line:
+              value("addressLine"),
+
+            subdistrict:
+              value("subdistrict"),
+
+            district:
+              value("district"),
+
+            province:
+              value("province"),
+
+            postal_code:
+              value("postalCode"),
+
+            consent:
+              consent
+
+          })
+
+        }
+
+      );
+
+
+    let result;
+
+
+    try {
+
+      result =
+        await response.json();
+
+    } catch {
+
+      throw new Error(
+        "ไม่สามารถอ่านข้อมูลตอบกลับจากระบบได้"
+      );
+
+    }
+
+
+    if (!response.ok) {
+
+      if (
+        response.status === 409 &&
+        result.duplicate
+      ) {
+
+        Swal.close();
+
+
+        await Swal.fire({
+
+          icon: "warning",
+
+          title:
+            "พบข้อมูลสมาชิกเดิม",
+
+          html: `
+
+            <div style="text-align:center">
+
+              <p>
+                ${escapeHtml(
+                  result.message ||
+                  "พบข้อมูลสมาชิกเดิม"
+                )}
+              </p>
+
+              ${
+                result.member_code
+                ? `
+                  <p style="
+                    margin-top:12px;
+                    font-weight:bold;
+                    font-size:18px;
+                  ">
+                    รหัสสมาชิก:
+                    ${escapeHtml(
+                      result.member_code
+                    )}
+                  </p>
+                `
+                : ""
+              }
+
+            </div>
+          `
+
+        });
+
+
+        return;
+
+      }
+
+
+      throw new Error(
+
+        result.message ||
+        "ไม่สามารถสมัครสมาชิกได้"
+
+      );
+
+    }
+
+
+    Swal.close();
+
+
+    const memberCode =
+      result.member_code ||
+      result.data?.member_code ||
+      "-";
+
+
+    await Swal.fire({
+
+      icon: "success",
+
+      title:
+        "สมัครสมาชิกเรียบร้อยแล้ว",
+
+      html: `
+
+        <div style="text-align:center">
+
+          <p>
+            ระบบได้รับใบสมัครของท่านแล้ว
+          </p>
+
+          <p style="
+            margin-top:16px;
+            color:#64748b;
+          ">
+            รหัสสมาชิก
+          </p>
+
+          <div style="
+            font-size:28px;
+            font-weight:700;
+            margin-top:4px;
+          ">
+            ${escapeHtml(memberCode)}
+          </div>
+
+          <p style="
+            margin-top:16px;
+            color:#64748b;
+          ">
+            สถานะเริ่มต้น:
+            <strong>
+              รออนุมัติ
+            </strong>
+          </p>
+
+        </div>
+      `,
+
+      confirmButtonText:
+        "ตกลง"
+
+    });
+
+
+    document
+      .getElementById(
+        "registerForm"
+      )
+      .reset();
+
+
+  } catch (error) {
+
+    Swal.close();
+
+
+    Swal.fire({
+
+      icon: "error",
+
+      title:
+        "สมัครสมาชิกไม่สำเร็จ",
+
+      text:
+        error.message ||
+        "เกิดข้อผิดพลาด"
+
+    });
+
+
+  } finally {
+
+    submitButton.disabled = false;
+
+    submitButton.classList.remove(
+      "opacity-50"
+    );
+
+  }
+
+}
+
+
+async function clearForm() {
+
+  const result =
+    await Swal.fire({
+
+      icon: "question",
+
+      title:
+        "ล้างข้อมูลทั้งหมด?",
+
+      showCancelButton: true,
+
+      confirmButtonText:
+        "ล้างข้อมูล",
+
+      cancelButtonText:
+        "ยกเลิก"
+
+    });
+
+
+  if (!result.isConfirmed) {
+    return;
+  }
+
+
+  document
+    .getElementById(
+      "registerForm"
+    )
+    .reset();
+
+}
+
+
+function escapeHtml(value) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
