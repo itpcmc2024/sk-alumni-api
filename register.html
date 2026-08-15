@@ -15,7 +15,24 @@
       box-sizing: border-box;
     }
 
+    :root {
+      --green: #10b981;
+      --green-dark: #047857;
+      --green-soft: #d1fae5;
+      --mint: #ecfdf5;
+      --blue: #3b82f6;
+      --pink: #f43f5e;
+      --purple: #8b5cf6;
+      --orange: #f59e0b;
+      --teal: #14b8a6;
+      --text: #334155;
+      --muted: #64748b;
+    }
+
     body {
+      margin: 0;
+      min-height: 100vh;
+
       font-family:
         system-ui,
         -apple-system,
@@ -24,53 +41,231 @@
         "Noto Sans Thai",
         sans-serif;
 
-      min-height: 100vh;
-      color: #334155;
+      color: var(--text);
 
       background:
-        radial-gradient(circle at 0% 0%, #dff8e8 0, transparent 32%),
-        radial-gradient(circle at 100% 0%, #fef3c7 0, transparent 28%),
-        radial-gradient(circle at 0% 100%, #dff4ff 0, transparent 30%),
-        radial-gradient(circle at 100% 100%, #fde7f3 0, transparent 30%),
-        #f8fff9;
+        radial-gradient(circle at 0 0, #dcfce7 0, transparent 24%),
+        radial-gradient(circle at 100% 0, #fef3c7 0, transparent 22%),
+        radial-gradient(circle at 0 100%, #dbeafe 0, transparent 24%),
+        radial-gradient(circle at 100% 100%, #fce7f3 0, transparent 22%),
+        #f8fffb;
     }
 
-    .glass-header {
-      background: rgba(255,255,255,.92);
+    .page-shell {
+      max-width: 1050px;
+      margin: 0 auto;
+    }
+
+    .topbar {
+      background: rgba(255,255,255,.95);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid #dff4e7;
+      box-shadow: 0 4px 18px rgba(15,118,110,.05);
     }
 
-    .pastel-card {
-      background: rgba(255,255,255,.95);
-      border: 1px solid #dcebe2;
+    .logo-box {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: white;
+      border: 4px solid #dcfce7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(16,185,129,.12);
+      flex: 0 0 auto;
+    }
+
+    .logo-box img {
+      width: 90%;
+      height: 90%;
+      object-fit: contain;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+
+      background:
+        linear-gradient(
+          120deg,
+          rgba(255,255,255,.97),
+          rgba(240,253,244,.95),
+          rgba(255,251,235,.92)
+        );
+
+      border: 1px solid #dff4e7;
+      border-radius: 30px;
+      padding: 30px;
+
       box-shadow:
-        0 12px 36px rgba(22,163,74,.07),
-        0 2px 8px rgba(15,23,42,.03);
+        0 18px 45px rgba(16,185,129,.08);
+    }
+
+    .hero::before {
+      content: "🌿";
+      position: absolute;
+      right: 28px;
+      top: 18px;
+      font-size: 82px;
+      opacity: .10;
+      transform: rotate(-15deg);
+    }
+
+    .hero::after {
+      content: "✨";
+      position: absolute;
+      left: 28px;
+      bottom: 10px;
+      font-size: 42px;
+      opacity: .18;
+    }
+
+    .hero-logo {
+      width: 118px;
+      height: 118px;
+      background: white;
+      border-radius: 26px;
+      border: 1px solid #d1fae5;
+      box-shadow: 0 12px 30px rgba(16,185,129,.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .hero-logo img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+    }
+
+    .welcome-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 9px 16px;
+      border-radius: 999px;
+
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .cute-chip {
+      padding: 9px 13px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .chip-pink {
+      background: #fce7f3;
+      color: #be185d;
+    }
+
+    .chip-blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .chip-yellow {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .form-card {
+      background: rgba(255,255,255,.97);
+      border: 1px solid #e2efe7;
+      border-radius: 26px;
+      padding: 22px;
+
+      box-shadow:
+        0 12px 32px rgba(15,118,110,.055);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 20px;
+    }
+
+    .section-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 28px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+
+    .icon-green {
+      background: linear-gradient(135deg,#d1fae5,#ecfccb);
+    }
+
+    .icon-blue {
+      background: linear-gradient(135deg,#dbeafe,#cffafe);
+    }
+
+    .icon-yellow {
+      background: linear-gradient(135deg,#fef3c7,#ffedd5);
+    }
+
+    .icon-pink {
+      background: linear-gradient(135deg,#fce7f3,#ede9fe);
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .required {
+      color: #f43f5e;
     }
 
     .input-field {
       width: 100%;
-      min-height: 48px;
+      min-height: 49px;
+
       padding: 11px 14px;
 
-      background: #ffffff;
+      border: 1px solid #cfe1d6;
+      border-radius: 15px;
+
+      background: white;
       color: #334155;
 
-      border: 1px solid #cbded2;
-      border-radius: 16px;
-
       outline: none;
-      transition: .2s ease;
+
+      transition:
+        border .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
     }
 
     .input-field:hover {
-      border-color: #86cfa6;
+      border-color: #86d3a7;
     }
 
     .input-field:focus {
       border-color: #34a56f;
-      box-shadow: 0 0 0 4px rgba(52,165,111,.12);
+      box-shadow: 0 0 0 4px rgba(52,165,111,.11);
     }
 
     .input-field:disabled {
@@ -85,150 +280,179 @@
       box-shadow: 0 0 0 4px rgba(251,113,133,.10) !important;
     }
 
-    .required {
-      color: #f43f5e;
+    .status-box {
+      padding: 11px 13px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
-    .cute-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 16px;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      flex: 0 0 auto;
-    }
-
-    .section-green {
-      background: linear-gradient(135deg, #dcfce7, #d1fae5);
+    .status-loading {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
       color: #15803d;
     }
 
-    .section-blue {
-      background: linear-gradient(135deg, #dbeafe, #cffafe);
-      color: #0284c7;
+    .status-ready {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
     }
 
-    .section-yellow {
-      background: linear-gradient(135deg, #fef3c7, #ffedd5);
-      color: #d97706;
+    .status-error {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      color: #be123c;
     }
 
-    .section-pink {
-      background: linear-gradient(135deg, #fce7f3, #ede9fe);
-      color: #c026d3;
-    }
-
-    .hero-card {
+    .confirm-panel {
       background:
         linear-gradient(
           135deg,
-          rgba(236,253,245,.96),
-          rgba(255,255,255,.97),
-          rgba(254,249,195,.80)
+          #ecfdf5,
+          #f0fdf4,
+          #fff7ed
         );
 
-      border: 1px solid #d1fae5;
-      box-shadow:
-        0 18px 48px rgba(22,163,74,.08);
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+
+      padding: 17px;
     }
 
-    .logo-shell {
-      background: #ffffff;
-      border: 5px solid #ecfdf5;
-      box-shadow:
-        0 12px 30px rgba(22,163,74,.14);
+    .btn-reset {
+      min-height: 50px;
+      padding: 0 22px;
+      border-radius: 16px;
+
+      border: 1px solid #d7e5dc;
+      background: white;
+      color: #64748b;
+      font-weight: 700;
+
+      transition: .2s;
     }
 
-    .submit-button {
-      background: linear-gradient(
-        135deg,
-        #34a56f,
-        #42b883,
-        #6dc7a5
-      );
-
-      box-shadow:
-        0 10px 22px rgba(52,165,111,.22);
-
-      transition: .2s ease;
-    }
-
-    .submit-button:not(:disabled):hover {
+    .btn-reset:hover {
+      background: #f8fafc;
       transform: translateY(-1px);
-      filter: brightness(.97);
     }
 
-    .submit-button:disabled {
-      background: #cbd5e1;
-      box-shadow: none;
+    .btn-submit {
+      min-height: 52px;
+      padding: 0 30px;
+      border-radius: 18px;
+      border: none;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+
+      font-weight: 800;
+
+      transition: .2s;
+    }
+
+    .btn-submit:not(:disabled) {
+      background:
+        linear-gradient(
+          135deg,
+          #10b981,
+          #16a34a,
+          #14b8a6
+        );
+
+      color: white;
+
+      box-shadow:
+        0 12px 24px rgba(16,185,129,.22);
+    }
+
+    .btn-submit:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 15px 28px rgba(16,185,129,.28);
+    }
+
+    .btn-submit:disabled {
+      background: #e2e8f0;
       color: #94a3b8;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
-    .mini-status {
-      border-radius: 14px;
-      padding: 10px 13px;
+    .footer {
+      margin-top: 34px;
+      padding: 24px 10px 30px;
+      text-align: center;
+      color: #64748b;
       font-size: 13px;
     }
 
-    .address-loading {
-      background: #effdf5;
-      color: #15803d;
-      border: 1px solid #bbf7d0;
+    .footer-logo {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      margin: 0 auto 8px;
     }
 
-    .address-error {
-      background: #fff1f2;
-      color: #be123c;
-      border: 1px solid #fecdd3;
-    }
+    @media (max-width: 768px) {
+      .hero {
+        padding: 22px;
+      }
 
-    .address-ready {
-      background: #eff6ff;
-      color: #0369a1;
-      border: 1px solid #bae6fd;
+      .hero-logo {
+        width: 90px;
+        height: 90px;
+      }
+
+      .hero-logo img {
+        width: 75px;
+        height: 75px;
+      }
+
+      .logo-box {
+        width: 62px;
+        height: 62px;
+      }
+
+      .hero::before {
+        font-size: 58px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<header class="glass-header border-b border-emerald-100 sticky top-0 z-30">
+<header class="topbar sticky top-0 z-30">
 
-  <div class="max-w-5xl mx-auto px-4 py-4">
+  <div class="page-shell px-4 py-3">
 
     <div class="flex items-center gap-4">
 
-      <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl logo-shell overflow-hidden flex items-center justify-center">
+      <div class="logo-box">
 
         <img
           src="assets/association-logo.jpg"
-          alt="โลโก้สมาคมนูรุ้ลอิสลามสัมพันธ์"
-          class="w-full h-full object-contain p-1"
+          alt="โลโก้สมาคม"
         >
 
       </div>
 
       <div class="min-w-0">
 
-        <h1
+        <div
           id="systemName"
-          class="text-lg md:text-2xl font-bold text-slate-700 leading-snug"
+          class="text-base md:text-xl font-extrabold text-emerald-800 leading-snug"
         >
           ทะเบียนศิษย์เก่า สมาคมนูรุ้ลอิสลามสัมพันธ์ สุเหร่าเขียว
-        </h1>
+        </div>
 
-        <div class="flex items-center gap-2 mt-1 text-sm text-emerald-600">
-
-          <span>🌿</span>
-
-          <span>
-            SK Alumni Member System
-          </span>
-
+        <div class="text-xs md:text-sm text-slate-500 mt-1">
+          🌙 Nurul Islam · SK Alumni Member System
         </div>
 
       </div>
@@ -240,57 +464,53 @@
 </header>
 
 
-<main class="max-w-5xl mx-auto px-4 py-7 md:py-9">
+<main class="page-shell px-4 py-7">
 
-  <section class="hero-card rounded-3xl p-5 md:p-7 mb-7">
+  <!-- HERO -->
 
-    <div class="flex flex-col md:flex-row md:items-center gap-5">
+  <section class="hero mb-7">
 
-      <div class="hidden md:flex w-24 h-24 rounded-3xl bg-white border border-emerald-100 items-center justify-center shadow-sm">
+    <div class="relative z-10 flex flex-col md:flex-row gap-6 md:items-center">
+
+      <div class="hero-logo">
 
         <img
           src="assets/association-logo.jpg"
-          alt="Association Logo"
-          class="w-20 h-20 object-contain"
+          alt="สมาคมนูรุ้ลอิสลามสัมพันธ์"
         >
 
       </div>
 
+
       <div class="flex-1">
 
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-emerald-700 border border-emerald-100 text-sm font-semibold mb-3">
-
-          <span>✨</span>
-
-          <span>
-            ยินดีต้อนรับศิษย์เก่าทุกคน
-          </span>
-
+        <div class="welcome-pill">
+          🌿 ยินดีต้อนรับศิษย์เก่าทุกคน
         </div>
 
-        <h2 class="text-2xl md:text-3xl font-bold text-slate-700">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-emerald-800 mt-4">
           ลงทะเบียนศิษย์เก่า
-        </h2>
+        </h1>
 
-        <p class="text-slate-500 mt-2 leading-relaxed">
-          กรอกข้อมูลให้ครบถ้วน แล้วส่งข้อมูลเข้าสู่ทะเบียนศิษย์เก่า
-          เพื่อใช้สำหรับการติดต่อ ข่าวสาร และกิจกรรมของสมาคม
+        <p class="mt-3 text-slate-600 leading-relaxed">
+          ร่วมเป็นส่วนหนึ่งของครอบครัวศิษย์เก่า
+          เชื่อมโยงความทรงจำ มิตรภาพ และข่าวสารดี ๆ ของสมาคม
         </p>
 
-      </div>
+        <div class="flex flex-wrap gap-2 mt-4">
 
-      <div class="hidden lg:flex flex-col gap-2 text-sm">
+          <span class="cute-chip chip-pink">
+            💗 ครอบครัวศิษย์เก่า
+          </span>
 
-        <div class="px-4 py-2 rounded-2xl bg-pink-100 text-pink-700">
-          💗 เชื่อมโยงศิษย์เก่า
-        </div>
+          <span class="cute-chip chip-blue">
+            🫶 สานสัมพันธ์
+          </span>
 
-        <div class="px-4 py-2 rounded-2xl bg-sky-100 text-sky-700">
-          🫶 พบปะกิจกรรม
-        </div>
+          <span class="cute-chip chip-yellow">
+            ✨ เติบโตไปด้วยกัน
+          </span>
 
-        <div class="px-4 py-2 rounded-2xl bg-yellow-100 text-yellow-700">
-          🌟 สร้างความสัมพันธ์
         </div>
 
       </div>
@@ -304,41 +524,42 @@
 
     <!-- PERSONAL -->
 
-    <section class="pastel-card rounded-3xl p-5 md:p-6">
+    <section class="form-card">
 
-      <div class="flex items-center gap-3 mb-6">
+      <div class="section-head">
 
-        <div class="cute-icon section-green">
-          <i data-lucide="smile"></i>
+        <div class="section-icon icon-green">
+          👦🏻👧🏻
         </div>
 
         <div>
 
-          <h3 class="text-lg font-bold text-slate-700">
-            ข้อมูลส่วนตัว
-          </h3>
+          <h2 class="font-extrabold text-lg text-emerald-800">
+            ข้อมูลศิษย์เก่า
+          </h2>
 
-          <p class="text-sm text-slate-400">
-            แนะนำตัวให้เรารู้จักกันหน่อย 😊
-          </p>
+          <div class="text-sm text-slate-400">
+            บอกเราเกี่ยวกับคุณสักนิดนะ 😊
+          </div>
 
         </div>
 
       </div>
 
+
       <div class="grid md:grid-cols-3 gap-4">
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             คำนำหน้า
             <span class="required">*</span>
           </label>
 
           <select
             id="prefixSelect"
-            class="input-field"
             required
+            class="input-field"
             onchange="handlePrefixChange()"
           >
             <option value="">-- เลือกคำนำหน้า --</option>
@@ -355,7 +576,7 @@
 
         <div id="prefixOtherBox" class="hidden">
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             ระบุคำนำหน้า
             <span class="required">*</span>
           </label>
@@ -363,8 +584,8 @@
           <input
             id="prefixOther"
             type="text"
-            class="input-field"
             maxlength="50"
+            class="input-field"
             placeholder="เช่น ว่าที่ ร.ต."
           >
 
@@ -373,7 +594,7 @@
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             ชื่อ
             <span class="required">*</span>
           </label>
@@ -381,9 +602,9 @@
           <input
             id="firstName"
             type="text"
-            class="input-field"
             required
             maxlength="120"
+            class="input-field"
             placeholder="ชื่อ"
           >
 
@@ -392,7 +613,7 @@
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             นามสกุล
             <span class="required">*</span>
           </label>
@@ -400,9 +621,9 @@
           <input
             id="lastName"
             type="text"
-            class="input-field"
             required
             maxlength="120"
+            class="input-field"
             placeholder="นามสกุล"
           >
 
@@ -411,15 +632,15 @@
 
         <div class="md:col-span-3">
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             ชื่อภาษาอาหรับ
           </label>
 
           <input
             id="arabicName"
             type="text"
-            class="input-field"
             maxlength="250"
+            class="input-field"
             placeholder="ถ้ามี"
           >
 
@@ -432,33 +653,34 @@
 
     <!-- CONTACT -->
 
-    <section class="pastel-card rounded-3xl p-5 md:p-6">
+    <section class="form-card">
 
-      <div class="flex items-center gap-3 mb-6">
+      <div class="section-head">
 
-        <div class="cute-icon section-blue">
-          <i data-lucide="message-circle-heart"></i>
+        <div class="section-icon icon-blue">
+          💌
         </div>
 
         <div>
 
-          <h3 class="text-lg font-bold text-slate-700">
+          <h2 class="font-extrabold text-lg text-sky-700">
             ช่องทางติดต่อ
-          </h3>
+          </h2>
 
-          <p class="text-sm text-slate-400">
-            ไว้ติดต่อกันและส่งข่าวสารดี ๆ 💌
-          </p>
+          <div class="text-sm text-slate-400">
+            ไว้ติดต่อกันและส่งข่าวสารดี ๆ
+          </div>
 
         </div>
 
       </div>
 
+
       <div class="grid md:grid-cols-2 gap-4">
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             เบอร์โทรศัพท์
             <span class="required">*</span>
           </label>
@@ -474,16 +696,16 @@
             autocomplete="tel"
           >
 
-          <p class="text-xs text-slate-400 mt-1.5">
+          <div class="text-xs text-slate-400 mt-1.5">
             ตัวเลขเท่านั้น 9–10 หลัก
-          </p>
+          </div>
 
         </div>
 
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             Email
           </label>
 
@@ -497,19 +719,19 @@
             placeholder="name@example.com"
           >
 
-          <p
+          <div
             id="emailHelp"
             class="text-xs text-slate-400 mt-1.5"
           >
             หากกรอก ต้องเป็นรูปแบบอีเมลที่ถูกต้อง
-          </p>
+          </div>
 
         </div>
 
 
         <div class="md:col-span-2">
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             LINE ID
           </label>
 
@@ -530,23 +752,23 @@
 
     <!-- ADDRESS -->
 
-    <section class="pastel-card rounded-3xl p-5 md:p-6">
+    <section class="form-card">
 
-      <div class="flex items-center gap-3 mb-6">
+      <div class="section-head">
 
-        <div class="cute-icon section-yellow">
-          <i data-lucide="map-pinned"></i>
+        <div class="section-icon icon-yellow">
+          🏡
         </div>
 
         <div>
 
-          <h3 class="text-lg font-bold text-slate-700">
+          <h2 class="font-extrabold text-lg text-amber-700">
             ที่อยู่ปัจจุบัน
-          </h3>
+          </h2>
 
-          <p class="text-sm text-slate-400">
-            ให้ระบบช่วยเลือกพื้นที่ให้ง่ายขึ้น 🏡
-          </p>
+          <div class="text-sm text-slate-400">
+            Smart Address ช่วยเลือกพื้นที่ให้สะดวกขึ้น
+          </div>
 
         </div>
 
@@ -555,9 +777,9 @@
 
       <div
         id="addressDataStatus"
-        class="mini-status address-loading mb-5"
+        class="status-box status-loading"
       >
-        ⏳ กำลังเตรียมข้อมูลจังหวัด อำเภอ และตำบล...
+        ⏳ กำลังเตรียมข้อมูลที่อยู่ประเทศไทย...
       </div>
 
 
@@ -565,7 +787,7 @@
 
         <div class="md:col-span-2">
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             บ้านเลขที่ / หมู่ / ซอย / ถนน
           </label>
 
@@ -582,7 +804,7 @@
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             รหัสไปรษณีย์
           </label>
 
@@ -591,24 +813,24 @@
             type="text"
             inputmode="numeric"
             maxlength="5"
+            autocomplete="postal-code"
             class="input-field"
             placeholder="เช่น 11110"
-            autocomplete="postal-code"
           >
 
-          <p
+          <div
             id="postalHelp"
             class="text-xs text-slate-400 mt-1.5"
           >
-            กรอก 5 หลัก แล้วระบบจะกรองพื้นที่ให้อัตโนมัติ
-          </p>
+            พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้
+          </div>
 
         </div>
 
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             จังหวัด
           </label>
 
@@ -617,7 +839,9 @@
             class="input-field"
             disabled
           >
-            <option value="">-- เลือกจังหวัด --</option>
+            <option value="">
+              -- เลือกจังหวัด --
+            </option>
           </select>
 
         </div>
@@ -625,7 +849,7 @@
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             อำเภอ / เขต
           </label>
 
@@ -634,7 +858,9 @@
             class="input-field"
             disabled
           >
-            <option value="">-- เลือกอำเภอ / เขต --</option>
+            <option value="">
+              -- เลือกอำเภอ / เขต --
+            </option>
           </select>
 
         </div>
@@ -642,7 +868,7 @@
 
         <div>
 
-          <label class="block text-sm font-semibold mb-2">
+          <label class="field-label">
             ตำบล / แขวง
           </label>
 
@@ -651,7 +877,9 @@
             class="input-field"
             disabled
           >
-            <option value="">-- เลือกตำบล / แขวง --</option>
+            <option value="">
+              -- เลือกตำบล / แขวง --
+            </option>
           </select>
 
         </div>
@@ -663,36 +891,30 @@
 
     <!-- CONSENT -->
 
-    <section class="pastel-card rounded-3xl p-5 md:p-6">
+    <section class="form-card">
 
-      <div class="flex items-center gap-3 mb-4">
+      <div class="section-head">
 
-        <div class="cute-icon section-pink">
-          <i data-lucide="heart-handshake"></i>
+        <div class="section-icon icon-pink">
+          💚
         </div>
 
         <div>
 
-          <h3 class="text-lg font-bold text-slate-700">
+          <h2 class="font-extrabold text-lg text-pink-700">
             ยืนยันข้อมูล
-          </h3>
+          </h2>
 
-          <p class="text-sm text-slate-400">
-            เช็กอีกครั้งก่อนส่งนะคะ 🌷
-          </p>
+          <div class="text-sm text-slate-400">
+            ตรวจสอบอีกครั้งก่อนส่งข้อมูลนะคะ
+          </div>
 
         </div>
 
       </div>
 
 
-      <label
-        class="flex items-start gap-3
-               p-4 rounded-2xl
-               bg-gradient-to-r from-emerald-50 to-green-50
-               border border-emerald-100
-               cursor-pointer"
-      >
+      <label class="confirm-panel flex gap-3 items-start cursor-pointer">
 
         <input
           id="consent"
@@ -702,14 +924,14 @@
 
         <div>
 
-          <div class="font-semibold text-slate-700">
+          <div class="font-extrabold text-slate-700">
             ยืนยันความถูกต้องของข้อมูล
           </div>
 
-          <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+          <div class="text-sm text-slate-500 mt-1 leading-relaxed">
             ข้าพเจ้ายืนยันว่าข้อมูลที่ให้ไว้เป็นข้อมูลที่ถูกต้อง
             และยินยอมให้จัดเก็บข้อมูลเพื่อการบริหารจัดการทะเบียนศิษย์เก่า
-          </p>
+          </div>
 
         </div>
 
@@ -718,17 +940,14 @@
     </section>
 
 
-    <!-- BUTTONS -->
+    <!-- BUTTON -->
 
     <div class="flex flex-col md:flex-row gap-3 justify-end">
 
       <button
         type="button"
+        class="btn-reset"
         onclick="clearForm()"
-        class="px-6 py-3 rounded-2xl
-               bg-white border border-slate-200
-               hover:bg-slate-50
-               text-slate-500 font-medium"
       >
         ล้างข้อมูล
       </button>
@@ -737,17 +956,11 @@
       <button
         id="submitButton"
         type="submit"
+        class="btn-submit"
         disabled
-        class="submit-button
-               px-8 py-3 rounded-2xl
-               font-bold
-               flex items-center justify-center gap-2"
       >
-
         <i data-lucide="send-horizontal" class="w-5 h-5"></i>
-
         ส่งข้อมูลลงทะเบียน
-
       </button>
 
     </div>
@@ -755,23 +968,21 @@
   </form>
 
 
-  <footer class="text-center text-slate-400 text-sm pt-12 pb-8">
+  <footer class="footer">
 
-    <div class="flex items-center justify-center gap-2 mb-2">
+    <img
+      src="assets/association-logo.jpg"
+      class="footer-logo"
+      alt=""
+    >
 
-      <img
-        src="assets/association-logo.jpg"
-        alt=""
-        class="w-7 h-7 object-contain"
-      >
-
-      <span>
-        ทะเบียนศิษย์เก่า
-      </span>
-
+    <div class="font-bold text-emerald-800">
+      สมาคมนูรุ้ลอิสลามสัมพันธ์ สุเหร่าเขียว
     </div>
 
-    © 2026 SK Alumni Member System by Kimhan
+    <div class="mt-1">
+      © 2026 SK Alumni Member System by Kimhan
+    </div>
 
   </footer>
 
@@ -787,22 +998,20 @@ const DEFAULT_APP_NAME =
   "ทะเบียนศิษย์เก่า สมาคมนูรุ้ลอิสลามสัมพันธ์ สุเหร่าเขียว";
 
 
-const PROVINCE_URL =
-  "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/province.json";
+// =====================================================
+// SMART ADDRESS DATA
+// ใช้ flat geography dataset ชุดเดียว
+// =====================================================
 
-const DISTRICT_URL =
-  "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/district.json";
-
-const SUBDISTRICT_URL =
-  "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api/latest/sub_district.json";
+const GEO_URL =
+  "https://raw.githubusercontent.com/thailand-geography-data/thailand-geography-json/main/src/geography.json";
 
 
-let provinces = [];
-let districts = [];
-let subdistricts = [];
+let geoData = [];
+
+let filteredByPostal = [];
 
 let addressReady = false;
-let postalFilteredSubdistricts = [];
 
 
 const $ = id =>
@@ -819,33 +1028,36 @@ document.addEventListener(
 
     lucide.createIcons();
 
-    bindInputProtection();
+    bindPhone();
 
-    bindEmailValidation();
+    bindPostal();
 
-    bindAddressEvents();
+    bindEmail();
 
     bindConsent();
+
+    bindAddressSelectors();
 
     updateSubmitButton();
 
     await Promise.all([
       loadSystemSettings(),
-      loadThaiAddress()
+      loadGeoData()
     ]);
 
   }
 );
 
 
-$("registerForm").addEventListener(
-  "submit",
-  submitRegistration
-);
+$("registerForm")
+  .addEventListener(
+    "submit",
+    submitRegistration
+  );
 
 
 // =====================================================
-// SYSTEM SETTINGS
+// SYSTEM NAME
 // =====================================================
 
 async function loadSystemSettings() {
@@ -860,12 +1072,15 @@ async function loadSystemSettings() {
         }
       );
 
+
     if (!response.ok) {
       throw new Error();
     }
 
+
     const result =
       await response.json();
+
 
     const appName =
       String(
@@ -873,12 +1088,16 @@ async function loadSystemSettings() {
         ""
       ).trim();
 
+
     $("systemName").textContent =
-      appName || DEFAULT_APP_NAME;
+      appName ||
+      DEFAULT_APP_NAME;
+
 
     document.title =
       `ลงทะเบียนศิษย์เก่า | ${
-        appName || DEFAULT_APP_NAME
+        appName ||
+        DEFAULT_APP_NAME
       }`;
 
   } catch {
@@ -892,34 +1111,6 @@ async function loadSystemSettings() {
 
 
 // =====================================================
-// CONSENT BUTTON
-// =====================================================
-
-function bindConsent() {
-
-  $("consent").addEventListener(
-    "change",
-    updateSubmitButton
-  );
-
-}
-
-
-function updateSubmitButton() {
-
-  const button =
-    $("submitButton");
-
-  const checked =
-    $("consent").checked;
-
-  button.disabled =
-    !checked;
-
-}
-
-
-// =====================================================
 // PREFIX
 // =====================================================
 
@@ -928,14 +1119,19 @@ function handlePrefixChange() {
   const selected =
     $("prefixSelect").value;
 
-  if (selected === "OTHER") {
+
+  if (
+    selected === "OTHER"
+  ) {
 
     $("prefixOtherBox")
       .classList
       .remove("hidden");
 
+
     $("prefixOther").required =
       true;
+
 
     setTimeout(
       () =>
@@ -949,8 +1145,10 @@ function handlePrefixChange() {
       .classList
       .add("hidden");
 
+
     $("prefixOther").required =
       false;
+
 
     $("prefixOther").value =
       "";
@@ -967,13 +1165,14 @@ function getPrefixValue() {
     "OTHER"
   ) {
 
-    return cleanValue(
+    return clean(
       $("prefixOther").value
     );
 
   }
 
-  return cleanValue(
+
+  return clean(
     $("prefixSelect").value
   );
 
@@ -981,84 +1180,105 @@ function getPrefixValue() {
 
 
 // =====================================================
-// PHONE + POSTAL PROTECTION
+// PHONE
 // =====================================================
 
-function bindInputProtection() {
+function bindPhone() {
 
-  $("phone").addEventListener(
-    "input",
-    () => {
+  $("phone")
+    .addEventListener(
+      "input",
+      () => {
 
-      $("phone").value =
-        $("phone")
-          .value
-          .replace(/\D/g, "")
-          .slice(0, 10);
-
-    }
-  );
-
-
-  $("postalCode").addEventListener(
-    "input",
-    () => {
-
-      $("postalCode").value =
-        $("postalCode")
-          .value
-          .replace(/\D/g, "")
-          .slice(0, 5);
-
-    }
-  );
-
-}
-
-
-// =====================================================
-// EMAIL
-// =====================================================
-
-function bindEmailValidation() {
-
-  $("email").addEventListener(
-    "blur",
-    () =>
-      validateEmailField(
-        true
-      )
-  );
-
-
-  $("email").addEventListener(
-    "input",
-    () => {
-
-      if (
-        !$("email")
-          .value
-          .trim()
-      ) {
-
-        clearEmailError();
+        $("phone").value =
+          $("phone")
+            .value
+            .replace(/\D/g, "")
+            .slice(0,10);
 
       }
-
-    }
-  );
+    );
 
 }
 
 
-function isValidEmail(value) {
+// =====================================================
+// POSTAL NUMERIC
+// =====================================================
 
-  if (!value) {
+function bindPostal() {
+
+  $("postalCode")
+    .addEventListener(
+      "input",
+      () => {
+
+        $("postalCode").value =
+          $("postalCode")
+            .value
+            .replace(/\D/g, "")
+            .slice(0,5);
+
+
+        handlePostalSearch();
+
+      }
+    );
+
+}
+
+
+// =====================================================
+// EMAIL VALIDATION
+// =====================================================
+
+function bindEmail() {
+
+  $("email")
+    .addEventListener(
+      "blur",
+      () => {
+
+        validateEmailField(
+          true
+        );
+
+      }
+    );
+
+
+  $("email")
+    .addEventListener(
+      "input",
+      () => {
+
+        if (
+          !$("email")
+            .value
+            .trim()
+        ) {
+
+          clearEmailError();
+
+        }
+
+      }
+    );
+
+}
+
+
+function isValidEmail(
+  email
+) {
+
+  if (!email) {
     return true;
   }
 
-  return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
-    .test(value);
+
+  return /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/
+    .test(email);
 
 }
 
@@ -1067,11 +1287,13 @@ function validateEmailField(
   showAlert = false
 ) {
 
-  const emailValue =
-    $("email").value.trim();
+  const email =
+    clean(
+      $("email").value
+    );
 
 
-  if (!emailValue) {
+  if (!email) {
 
     clearEmailError();
 
@@ -1080,11 +1302,13 @@ function validateEmailField(
   }
 
 
-  if (
-    !isValidEmail(
-      emailValue
-    )
-  ) {
+  const valid =
+    $("email")
+      .checkValidity() &&
+    isValidEmail(email);
+
+
+  if (!valid) {
 
     $("email")
       .classList
@@ -1094,8 +1318,9 @@ function validateEmailField(
     $("emailHelp").textContent =
       "รูปแบบอีเมลไม่ถูกต้อง เช่น name@example.com";
 
+
     $("emailHelp").className =
-      "text-xs text-rose-500 mt-1.5 font-medium";
+      "text-xs text-rose-500 mt-1.5 font-bold";
 
 
     if (showAlert) {
@@ -1103,11 +1328,12 @@ function validateEmailField(
       Swal.fire({
         icon: "warning",
         title: "รูปแบบอีเมลไม่ถูกต้อง",
-        text: "กรุณากรอกอีเมล เช่น name@example.com",
+        text: "ตัวอย่างอีเมลที่ถูกต้อง: name@example.com",
         confirmButtonText: "กลับไปแก้ไข"
       });
 
     }
+
 
     return false;
 
@@ -1129,8 +1355,10 @@ function clearEmailError() {
       "input-error"
     );
 
+
   $("emailHelp").textContent =
     "หากกรอก ต้องเป็นรูปแบบอีเมลที่ถูกต้อง";
+
 
   $("emailHelp").className =
     "text-xs text-slate-400 mt-1.5";
@@ -1139,68 +1367,65 @@ function clearEmailError() {
 
 
 // =====================================================
-// THAI ADDRESS
+// CONSENT
 // =====================================================
 
-async function loadThaiAddress() {
+function bindConsent() {
+
+  $("consent")
+    .addEventListener(
+      "change",
+      updateSubmitButton
+    );
+
+}
+
+
+function updateSubmitButton() {
+
+  $("submitButton").disabled =
+    !$("consent").checked;
+
+}
+
+
+// =====================================================
+// LOAD ADDRESS DATA
+// =====================================================
+
+async function loadGeoData() {
 
   setAddressStatus(
     "loading",
-    "⏳ กำลังเตรียมข้อมูลจังหวัด อำเภอ และตำบล..."
+    "⏳ กำลังเตรียมข้อมูลที่อยู่ประเทศไทย..."
   );
 
 
   try {
 
-    const [
-      provinceResponse,
-      districtResponse,
-      subdistrictResponse
-    ] = await Promise.all([
-
-      fetch(
-        PROVINCE_URL,
-        { cache: "force-cache" }
-      ),
-
-      fetch(
-        DISTRICT_URL,
-        { cache: "force-cache" }
-      ),
-
-      fetch(
-        SUBDISTRICT_URL,
-        { cache: "force-cache" }
-      )
-
-    ]);
+    const response =
+      await fetch(
+        GEO_URL,
+        {
+          cache: "force-cache"
+        }
+      );
 
 
-    if (
-      !provinceResponse.ok ||
-      !districtResponse.ok ||
-      !subdistrictResponse.ok
-    ) {
-
+    if (!response.ok) {
       throw new Error();
-
     }
 
 
-    provinces =
-      await provinceResponse.json();
-
-    districts =
-      await districtResponse.json();
-
-    subdistricts =
-      await subdistrictResponse.json();
+    geoData =
+      await response.json();
 
 
     if (
-      !Array.isArray(provinces) ||
-      !Array.isArray(districts) ||
-      !Array.isArray(subdistricts)
+      !Array.isArray(
+        geoData
+      ) ||
+      !geoData.length
     ) {
 
       throw new Error();
@@ -1212,8 +1437,8 @@ async function loadThaiAddress() {
       true;
 
 
-    populateProvinceSelect(
-      provinces
+    populateProvinces(
+      geoData
     );
 
 
@@ -1223,11 +1448,19 @@ async function loadThaiAddress() {
 
     setAddressStatus(
       "ready",
-      "✨ พร้อมใช้งานแล้ว — กรอกรหัสไปรษณีย์ หรือเลือกจังหวัดได้เลย"
+      "✨ Smart Address พร้อมใช้งาน — พิมพ์รหัสไปรษณีย์ หรือเลือกจังหวัดได้เลย"
     );
 
 
-  } catch {
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Address load error",
+      error
+    );
+
 
     addressReady =
       false;
@@ -1235,7 +1468,7 @@ async function loadThaiAddress() {
 
     setAddressStatus(
       "error",
-      "⚠️ โหลดข้อมูลที่อยู่ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บอีกครั้ง"
+      "⚠️ โหลดข้อมูลที่อยู่ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ"
     );
 
   }
@@ -1245,32 +1478,35 @@ async function loadThaiAddress() {
 
 function setAddressStatus(
   type,
-  text
+  message
 ) {
 
-  const element =
+  const box =
     $("addressDataStatus");
 
-  element.textContent =
-    text;
+
+  box.textContent =
+    message;
 
 
-  if (type === "loading") {
+  if (
+    type === "ready"
+  ) {
 
-    element.className =
-      "mini-status address-loading mb-5";
+    box.className =
+      "status-box status-ready";
 
   } else if (
     type === "error"
   ) {
 
-    element.className =
-      "mini-status address-error mb-5";
+    box.className =
+      "status-box status-error";
 
   } else {
 
-    element.className =
-      "mini-status address-ready mb-5";
+    box.className =
+      "status-box status-loading";
 
   }
 
@@ -1278,140 +1514,72 @@ function setAddressStatus(
 
 
 // =====================================================
-// ADDRESS EVENTS
+// ADDRESS HELPERS
 // =====================================================
 
-function bindAddressEvents() {
-
-  $("postalCode").addEventListener(
-    "input",
-    handlePostalCode
-  );
-
-
-  $("province").addEventListener(
-    "change",
-    handleProvinceChange
-  );
-
-
-  $("district").addEventListener(
-    "change",
-    handleDistrictChange
-  );
-
-
-  $("subdistrict").addEventListener(
-    "change",
-    handleSubdistrictChange
-  );
-
-}
-
-
-// =====================================================
-// DATA NAME HELPERS
-// =====================================================
-
-function provinceName(row) {
-
-  return String(
-    row?.name_th || ""
-  ).trim();
-
-}
-
-
-function districtName(row) {
-
-  return String(
-    row?.name_th || ""
-  ).trim();
-
-}
-
-
-function subdistrictName(row) {
-
-  return String(
-    row?.name_th || ""
-  ).trim();
-
-}
-
-
-function rowZip(row) {
-
-  const raw =
-    String(
-      row?.zip_code ?? ""
-    ).trim();
-
-  return raw;
-
-}
-
-
-// =====================================================
-// SELECT HELPERS
-// =====================================================
-
-function uniqueById(rows) {
+function uniqueObjects(
+  rows,
+  key,
+  nameKey
+) {
 
   const map =
     new Map();
 
 
-  for (const row of rows) {
+  rows.forEach(
+    row => {
 
-    if (
-      row?.id !== undefined &&
-      row?.id !== null
-    ) {
+      const value =
+        String(
+          row[key] ?? ""
+        );
 
-      map.set(
-        String(row.id),
-        row
-      );
+
+      if (
+        value &&
+        !map.has(value)
+      ) {
+
+        map.set(
+          value,
+          {
+            value,
+            name:
+              String(
+                row[nameKey] ??
+                ""
+              )
+          }
+        );
+
+      }
 
     }
-
-  }
+  );
 
 
   return [
     ...map.values()
-  ];
-
-}
-
-
-function sortThai(
-  rows,
-  getName
-) {
-
-  return [...rows]
+  ]
     .sort(
-      (a, b) =>
-        getName(a)
-          .localeCompare(
-            getName(b),
-            "th"
-          )
+      (a,b) =>
+        a.name.localeCompare(
+          b.name,
+          "th"
+        )
     );
 
 }
 
 
 function fillSelect(
-  select,
+  element,
   rows,
-  placeholder,
-  getName
+  placeholder
 ) {
 
-  select.innerHTML =
+  element.innerHTML =
     "";
 
 
@@ -1420,86 +1588,106 @@ function fillSelect(
       "option"
     );
 
+
   empty.value =
     "";
+
 
   empty.textContent =
     placeholder;
 
-  select.appendChild(
+
+  element.appendChild(
     empty
   );
 
 
-  for (
-    const row of
-    sortThai(
-      uniqueById(rows),
-      getName
-    )
-  ) {
+  rows.forEach(
+    row => {
 
-    const option =
-      document.createElement(
-        "option"
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        row.value;
+
+
+      option.textContent =
+        row.name;
+
+
+      element.appendChild(
+        option
       );
 
-    option.value =
-      String(row.id);
-
-    option.textContent =
-      getName(row);
-
-    select.appendChild(
-      option
-    );
-
-  }
-
-}
-
-
-function populateProvinceSelect(
-  rows
-) {
-
-  fillSelect(
-    $("province"),
-    rows,
-    "-- เลือกจังหวัด --",
-    provinceName
+    }
   );
 
 }
 
 
-function resetDistrict() {
+// =====================================================
+// PROVINCE LIST
+// =====================================================
 
-  $("district").innerHTML =
-    `<option value="">-- เลือกอำเภอ / เขต --</option>`;
+function populateProvinces(
+  source
+) {
 
-  $("district").disabled =
-    true;
+  const list =
+    uniqueObjects(
+      source,
+      "provinceCode",
+      "provinceNameTh"
+    );
 
-}
 
-
-function resetSubdistrict() {
-
-  $("subdistrict").innerHTML =
-    `<option value="">-- เลือกตำบล / แขวง --</option>`;
-
-  $("subdistrict").disabled =
-    true;
+  fillSelect(
+    $("province"),
+    list,
+    "-- เลือกจังหวัด --"
+  );
 
 }
 
 
 // =====================================================
-// POSTAL → AREA
+// ADDRESS SELECT EVENTS
 // =====================================================
 
-function handlePostalCode() {
+function bindAddressSelectors() {
+
+  $("province")
+    .addEventListener(
+      "change",
+      handleProvinceSelect
+    );
+
+
+  $("district")
+    .addEventListener(
+      "change",
+      handleDistrictSelect
+    );
+
+
+  $("subdistrict")
+    .addEventListener(
+      "change",
+      handleSubdistrictSelect
+    );
+
+}
+
+
+// =====================================================
+// POSTAL SEARCH
+// =====================================================
+
+function handlePostalSearch() {
 
   if (!addressReady) {
     return;
@@ -1516,17 +1704,18 @@ function handlePostalCode() {
     postal.length < 5
   ) {
 
-    postalFilteredSubdistricts =
+    filteredByPostal =
       [];
 
 
-    populateProvinceSelect(
-      provinces
+    populateProvinces(
+      geoData
     );
 
 
     $("province").value =
       "";
+
 
     resetDistrict();
 
@@ -1534,39 +1723,40 @@ function handlePostalCode() {
 
 
     $("postalHelp").textContent =
-      "กรอก 5 หลัก แล้วระบบจะกรองพื้นที่ให้อัตโนมัติ";
+      "พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้";
+
 
     $("postalHelp").className =
       "text-xs text-slate-400 mt-1.5";
 
+
     return;
 
   }
 
 
-  const matchedSubs =
-    subdistricts.filter(
+  filteredByPostal =
+    geoData.filter(
       row =>
-        rowZip(row) ===
+        String(
+          row.postalCode
+        ) ===
         postal
     );
 
 
-  postalFilteredSubdistricts =
-    matchedSubs;
-
-
   if (
-    !matchedSubs.length
+    !filteredByPostal.length
   ) {
 
-    populateProvinceSelect(
-      provinces
+    populateProvinces(
+      geoData
     );
 
 
     $("province").value =
       "";
+
 
     resetDistrict();
 
@@ -1574,58 +1764,20 @@ function handlePostalCode() {
 
 
     $("postalHelp").textContent =
-      "ไม่พบพื้นที่สำหรับรหัสไปรษณีย์นี้";
+      "ไม่พบพื้นที่ที่ตรงกับรหัสไปรษณีย์นี้";
+
 
     $("postalHelp").className =
-      "text-xs text-rose-500 mt-1.5 font-medium";
+      "text-xs text-rose-500 mt-1.5 font-bold";
+
 
     return;
 
   }
 
 
-  const districtIds =
-    new Set(
-      matchedSubs.map(
-        row =>
-          String(
-            row.district_id
-          )
-      )
-    );
-
-
-  const matchedDistricts =
-    districts.filter(
-      row =>
-        districtIds.has(
-          String(row.id)
-        )
-    );
-
-
-  const provinceIds =
-    new Set(
-      matchedDistricts.map(
-        row =>
-          String(
-            row.province_id
-          )
-      )
-    );
-
-
-  const matchedProvinces =
-    provinces.filter(
-      row =>
-        provinceIds.has(
-          String(row.id)
-        )
-    );
-
-
-  populateProvinceSelect(
-    matchedProvinces
+  populateProvinces(
+    filteredByPostal
   );
 
 
@@ -1634,32 +1786,36 @@ function handlePostalCode() {
 
 
   $("postalHelp").textContent =
-    `พบ ${matchedSubs.length} พื้นที่สำหรับรหัส ${postal}`;
+    `พบ ${filteredByPostal.length} พื้นที่สำหรับรหัส ${postal}`;
+
 
   $("postalHelp").className =
-    "text-xs text-emerald-600 mt-1.5 font-medium";
+    "text-xs text-emerald-600 mt-1.5 font-bold";
+
+
+  const provinceCodes =
+    [
+      ...new Set(
+        filteredByPostal.map(
+          x =>
+            String(
+              x.provinceCode
+            )
+        )
+      )
+    ];
 
 
   if (
-    matchedProvinces.length ===
+    provinceCodes.length ===
     1
   ) {
 
     $("province").value =
-      String(
-        matchedProvinces[0].id
-      );
+      provinceCodes[0];
 
-    handleProvinceChange();
 
-  } else {
-
-    $("province").value =
-      "";
-
-    resetDistrict();
-
-    resetSubdistrict();
+    handleProvinceSelect();
 
   }
 
@@ -1670,9 +1826,9 @@ function handlePostalCode() {
 // PROVINCE → DISTRICT
 // =====================================================
 
-function handleProvinceChange() {
+function handleProvinceSelect() {
 
-  const provinceId =
+  const provinceCode =
     $("province").value;
 
 
@@ -1681,54 +1837,41 @@ function handleProvinceChange() {
   resetSubdistrict();
 
 
-  if (!provinceId) {
+  if (!provinceCode) {
     return;
   }
 
 
-  let rows =
-    districts.filter(
-      row =>
+  const source =
+    filteredByPostal.length
+      ? filteredByPostal
+      : geoData;
+
+
+  const rows =
+    source.filter(
+      x =>
         String(
-          row.province_id
+          x.provinceCode
         ) ===
         String(
-          provinceId
+          provinceCode
         )
     );
 
 
-  if (
-    postalFilteredSubdistricts.length
-  ) {
-
-    const allowedDistrictIds =
-      new Set(
-        postalFilteredSubdistricts.map(
-          row =>
-            String(
-              row.district_id
-            )
-        )
-      );
-
-
-    rows =
-      rows.filter(
-        row =>
-          allowedDistrictIds.has(
-            String(row.id)
-          )
-      );
-
-  }
+  const districtList =
+    uniqueObjects(
+      rows,
+      "districtCode",
+      "districtNameTh"
+    );
 
 
   fillSelect(
     $("district"),
-    rows,
-    "-- เลือกอำเภอ / เขต --",
-    districtName
+    districtList,
+    "-- เลือกอำเภอ / เขต --"
   );
 
 
@@ -1737,13 +1880,15 @@ function handleProvinceChange() {
 
 
   if (
-    rows.length === 1
+    districtList.length ===
+    1
   ) {
 
     $("district").value =
-      String(rows[0].id);
+      districtList[0].value;
 
-    handleDistrictChange();
+
+    handleDistrictSelect();
 
   }
 
@@ -1754,57 +1899,63 @@ function handleProvinceChange() {
 // DISTRICT → SUBDISTRICT
 // =====================================================
 
-function handleDistrictChange() {
+function handleDistrictSelect() {
 
-  const districtId =
+  const provinceCode =
+    $("province").value;
+
+
+  const districtCode =
     $("district").value;
 
 
   resetSubdistrict();
 
 
-  if (!districtId) {
+  if (
+    !provinceCode ||
+    !districtCode
+  ) {
     return;
   }
 
 
-  let rows =
-    subdistricts.filter(
-      row =>
+  const source =
+    filteredByPostal.length
+      ? filteredByPostal
+      : geoData;
+
+
+  const rows =
+    source.filter(
+      x =>
         String(
-          row.district_id
+          x.provinceCode
         ) ===
         String(
-          districtId
+          provinceCode
+        ) &&
+        String(
+          x.districtCode
+        ) ===
+        String(
+          districtCode
         )
     );
 
 
-  if (
-    postalFilteredSubdistricts.length
-  ) {
-
-    const postal =
-      $("postalCode")
-        .value
-        .trim();
-
-
-    rows =
-      rows.filter(
-        row =>
-          rowZip(row) ===
-          postal
-      );
-
-  }
+  const list =
+    uniqueObjects(
+      rows,
+      "subdistrictCode",
+      "subdistrictNameTh"
+    );
 
 
   fillSelect(
     $("subdistrict"),
-    rows,
-    "-- เลือกตำบล / แขวง --",
-    subdistrictName
+    list,
+    "-- เลือกตำบล / แขวง --"
   );
 
 
@@ -1813,13 +1964,15 @@ function handleDistrictChange() {
 
 
   if (
-    rows.length === 1
+    list.length ===
+    1
   ) {
 
     $("subdistrict").value =
-      String(rows[0].id);
+      list[0].value;
 
-    handleSubdistrictChange();
+
+    handleSubdistrictSelect();
 
   }
 
@@ -1830,39 +1983,69 @@ function handleDistrictChange() {
 // SUBDISTRICT → POSTAL
 // =====================================================
 
-function handleSubdistrictChange() {
+function handleSubdistrictSelect() {
 
-  const subdistrictId =
+  const provinceCode =
+    $("province").value;
+
+
+  const districtCode =
+    $("district").value;
+
+
+  const subdistrictCode =
     $("subdistrict").value;
 
 
-  if (!subdistrictId) {
+  if (
+    !provinceCode ||
+    !districtCode ||
+    !subdistrictCode
+  ) {
     return;
   }
 
 
-  const row =
-    subdistricts.find(
-      item =>
-        String(item.id) ===
-        String(subdistrictId)
+  const match =
+    geoData.find(
+      x =>
+        String(
+          x.provinceCode
+        ) ===
+        String(
+          provinceCode
+        ) &&
+        String(
+          x.districtCode
+        ) ===
+        String(
+          districtCode
+        ) &&
+        String(
+          x.subdistrictCode
+        ) ===
+        String(
+          subdistrictCode
+        )
     );
 
 
   if (
-    row &&
-    rowZip(row)
+    match?.postalCode
   ) {
 
     $("postalCode").value =
-      rowZip(row);
+      String(
+        match.postalCode
+      );
 
 
     $("postalHelp").textContent =
-      `รหัสไปรษณีย์ ${rowZip(row)}`;
+      `รหัสไปรษณีย์ ${match.postalCode}`;
+
 
     $("postalHelp").className =
-      "text-xs text-emerald-600 mt-1.5 font-medium";
+      "text-xs text-emerald-600 mt-1.5 font-bold";
 
   }
 
@@ -1870,68 +2053,66 @@ function handleSubdistrictChange() {
 
 
 // =====================================================
-// SELECTED NAMES
+// RESET ADDRESS SELECTS
 // =====================================================
 
-function getSelectedProvinceName() {
+function resetDistrict() {
 
-  const row =
-    provinces.find(
-      item =>
-        String(item.id) ===
-        String(
-          $("province").value
-        )
-    );
+  $("district").innerHTML =
+    `<option value="">-- เลือกอำเภอ / เขต --</option>`;
 
-  return row
-    ? provinceName(row)
-    : "";
+
+  $("district").disabled =
+    true;
 
 }
 
 
-function getSelectedDistrictName() {
+function resetSubdistrict() {
 
-  const row =
-    districts.find(
-      item =>
-        String(item.id) ===
-        String(
-          $("district").value
-        )
-    );
-
-  return row
-    ? districtName(row)
-    : "";
-
-}
+  $("subdistrict").innerHTML =
+    `<option value="">-- เลือกตำบล / แขวง --</option>`;
 
 
-function getSelectedSubdistrictName() {
-
-  const row =
-    subdistricts.find(
-      item =>
-        String(item.id) ===
-        String(
-          $("subdistrict").value
-        )
-    );
-
-  return row
-    ? subdistrictName(row)
-    : "";
+  $("subdistrict").disabled =
+    true;
 
 }
 
 
 // =====================================================
-// VALIDATION
+// GET SELECTED NAMES
 // =====================================================
 
-function cleanValue(value) {
+function selectedText(
+  element
+) {
+
+  if (
+    !element.value
+  ) {
+    return "";
+  }
+
+
+  return element
+    .options[
+      element.selectedIndex
+    ]
+    ?.textContent
+    ?.trim() ||
+    "";
+
+}
+
+
+// =====================================================
+// COMMON
+// =====================================================
+
+function clean(
+  value
+) {
 
   return String(
     value ?? ""
@@ -1940,28 +2121,36 @@ function cleanValue(value) {
 }
 
 
+// =====================================================
+// VALIDATE
+// =====================================================
+
 function validateForm() {
 
   const prefix =
     getPrefixValue();
 
+
   const firstName =
-    cleanValue(
+    clean(
       $("firstName").value
     );
 
+
   const lastName =
-    cleanValue(
+    clean(
       $("lastName").value
     );
 
+
   const phone =
-    cleanValue(
+    clean(
       $("phone").value
     );
 
+
   const email =
-    cleanValue(
+    clean(
       $("email").value
     );
 
@@ -1970,7 +2159,7 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณาระบุคำนำหน้า"
+      title: "กรุณาเลือกคำนำหน้า"
     });
 
     return false;
@@ -1982,8 +2171,10 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณาระบุชื่อ"
+      title: "กรุณากรอกชื่อ"
     });
+
+    $("firstName").focus();
 
     return false;
 
@@ -1994,8 +2185,10 @@ function validateForm() {
 
     Swal.fire({
       icon: "warning",
-      title: "กรุณาระบุนามสกุล"
+      title: "กรุณากรอกนามสกุล"
     });
+
+    $("lastName").focus();
 
     return false;
 
@@ -2011,7 +2204,7 @@ function validateForm() {
     Swal.fire({
       icon: "warning",
       title: "เบอร์โทรศัพท์ไม่ถูกต้อง",
-      text: "กรุณากรอกตัวเลข 9–10 หลัก"
+      text: "กรุณากรอกเฉพาะตัวเลข 9–10 หลัก"
     });
 
     $("phone").focus();
@@ -2031,7 +2224,7 @@ function validateForm() {
     Swal.fire({
       icon: "warning",
       title: "รูปแบบอีเมลไม่ถูกต้อง",
-      text: "กรุณากรอกอีเมล เช่น name@example.com"
+      text: "ตัวอย่าง: name@example.com"
     });
 
     $("email").focus();
@@ -2078,7 +2271,7 @@ async function submitRegistration(
   }
 
 
-  const confirmed =
+  const confirm =
     await Swal.fire({
 
       icon: "question",
@@ -2087,7 +2280,7 @@ async function submitRegistration(
         "ยืนยันการลงทะเบียนศิษย์เก่า?",
 
       text:
-        "กรุณาตรวจสอบข้อมูลให้เรียบร้อยก่อนส่ง",
+        "กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนส่ง",
 
       showCancelButton:
         true,
@@ -2099,23 +2292,19 @@ async function submitRegistration(
         "กลับไปตรวจสอบ",
 
       confirmButtonColor:
-        "#34a56f"
+        "#10b981"
 
     });
 
 
   if (
-    !confirmed.isConfirmed
+    !confirm.isConfirmed
   ) {
     return;
   }
 
 
-  const submitButton =
-    $("submitButton");
-
-
-  submitButton.disabled =
+  $("submitButton").disabled =
     true;
 
 
@@ -2130,8 +2319,9 @@ async function submitRegistration(
     allowOutsideClick:
       false,
 
-    didOpen: () =>
-      Swal.showLoading()
+    didOpen:
+      () =>
+        Swal.showLoading()
 
   });
 
@@ -2144,51 +2334,57 @@ async function submitRegistration(
         getPrefixValue(),
 
       first_name:
-        cleanValue(
+        clean(
           $("firstName").value
         ),
 
       last_name:
-        cleanValue(
+        clean(
           $("lastName").value
         ),
 
       arabic_name:
-        cleanValue(
+        clean(
           $("arabicName").value
         ),
 
       phone:
-        cleanValue(
+        clean(
           $("phone").value
         ),
 
       email:
-        cleanValue(
+        clean(
           $("email").value
         ),
 
       line_id:
-        cleanValue(
+        clean(
           $("lineId").value
         ),
 
       address_line:
-        cleanValue(
+        clean(
           $("addressLine").value
         ),
 
       subdistrict:
-        getSelectedSubdistrictName(),
+        selectedText(
+          $("subdistrict")
+        ),
 
       district:
-        getSelectedDistrictName(),
+        selectedText(
+          $("district")
+        ),
 
       province:
-        getSelectedProvinceName(),
+        selectedText(
+          $("province")
+        ),
 
       postal_code:
-        cleanValue(
+        clean(
           $("postalCode").value
         ),
 
@@ -2222,11 +2418,26 @@ async function submitRegistration(
       );
 
 
-    const result =
-      await response.json();
+    let result;
 
 
-    if (!response.ok) {
+    try {
+
+      result =
+        await response.json();
+
+    } catch {
+
+      throw new Error(
+        "ไม่สามารถอ่านข้อมูลตอบกลับจากระบบได้"
+      );
+
+    }
+
+
+    if (
+      !response.ok
+    ) {
 
       if (
         response.status === 409 &&
@@ -2245,21 +2456,21 @@ async function submitRegistration(
 
           html: `
 
-            <p>
+            <div>
               ${
                 escapeHtml(
                   result.message ||
                   "พบข้อมูลเดิมในระบบ"
                 )
               }
-            </p>
+            </div>
 
             ${
               result.member_code
               ? `
                 <div style="
-                  margin-top:14px;
-                  font-size:25px;
+                  margin-top:15px;
+                  font-size:26px;
                   font-weight:800;
                   color:#16a34a;
                 ">
@@ -2305,27 +2516,30 @@ async function submitRegistration(
       icon: "success",
 
       title:
-        "ลงทะเบียนเรียบร้อยแล้ว 🌿",
+        "ลงทะเบียนเรียบร้อยแล้ว 💚",
 
       html: `
 
-        <div style="line-height:1.7">
+        <div style="
+          line-height:1.7;
+          text-align:center;
+        ">
 
           <div>
-            ระบบได้รับข้อมูลของคุณแล้ว
+            ยินดีต้อนรับเข้าสู่ครอบครัวศิษย์เก่าค่ะ
           </div>
 
           <div style="
-            margin-top:14px;
-            color:#64748b;
+            margin-top:15px;
             font-size:13px;
+            color:#64748b;
           ">
             รหัสสมาชิก
           </div>
 
           <div style="
-            font-size:30px;
-            font-weight:800;
+            font-size:31px;
+            font-weight:900;
             color:#16a34a;
           ">
             ${
@@ -2340,7 +2554,9 @@ async function submitRegistration(
             color:#64748b;
           ">
             สถานะ:
-            <strong style="color:#d97706">
+            <strong style="
+              color:#f59e0b;
+            ">
               รออนุมัติ
             </strong>
           </div>
@@ -2353,7 +2569,7 @@ async function submitRegistration(
         "เรียบร้อย",
 
       confirmButtonColor:
-        "#34a56f"
+        "#10b981"
 
     });
 
@@ -2361,7 +2577,9 @@ async function submitRegistration(
     resetWholeForm();
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     Swal.close();
 
@@ -2390,12 +2608,12 @@ async function submitRegistration(
 
 
 // =====================================================
-// CLEAR FORM
+// RESET FORM
 // =====================================================
 
 async function clearForm() {
 
-  const result =
+  const confirm =
     await Swal.fire({
 
       icon: "question",
@@ -2416,7 +2634,7 @@ async function clearForm() {
 
 
   if (
-    result.isConfirmed
+    confirm.isConfirmed
   ) {
 
     resetWholeForm();
@@ -2441,18 +2659,21 @@ function resetWholeForm() {
     false;
 
 
-  postalFilteredSubdistricts =
+  filteredByPostal =
     [];
 
 
   clearEmailError();
 
 
-  if (addressReady) {
+  if (
+    addressReady
+  ) {
 
-    populateProvinceSelect(
-      provinces
+    populateProvinces(
+      geoData
     );
+
 
     $("province").disabled =
       false;
@@ -2466,7 +2687,11 @@ function resetWholeForm() {
 
 
   $("postalHelp").textContent =
-    "กรอก 5 หลัก แล้วระบบจะกรองพื้นที่ให้อัตโนมัติ";
+    "พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้";
+
+
+  $("postalHelp").className =
+    "text-xs text-slate-400 mt-1.5";
 
 
   updateSubmitButton();
@@ -2484,16 +2709,18 @@ function resetWholeForm() {
 // ESCAPE
 // =====================================================
 
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
   return String(
     value ?? ""
   )
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 
 }
 
