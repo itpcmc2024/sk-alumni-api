@@ -31,6 +31,7 @@ function json(request, data, status = 200) {
 
 export default {
   async fetch(request, env) {
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -41,13 +42,20 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
-    const sql = postgres(env.HYPERDRIVE.connectionString, {
-      max: 5,
-      fetch_types: false,
-      prepare: true
-    });
-
     try {
+
+      if (!env.HYPERDRIVE?.connectionString) {
+        return json(request, {
+          success: false,
+          message: "Hyperdrive binding not found"
+        }, 500);
+      }
+
+      const sql = postgres(env.HYPERDRIVE.connectionString, {
+        max: 5,
+        fetch_types: false,
+        prepare: true
+      });
 
       // =====================================================
       // HOME
@@ -56,7 +64,7 @@ export default {
         return json(request, {
           success: true,
           app: "SK Alumni API",
-          version: "1.0.0",
+          version: "1.0.1",
           status: "online",
           endpoints: [
             "/api/health",
@@ -69,7 +77,11 @@ export default {
       // =====================================================
       // HEALTH CHECK
       // =====================================================
-      if (path === "/api/health" && request.method === "GET") {
+      if (
+        path === "/api/health" &&
+        request.method === "GET"
+      ) {
+
         const result = await sql`
           SELECT
             current_database() AS database,
@@ -79,15 +91,19 @@ export default {
         return json(request, {
           success: true,
           service: "sk-alumni-api",
-          database: result[0].database,
-          server_time: result[0].server_time
+          version: "1.0.1",
+          database: result[0]?.database || null,
+          server_time: result[0]?.server_time || null
         });
       }
 
       // =====================================================
       // PUBLIC SETTINGS
       // =====================================================
-      if (path === "/api/settings/public" && request.method === "GET") {
+      if (
+        path === "/api/settings/public" &&
+        request.method === "GET"
+      ) {
 
         const rows = await sql`
           SELECT
@@ -117,84 +133,100 @@ export default {
         });
       }
 
-// =====================================================
-// MEMBER LOOKUP
-// GET /api/members/:memberCode
-// =====================================================
-if (
-  path.startsWith("/api/members/") &&
-  request.method === "GET"
-) {
-  const memberCode = decodeURIComponent(
-    path.replace("/api/members/", "")
-  ).trim();
+      // =====================================================
+      // MEMBER LOOKUP
+      // GET /api/members/:memberCode
+      // =====================================================
+      if (
+        path.startsWith("/api/members/") &&
+        request.method === "GET"
+      ) {
 
-  if (!memberCode) {
-    return json(request, {
-      success: false,
-      message: "กรุณาระบุรหัสสมาชิก"
-    }, 400);
-  }
+        try {
 
-  const rows = await sql`
-    SELECT
-      m.member_code,
-      m.prefix,
-      m.full_name,
-      m.arabic_name,
-      m.status,
-      m.member_start,
-      m.member_expire,
-      m.registered_at,
+          const memberCode = decodeURIComponent(
+            path.substring("/api/members/".length)
+          ).trim();
 
-      a.subdistrict,
-      a.district,
-      a.province,
-      a.postal_code
+          if (!memberCode) {
+            return json(request, {
+              success: false,
+              message: "กรุณาระบุรหัสสมาชิก"
+            }, 400);
+          }
 
-    FROM members m
+          const rows = await sql`
+            SELECT
+              m.member_code,
+              m.prefix,
+              m.full_name,
+              m.arabic_name,
+              m.status,
+              m.member_start,
+              m.member_expire,
+              m.registered_at,
+              a.subdistrict,
+              a.district,
+              a.province,
+              a.postal_code
+            FROM public.members AS m
+            LEFT JOIN public.addresses AS a
+              ON a.member_code = m.member_code
+            WHERE m.member_code = ${memberCode}
+            LIMIT 1
+          `;
 
-    LEFT JOIN addresses a
-      ON a.member_code = m.member_code
+          if (rows.length === 0) {
+            return json(request, {
+              success: true,
+              found: false,
+              member_code: memberCode,
+              message: "ไม่พบข้อมูลสมาชิก"
+            });
+          }
 
-    WHERE m.member_code = ${memberCode}
+          const member = rows[0];
 
-    LIMIT 1
-  `;
+          return json(request, {
+            success: true,
+            found: true,
+            data: {
+              member_code: member.member_code,
+              prefix: member.prefix,
+              full_name: member.full_name,
+              arabic_name: member.arabic_name,
+              status: member.status,
+              member_start: member.member_start,
+              member_expire: member.member_expire,
+              registered_at: member.registered_at,
+              address: {
+                subdistrict: member.subdistrict,
+                district: member.district,
+                province: member.province,
+                postal_code: member.postal_code
+              }
+            }
+          });
 
-  if (!rows.length) {
-    return json(request, {
-      success: false,
-      found: false,
-      message: "ไม่พบข้อมูลสมาชิก"
-    }, 404);
-  }
+        } catch (error) {
 
-  const member = rows[0];
+          console.error(
+            "MEMBER LOOKUP ERROR:",
+            error?.message || String(error)
+          );
 
-  return json(request, {
-    success: true,
-    found: true,
-    data: {
-      member_code: member.member_code,
-      prefix: member.prefix,
-      full_name: member.full_name,
-      arabic_name: member.arabic_name,
-      status: member.status,
-      member_start: member.member_start,
-      member_expire: member.member_expire,
-      registered_at: member.registered_at,
+          return json(request, {
+            success: false,
+            stage: "member_lookup",
+            message: "Member lookup failed",
 
-      address: {
-        subdistrict: member.subdistrict,
-        district: member.district,
-        province: member.province,
-        postal_code: member.postal_code
+            // ชั่วคราวสำหรับทดสอบ
+            error: error?.message || String(error),
+            code: error?.code || null
+          }, 500);
+        }
       }
-    }
-  });
-}
-      
+
       // =====================================================
       // NOT FOUND
       // =====================================================
@@ -205,17 +237,19 @@ if (
 
     } catch (error) {
 
-      console.error("SK Alumni API Error:", error);
+      console.error(
+        "SK Alumni API ERROR:",
+        error?.message || String(error)
+      );
 
       return json(request, {
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
+
+        // ชั่วคราวสำหรับทดสอบ
+        error: error?.message || String(error),
+        code: error?.code || null
       }, 500);
-
-    } finally {
-
-      await sql.end().catch(() => {});
-
     }
   }
 };
