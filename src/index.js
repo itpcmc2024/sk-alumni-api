@@ -116,6 +116,84 @@ export default {
         });
       }
 
+// =====================================================
+// MEMBER LOOKUP
+// GET /api/members/:memberCode
+// =====================================================
+if (
+  path.startsWith("/api/members/") &&
+  request.method === "GET"
+) {
+  const memberCode = decodeURIComponent(
+    path.replace("/api/members/", "")
+  ).trim();
+
+  if (!memberCode) {
+    return json(request, {
+      success: false,
+      message: "กรุณาระบุรหัสสมาชิก"
+    }, 400);
+  }
+
+  const rows = await sql`
+    SELECT
+      m.member_code,
+      m.prefix,
+      m.full_name,
+      m.arabic_name,
+      m.status,
+      m.member_start,
+      m.member_expire,
+      m.registered_at,
+
+      a.subdistrict,
+      a.district,
+      a.province,
+      a.postal_code
+
+    FROM members m
+
+    LEFT JOIN addresses a
+      ON a.member_code = m.member_code
+
+    WHERE m.member_code = ${memberCode}
+
+    LIMIT 1
+  `;
+
+  if (!rows.length) {
+    return json(request, {
+      success: false,
+      found: false,
+      message: "ไม่พบข้อมูลสมาชิก"
+    }, 404);
+  }
+
+  const member = rows[0];
+
+  return json(request, {
+    success: true,
+    found: true,
+    data: {
+      member_code: member.member_code,
+      prefix: member.prefix,
+      full_name: member.full_name,
+      arabic_name: member.arabic_name,
+      status: member.status,
+      member_start: member.member_start,
+      member_expire: member.member_expire,
+      registered_at: member.registered_at,
+
+      address: {
+        subdistrict: member.subdistrict,
+        district: member.district,
+        province: member.province,
+        postal_code: member.postal_code
+      }
+    }
+  });
+}
+      
       // =====================================================
       // NOT FOUND
       // =====================================================
