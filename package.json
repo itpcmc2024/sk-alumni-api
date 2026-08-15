@@ -7,7 +7,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "postgres": "^3.4.7"
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "wrangler": "^4.123.0"
