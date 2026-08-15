@@ -1,17 +1,11 @@
-SK Alumni System V1.8 – Admin Sort + Global Footer + Status Module
+SK Alumni System V1.9 – Status Portal + Admin UX
 
-ปรับจาก V1.7:
-- Admin ใช้ฟอนต์แบบระบบเดิม/อ่านง่าย (system font)
-- เพิ่มเรียงวันที่สมัคร: ใหม่ → เก่า / เก่า → ใหม่
-- จำนวนแถว: 5 / 10 / 20 / 50 / All
-- เพิ่ม Footer หน้า Admin
-- Register มี Footer อยู่แล้วและคงไว้
-- เพิ่มโมดูลใหม่ status.html สำหรับตรวจสอบสถานะสมาชิก
-- Footer มีใน register.html, admin.html และ status.html
-- ไม่แก้ PostgreSQL schema และไม่แก้ Worker API
+อัปเดต:
+- Footer รูปแบบเดียวกันทุกโมดูล พร้อมเลขเวอร์ชัน Register/Admin/Status/Member V1.9
+- Admin ตารางใช้ฟอนต์/ขนาดอ่านง่ายขึ้น
+- Admin ปุ่มอนุมัติ Disabled อัตโนมัติเมื่อสมาชิก Active แล้ว
+- Status แก้ชื่อซ้ำ และเปลี่ยนเป็นข้อความสรุปสถานะสมาชิก
+- สมาชิก Active จะมีลิงก์ไป member.html สำหรับล็อกอินสิทธิประโยชน์
+- เพิ่ม member.html ในระบบปัจจุบัน ใช้รหัสสมาชิก + email/โทรศัพท์ และอนุญาตเฉพาะ Active
 
-ไฟล์ที่ต้องอัปโหลดใหม่:
-1. admin.html
-2. status.html
-
-register.html และ assets ใช้ต่อจากชุดเดิมได้
+ไฟล์ที่ควรอัปโหลด: register.html, admin.html, status.html, member.html และ assets/ (ถ้ามีอยู่แล้วไม่ต้องอัปโหลดซ้ำ)
