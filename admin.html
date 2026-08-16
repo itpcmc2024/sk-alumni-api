@@ -23,18 +23,60 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradi
 @media(max-width:520px){.brand h1{font-size:15px}.brand p{display:none}.logo{width:42px;height:42px}.admin-pill{display:none}.stats{gap:9px}.stat{padding:14px;min-height:96px}.stat .num{font-size:29px}.filters{grid-template-columns:1fr}.filters .search-wide{grid-column:auto}.page-title{align-items:start;flex-direction:column}.soft-note{display:none}}
 </style>
 
-<style id="v24-global-nav">
-.v24-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-start}
-.v24-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+
+<style id="v25-global-nav">
+.v25-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v25-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v24-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v24-homebar{justify-content:center;margin-top:10px}.v24-homebtn{font-size:13px}}
+.v25-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v25-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v25-homebtn{font-size:13px}}
+</style>
+
+<style id="v25-footer-mobile">
+@media(max-width:760px){
+  footer .wrap, .site-footer-in, .footin{
+    text-align:center!important;
+  }
+  .site-footer-in, .footin{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:18px!important;
+  }
+  .site-footer-brand, .footbrand{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:14px!important;
+    text-align:left!important;
+    width:auto!important;
+    max-width:94%!important;
+  }
+  .site-footer-brand img, .footbrand img, footer .footer-logo{
+    width:72px!important;
+    height:72px!important;
+    flex:none!important;
+    object-fit:contain!important;
+    background:transparent!important;
+    border:3px solid rgba(50,169,105,.22)!important;
+    box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14)!important;
+    border-radius:50%!important;
+    padding:3px!important;
+  }
+  .site-footer-version, .footcopy{
+    text-align:center!important;
+    width:100%!important;
+    margin-top:0!important;
+  }
+}
 </style>
 
 </head>
 <body>
-<div class="v24-homebar"><a class="v24-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <div id="loginBack" class="login-back">
   <div class="login">
@@ -84,7 +126,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 <footer class="admin-footer">
   <div class="admin-footer-in">
     <div class="admin-footer-brand"><img src="assets/association-logo.png" alt=""><span>สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div>
-    <div>© 2026 SK Alumni Member System by Kimhan · admin V2.4</div>
+    <div>© 2026 SK Alumni Member System by Kimhan · admin V2.5</div>
   </div>
 </footer>
 <div id="modalBack" class="modal-back hidden">

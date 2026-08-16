@@ -1,13 +1,56 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ข่าวสาร</title><link rel="stylesheet" href="assets/site.css"><script src="assets/site.js"></script>
-<style id="v24-global-nav">
-.v24-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-start}
-.v24-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+
+<style id="v25-global-nav">
+.v25-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v25-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v24-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v24-homebar{justify-content:center;margin-top:10px}.v24-homebtn{font-size:13px}}
+.v25-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v25-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v25-homebtn{font-size:13px}}
+</style>
+
+<style id="v25-footer-mobile">
+@media(max-width:760px){
+  footer .wrap, .site-footer-in, .footin{
+    text-align:center!important;
+  }
+  .site-footer-in, .footin{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:18px!important;
+  }
+  .site-footer-brand, .footbrand{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:14px!important;
+    text-align:left!important;
+    width:auto!important;
+    max-width:94%!important;
+  }
+  .site-footer-brand img, .footbrand img, footer .footer-logo{
+    width:72px!important;
+    height:72px!important;
+    flex:none!important;
+    object-fit:contain!important;
+    background:transparent!important;
+    border:3px solid rgba(50,169,105,.22)!important;
+    box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14)!important;
+    border-radius:50%!important;
+    padding:3px!important;
+  }
+  .site-footer-version, .footcopy{
+    text-align:center!important;
+    width:100%!important;
+    margin-top:0!important;
+  }
+}
 </style>
 
 </head><body>
-<div class="v24-homebar"><a class="v24-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+
 <header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ข่าวสารและกิจกรรม</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="news.html">ข่าวสาร</a></nav></div></header><main class="wrap"><h1 class="section-title">📣 ข่าวสารล่าสุด</h1><div id="list" class="list"><div class="card">กำลังโหลด...</div></div></main><div id="foot"></div><script>foot.innerHTML=footer('News');(async()=>{try{const j=await api('/api/news');const rows=j.data||[];list.innerHTML=rows.length?rows.map(n=>`<article class="card"><span class="badge active">${e(n.category||'ข่าวสาร')}</span><h2>${e(n.title)}</h2><div style="color:#7a8797;font-size:13px">${fmtDate(n.publish_date)}</div><p style="line-height:1.8">${e(n.content||'')}</p></article>`).join(''):'<div class="card">ยังไม่มีข่าวสาร</div>'}catch(err){list.innerHTML=`<div class="card">โหลดข่าวไม่สำเร็จ: ${e(err.message)}</div>`}})();</script></body></html>
