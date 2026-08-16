@@ -1,9 +1,9 @@
-SK Alumni System V2.6 – API Recovery + Optional Member Photo
+SK Alumni System V2.6.1 – API Recovery + Optional Member Photo
 ===========================================================
 
-เหตุผลของ V2.6
+เหตุผลของ V2.6.1
 - จากการทดสอบ V2.5 ทุกหน้าที่เรียก API ขึ้น "Failed to fetch"
-- V2.6 ปรับ Worker ให้ตอบ CORS สำหรับหน้าเว็บแบบ static ได้ตรงไปตรงมา
+- V2.6.1 ปรับ Worker ให้ตอบ CORS สำหรับหน้าเว็บแบบ static ได้ตรงไปตรงมา
 - ย้ายการเริ่มเชื่อมฐานข้อมูลเข้า try/catch เพื่อไม่ให้ runtime error กลายเป็น Failed to fetch แบบไม่มีรายละเอียด
 - เพิ่ม timeout/error message ที่อ่านเข้าใจง่ายในหน้าเว็บ
 
@@ -20,7 +20,7 @@ SK Alumni System V2.6 – API Recovery + Optional Member Photo
 - Admin รายละเอียดสมาชิกแสดงรูปสมาชิก (ถ้ามี)
 - Member Portal แสดงรูปสมาชิก (ถ้ามี)
 - Benefits / News / Status / Register ใช้ error handling API แบบใหม่
-- Version ทุกส่วนเป็น V2.6
+- Version ทุกส่วนเป็น V2.6.1
 
 ต้องทำเพิ่ม 1 ครั้งกับ PostgreSQL
 รัน:
@@ -29,12 +29,12 @@ SK Alumni System V2.6 – API Recovery + Optional Member Photo
 หรือเมื่ออยู่ใน psql:
   \i /Users/<ชื่อผู้ใช้>/Documents/sk-alumni-api/sql/migrate-v2.6-photo.sql
 
-จากนั้น Deploy Worker ใหม่ให้ src/index.js V2.6 ขึ้น Cloudflare
+จากนั้น Deploy Worker ใหม่ให้ src/index.js V2.6.1 ขึ้น Cloudflare
 และ Push GitHub Pages ตามปกติ
 
 ลำดับทดสอบหลัง Deploy
 1. เปิด https://sk-alumni-api.itpcmc2024.workers.dev/
-   ต้องเห็น version 2.6.0
+   ต้องเห็น version 2.6.1
 2. เปิด /api/health
 3. เปิด /api/news
 4. ทดสอบ register.html สมัคร 1 ราย
@@ -44,4 +44,4 @@ SK Alumni System V2.6 – API Recovery + Optional Member Photo
 8. benefits.html / news.html
 
 Commit message:
-SK Alumni System V2.6 API Recovery Optional Member Photo
+SK Alumni System V2.6.1 API Recovery Optional Member Photo

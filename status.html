@@ -7,16 +7,16 @@
 .site-footer{margin-top:30px;background:linear-gradient(90deg,#e9f9ef,#f9fff8);border-top:1px solid #d7edde}.site-footer-in{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#64748b;font-size:13px}.site-footer-brand{display:flex;align-items:center;gap:11px}.site-footer-brand img{width:48px;height:48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}.site-footer-name{font-weight:700;color:#166749}.site-footer-values{font-size:12px;color:#27805f;margin-top:2px}.site-footer-version{text-align:right}@media(max-width:680px){.site-footer-in{flex-direction:column;text-align:center}.site-footer-version{text-align:center}}
 @media(max-width:640px){.searchbox{grid-template-columns:1fr}.searchbox button{width:100%}.result-head{align-items:flex-start;flex-direction:column}}</style>
 
-<style id="v26-global-nav">
-.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v261-global-nav">
+.v261-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v261-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v26-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
+.v261-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v261-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v261-homebtn{font-size:13px}}
 </style>
 
-<style id="v26-footer-mobile">
+<style id="v261-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -59,10 +59,10 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 
 </head>
 <body>
-<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v261-homebar"><a class="v261-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap head"><img src="assets/association-logo.png" class="logo" alt="โลโก้สมาคม"><div><div class="brand">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sub">🌙 Nurul Islam · SK Alumni Member System</div></div></div></header>
-<main class="wrap main"><section class="hero"><div class="eyebrow">🔎 ตรวจสอบสถานะ</div><h1>ติดตามข้อมูลศิษย์เก่า</h1><p>กรอกรหัสสมาชิก เช่น 69-SK0002 เพื่อดูสถานะล่าสุดของคุณ</p><div class="searchbox"><input id="memberCode" autocomplete="off" placeholder="กรอกรหัสสมาชิก เช่น 69-SK0002"><button id="checkBtn">ตรวจสอบสถานะ</button></div><div id="result" class="result" hidden></div><div class="actions"><a class="back" href="register.html">← กลับไปหน้าลงทะเบียนศิษย์เก่า</a></div></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · status V2.6</div></div></footer>
+<main class="wrap main"><section class="hero"><div class="eyebrow">🔎 ตรวจสอบสถานะ</div><h1>ติดตามข้อมูลศิษย์เก่า</h1><p>กรอกรหัสสมาชิก เช่น 69-SK0002 เพื่อดูสถานะล่าสุดของคุณ</p><div class="searchbox"><input id="memberCode" autocomplete="off" placeholder="กรอกรหัสสมาชิก เช่น 69-SK0002"><button id="checkBtn">ตรวจสอบสถานะ</button></div><div id="result" class="result" hidden></div><div class="actions"><a class="back" href="register.html">← กลับไปหน้าลงทะเบียนศิษย์เก่า</a></div></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · status V2.6.1</div></div></footer>
 <script>
 const API='https://sk-alumni-api.itpcmc2024.workers.dev';
 async function safeFetch(url,opt={}){

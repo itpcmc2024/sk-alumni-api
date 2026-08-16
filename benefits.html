@@ -1,15 +1,15 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>สิทธิประโยชน์</title><link rel="stylesheet" href="assets/site.css"><script src="assets/site.js"></script>
 
-<style id="v26-global-nav">
-.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v261-global-nav">
+.v261-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v261-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v26-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
+.v261-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v261-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v261-homebtn{font-size:13px}}
 </style>
 
-<style id="v26-footer-mobile">
+<style id="v261-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -51,6 +51,6 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 </style>
 
 </head><body>
-<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v261-homebar"><a class="v261-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">สิทธิประโยชน์สมาชิก</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="benefits.html">สิทธิประโยชน์</a><a href="member.html">ข้อมูลสมาชิก</a></nav></div></header><main class="wrap"><h1 class="section-title">🎁 สิทธิประโยชน์สำหรับสมาชิก</h1><div id="list" class="grid"></div></main><div id="foot"></div><script>foot.innerHTML=footer('Benefits');(async()=>{try{const j=await api('/api/benefits');const rows=j.data||[];list.innerHTML=rows.length?rows.map(x=>`<div class="card module"><div class="icon">🎁</div><h3>${e(x.title)}</h3><p>${e(x.description||'')}</p><div class="sub">${x.end_date?'ถึง '+e(x.end_date):'ไม่มีวันสิ้นสุด'}</div></div>`).join(''):'<div class="card">ยังไม่มีสิทธิประโยชน์ที่เปิดใช้งาน</div>'}catch(err){list.innerHTML=`<div class="card">โหลดข้อมูลไม่สำเร็จ: ${e(err.message)}</div>`}})();</script></body></html>

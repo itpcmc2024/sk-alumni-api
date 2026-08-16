@@ -1,15 +1,15 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Benefits</title><link rel="stylesheet" href="assets/site.css"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js"></script>
 
-<style id="v26-global-nav">
-.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v261-global-nav">
+.v261-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v261-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v26-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
+.v261-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v261-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v261-homebtn{font-size:13px}}
 </style>
 
-<style id="v26-footer-mobile">
+<style id="v261-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -51,6 +51,6 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 </style>
 
 </head><body>
-<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v261-homebar"><a class="v261-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">จัดการสิทธิประโยชน์</div><div class="brand-sub">Admin · V2.0</div></div><nav class="nav"><a href="admin-home.html">Admin Center</a></nav></div></header><main class="wrap"><div class="card" style="margin-top:28px"><form id="f" class="form"><div class="field"><label>Admin API Key *</label><input id="key" class="control" type="password" required></div><div class="field"><label>ชื่อสิทธิประโยชน์ *</label><input id="title" class="control" required></div><div class="field"><label>รายละเอียด</label><textarea id="desc" class="control"></textarea></div><div class="row2"><div class="field"><label>เริ่ม</label><input id="start" type="date" class="control"></div><div class="field"><label>สิ้นสุด</label><input id="end" type="date" class="control"></div></div><button class="btn">เพิ่มสิทธิประโยชน์</button></form></div><h2 class="section-title">สิทธิที่เปิดใช้งาน</h2><div id="list" class="list"></div></main><div id="foot"></div><script>foot.innerHTML=footer('Admin Benefits');async function refresh(){try{const j=await api('/api/benefits');list.innerHTML=(j.data||[]).map(x=>`<div class="item"><b>${e(x.title)}</b><div>${e(x.description||'')}</div></div>`).join('')||'<div class="item">ยังไม่มีรายการ</div>'}catch(err){list.innerHTML='<div class="item">'+e(err.message)+'</div>'}}f.onsubmit=async ev=>{ev.preventDefault();try{await api('/api/admin/benefits',{method:'POST',headers:{Authorization:'Bearer '+key.value.trim()},body:JSON.stringify({title:title.value.trim(),description:desc.value.trim(),start_date:start.value||null,end_date:end.value||null})});Swal.fire({icon:'success',title:'บันทึกแล้ว',timer:900,showConfirmButton:false});ev.target.reset();refresh()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};refresh();</script></body></html>

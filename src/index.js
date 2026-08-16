@@ -37,11 +37,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.0",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.1",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.0"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.1"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -53,7 +53,8 @@ export default {
       if(path==="/api/members/register"&&request.method==="POST"){
         const b=await body(request);const prefix=clean(b.prefix),first=clean(b.first_name),last=clean(b.last_name),phone=clean(b.phone),email=clean(b.email).toLowerCase(),photo=clean(b.photo_data);
         if(!prefix||!first||!last||!/^\d{9,10}$/.test(phone))return json(request,{success:false,message:"ข้อมูลลงทะเบียนไม่ครบหรือเบอร์โทรไม่ถูกต้อง"},400);
-        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);\n        if(!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
+        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
+        if(!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
         const dup=await sql`SELECT member_code FROM members WHERE phone=${phone} OR (${email}<>'' AND LOWER(COALESCE(email,''))=${email}) LIMIT 1`;
         if(dup.length)return json(request,{success:false,duplicate:true,member_code:dup[0].member_code,message:"พบข้อมูลที่อาจลงทะเบียนไว้แล้ว"},409);
         const yy=String(new Date().getFullYear()+543).slice(-2);
