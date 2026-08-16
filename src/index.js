@@ -80,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.5",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.6",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.5"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.6"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -274,27 +274,60 @@ export default {
       if(path==="/api/member/update"&&request.method==="POST"){
         const b=await body(request);
         const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
+        const prefix=clean(b.prefix),firstName=clean(b.first_name),lastName=clean(b.last_name),arabicName=clean(b.arabic_name);
         const phone=clean(b.phone),email=clean(b.email).toLowerCase(),photo=clean(b.photo_data);
+        const addressLine=clean(b.address_line),subdistrict=clean(b.subdistrict),district=clean(b.district),province=clean(b.province),postalCode=clean(b.postal_code);
         if(!code||!identity)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ครบ"},400);
         if(phone&&!/^\d{9,10}$/.test(phone.replace(/\D/g,"")))return json(request,{success:false,message:"เบอร์โทรศัพท์ไม่ถูกต้อง"},400);
         if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
+        if(postalCode&&!/^\d{5}$/.test(postalCode))return json(request,{success:false,message:"รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก"},400);
         if(photo&&!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
-        const rows=await sql`SELECT member_code,status,email,phone FROM members WHERE member_code=${code} LIMIT 1`;
+        const rows=await sql`SELECT member_code,status,email,phone,prefix,first_name,last_name,full_name FROM members WHERE member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
         const m=rows[0];
         if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
         const normPhone=v=>String(v||"").replace(/\D/g,"");
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
-        if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง"},401);
-        await sql`
-          UPDATE members
-          SET phone=COALESCE(NULLIF(${phone},''),phone),
-              email=COALESCE(NULLIF(${email},''),email),
-              photo_data=COALESCE(NULLIF(${photo},''),photo_data),
-              updated_at=NOW()
-          WHERE member_code=${code}
+        if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่"},401);
+
+        const nextFirst=firstName||clean(m.first_name),nextLast=lastName||clean(m.last_name),nextEmail=email||clean(m.email).toLowerCase();
+        if(!nextFirst||!nextLast||!nextEmail)return json(request,{success:false,message:"ชื่อ นามสกุล และอีเมลต้องมีข้อมูลครบ"},400);
+        const dup=await sql`
+          SELECT member_code FROM members
+          WHERE member_code<>${code}
+            AND LOWER(TRIM(COALESCE(first_name,'')))=LOWER(TRIM(${nextFirst}))
+            AND LOWER(TRIM(COALESCE(last_name,'')))=LOWER(TRIM(${nextLast}))
+            AND LOWER(TRIM(COALESCE(email,'')))=LOWER(TRIM(${nextEmail}))
+          LIMIT 1
         `;
-        const updated=await sql`SELECT phone,email,photo_data FROM members WHERE member_code=${code}`;
+        if(dup.length)return json(request,{success:false,message:`มีสมาชิกชื่อ ${nextFirst} ${nextLast} และอีเมลนี้อยู่ในระบบแล้ว (${dup[0].member_code})`},409);
+        const full=[nextFirst,nextLast].filter(Boolean).join(' ');
+        await sql.begin(async tx=>{
+          await tx`
+            UPDATE members SET
+              prefix=COALESCE(NULLIF(${prefix},''),prefix),
+              first_name=${nextFirst},last_name=${nextLast},full_name=${full},
+              arabic_name=${arabicName||null},
+              phone=COALESCE(NULLIF(${phone},''),phone),email=${nextEmail},
+              photo_data=COALESCE(NULLIF(${photo},''),photo_data),updated_at=NOW()
+            WHERE member_code=${code}
+          `;
+          await tx`
+            INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at)
+            VALUES(${code},${addressLine||null},${subdistrict||null},${district||null},${province||null},${postalCode||null},NOW())
+            ON CONFLICT(member_code) DO UPDATE SET
+              address_line=COALESCE(NULLIF(EXCLUDED.address_line,''),addresses.address_line),
+              subdistrict=COALESCE(NULLIF(EXCLUDED.subdistrict,''),addresses.subdistrict),
+              district=COALESCE(NULLIF(EXCLUDED.district,''),addresses.district),
+              province=COALESCE(NULLIF(EXCLUDED.province,''),addresses.province),
+              postal_code=COALESCE(NULLIF(EXCLUDED.postal_code,''),addresses.postal_code),updated_at=NOW()
+          `;
+        });
+        const updated=await sql`
+          SELECT m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.phone,m.email,m.photo_data,
+                 a.address_line,a.subdistrict,a.district,a.province,a.postal_code
+          FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1
+        `;
         return json(request,{success:true,message:"บันทึกข้อมูลสมาชิกแล้ว",data:updated[0]});
       }
 
@@ -323,6 +356,30 @@ export default {
         const rows=await sql`SELECT news_id,category,title,content,publish_date FROM news WHERE active=TRUE ORDER BY publish_date DESC LIMIT 50`;
         return json(request,{success:true,data:rows});
       }
+      if(path==="/api/admin/benefit-usage"&&request.method==="POST"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        const b=await body(request),code=clean(b.member_code).toUpperCase(),benefitId=clean(b.benefit_id),amount=Math.max(0,Number(b.amount||0));
+        if(!code||!benefitId)return json(request,{success:false,message:"กรุณาระบุสมาชิกและสิทธิประโยชน์"},400);
+        const member=await sql`SELECT member_code FROM members WHERE member_code=${code} LIMIT 1`;
+        if(!member.length)return json(request,{success:false,message:"ไม่พบรหัสสมาชิก"},404);
+        const benefit=await sql`SELECT benefit_id FROM benefits WHERE benefit_id=${benefitId} LIMIT 1`;
+        if(!benefit.length)return json(request,{success:false,message:"ไม่พบสิทธิประโยชน์"},404);
+        await sql`
+          CREATE TABLE IF NOT EXISTS benefit_usage(
+            usage_id VARCHAR(80) PRIMARY KEY,
+            member_code VARCHAR(20) NOT NULL REFERENCES members(member_code) ON DELETE RESTRICT,
+            benefit_id VARCHAR(80) NOT NULL REFERENCES benefits(benefit_id) ON DELETE RESTRICT,
+            used_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            recorded_by VARCHAR(100) NOT NULL,
+            note TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK(amount>=0),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+          )
+        `;
+        const usageId=id('USE');
+        await sql`INSERT INTO benefit_usage(usage_id,member_code,benefit_id,used_at,recorded_by,note,amount,created_at) VALUES(${usageId},${code},${benefitId},${b.used_at||new Date().toISOString()},${clean(b.recorded_by)||'admin'},${clean(b.note)||null},${amount},NOW())`;
+        return json(request,{success:true,usage_id:usageId,message:"บันทึกการใช้สิทธิประโยชน์แล้ว"},201);
+      }
+
       if(path==="/api/benefits"&&request.method==="GET"){
         const rows=await sql`SELECT benefit_id,title,description,start_date,end_date FROM benefits WHERE active=TRUE AND (start_date IS NULL OR start_date<=CURRENT_DATE) AND (end_date IS NULL OR end_date>=CURRENT_DATE) ORDER BY created_at DESC`;
         return json(request,{success:true,data:rows});
