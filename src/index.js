@@ -80,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.3",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.4",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.3"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.4"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -112,8 +112,8 @@ export default {
           SELECT COALESCE(
             MAX(
               CASE
-                WHEN member_code ~ ${'^'+yy+'-SK[0-9]+$'}
-                THEN CAST(SUBSTRING(member_code FROM '-SK([0-9]+)$') AS INTEGER)
+                WHEN member_code ~ ${'^'+yy+'-SK[0-9]{4}$'}
+                THEN CAST(RIGHT(member_code,4) AS INTEGER)
                 ELSE NULL
               END
             ),0
@@ -121,7 +121,8 @@ export default {
           FROM members
           WHERE member_code LIKE ${yy+'-SK%'}
         `;
-        const code=`${yy}-SK${String(seq[0].n||1).padStart(4,'0')}`;
+        const nextNo=Math.max(1,Number(seq[0]?.n||1));
+        const code=`${yy}-SK${String(nextNo).padStart(4,'0')}`;
         const full=`${first} ${last}`.trim();
         await sql.begin(async tx=>{
           await tx`
@@ -155,7 +156,102 @@ export default {
         if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&String(m.phone).replace(/\D/g,'')===identity.replace(/\D/g,''));
         if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
-        return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
+        return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,first_name:m.first_name,last_name:m.last_name,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
+      }
+
+
+      if(path==="/api/member/portal"&&request.method==="POST"){
+        const b=await body(request);
+        const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
+        if(!code||!identity)return json(request,{success:false,message:"กรุณากรอกรหัสสมาชิกและอีเมลหรือเบอร์โทรศัพท์"},400);
+        const rows=await sql`
+          SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,
+                 m.email,m.phone,m.photo_data,m.member_start,m.member_expire,m.registered_at,
+                 a.address_line,a.subdistrict,a.district,a.province,a.postal_code
+          FROM members m
+          LEFT JOIN addresses a ON a.member_code=m.member_code
+          WHERE m.member_code=${code}
+          LIMIT 1
+        `;
+        if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
+        const m=rows[0];
+        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        const normPhone=v=>String(v||"").replace(/\D/g,"");
+        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
+        if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
+
+        const payments=await sql`
+          SELECT payment_id,payment_type,amount,paid_at,status,note
+          FROM payments WHERE member_code=${code}
+          ORDER BY paid_at DESC,created_at DESC
+          LIMIT 200
+        `;
+        const donations=await sql`
+          SELECT donation_id,amount,donated_at,status,note
+          FROM donations WHERE member_code=${code}
+          ORDER BY donated_at DESC,created_at DESC
+          LIMIT 200
+        `;
+        const usages=await sql`
+          SELECT u.usage_id,u.benefit_id,bf.title,u.used_at,u.amount,u.note
+          FROM benefit_usage u
+          LEFT JOIN benefits bf ON bf.benefit_id=u.benefit_id
+          WHERE u.member_code=${code}
+          ORDER BY u.used_at DESC,u.created_at DESC
+          LIMIT 200
+        `;
+        const benefits=await sql`
+          SELECT benefit_id,title,description,start_date,end_date,default_amount
+          FROM benefits
+          WHERE active=TRUE
+            AND (start_date IS NULL OR start_date<=CURRENT_DATE)
+            AND (end_date IS NULL OR end_date>=CURRENT_DATE)
+          ORDER BY created_at DESC
+          LIMIT 100
+        `;
+        const approvedPayments=payments.filter(x=>String(x.status||"")==="ชำระแล้ว");
+        const approvedDonations=donations.filter(x=>String(x.status||"")==="ตรวจสอบแล้ว");
+        const sum=x=>x.reduce((a,r)=>a+Number(r.amount||0),0);
+        return json(request,{
+          success:true,
+          data:{
+            member:{
+              member_code:m.member_code,prefix:m.prefix,first_name:m.first_name,last_name:m.last_name,
+              full_name:m.full_name,arabic_name:m.arabic_name,status:"active",email:m.email,phone:m.phone,
+              photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,registered_at:m.registered_at,
+              address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}
+            },
+            summary:{payments_total:sum(approvedPayments),donations_total:sum(approvedDonations),benefits_used:usages.length},
+            payments,donations,benefit_usage:usages,benefits
+          }
+        });
+      }
+
+      if(path==="/api/member/update"&&request.method==="POST"){
+        const b=await body(request);
+        const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
+        const phone=clean(b.phone),email=clean(b.email).toLowerCase(),photo=clean(b.photo_data);
+        if(!code||!identity)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ครบ"},400);
+        if(phone&&!/^\d{9,10}$/.test(phone.replace(/\D/g,"")))return json(request,{success:false,message:"เบอร์โทรศัพท์ไม่ถูกต้อง"},400);
+        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
+        if(photo&&!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
+        const rows=await sql`SELECT member_code,status,email,phone FROM members WHERE member_code=${code} LIMIT 1`;
+        if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
+        const m=rows[0];
+        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        const normPhone=v=>String(v||"").replace(/\D/g,"");
+        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
+        if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง"},401);
+        await sql`
+          UPDATE members
+          SET phone=COALESCE(NULLIF(${phone},''),phone),
+              email=COALESCE(NULLIF(${email},''),email),
+              photo_data=COALESCE(NULLIF(${photo},''),photo_data),
+              updated_at=NOW()
+          WHERE member_code=${code}
+        `;
+        const updated=await sql`SELECT phone,email,photo_data FROM members WHERE member_code=${code}`;
+        return json(request,{success:true,message:"บันทึกข้อมูลสมาชิกแล้ว",data:updated[0]});
       }
 
       if(/^\/api\/members\//.test(path)&&request.method==="GET"){

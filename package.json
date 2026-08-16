@@ -1,12 +1,15 @@
 {
   "name": "sk-alumni-api",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "private": true,
   "type": "module",
-  "devDependencies": {
-    "wrangler": "^4.123.0"
+  "scripts": {
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.123.0"
   }
 }

@@ -1,54 +1,193 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>สิทธิประโยชน์สมาชิก | SK Alumni</title><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><style>
-@import url('https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans Thai",sans-serif;color:#475569;background:linear-gradient(135deg,#effcf4,#f8fbff 55%,#fff9ea);min-height:100vh}.wrap{width:min(1120px,94vw);margin:auto}.top{background:rgba(255,255,255,.94);border-bottom:1px solid #dff0e6}.head{display:flex;align-items:center;gap:14px;padding:14px 0}.logo{width:64px;height:64px;border-radius:50%;object-fit:contain;border:5px solid #dcfce7;background:#fff}.brand{font-family:"Mitr",sans-serif;color:#086a4b;font-size:clamp(18px,3vw,25px);font-weight:600;line-height:1.25}.sub{color:#718096;font-size:13px}.main{padding:34px 0 48px}.portal{background:#fff;border:1px solid #dcece3;border-radius:30px;padding:clamp(22px,5vw,40px);box-shadow:0 18px 50px rgba(47,105,80,.08)}.eyebrow{display:inline-flex;background:#fff2d9;color:#9c6900;border-radius:999px;padding:8px 14px;font-weight:700}.portal h1{font-family:"Mitr",sans-serif;color:#075f43;font-size:clamp(30px,5vw,46px);margin:16px 0 8px}.portal>p{color:#718096;margin:0 0 24px}.login-grid{display:grid;grid-template-columns:1fr 1.2fr auto;gap:12px;align-items:end;background:linear-gradient(120deg,#f0fdf4,#f8fbff);border:1px solid #dbeee3;border-radius:22px;padding:18px}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px;color:#475569}.field input{width:100%;height:52px;border:1px solid #cfe1d8;border-radius:15px;padding:0 15px;font-size:16px;outline:none;background:white}.login-btn{height:52px;border:0;border-radius:15px;background:#287b5d;color:#fff;font-weight:700;padding:0 22px}.note{margin-top:14px;background:#fff8df;border:1px solid #f0d795;border-radius:14px;padding:12px 14px;color:#85620b;font-size:13px}.profile{margin-top:24px}.profile-head{border-radius:22px;padding:20px;background:linear-gradient(90deg,#ecfdf5,#eff6ff);display:flex;justify-content:space-between;gap:15px;align-items:center}.profile-name{font-family:"Mitr",sans-serif;font-size:24px;color:#075f43}.badge{background:#dcfce7;color:#087956;padding:7px 12px;border-radius:999px;font-weight:700;font-size:12px}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:16px}.card{background:#fff;border:1px solid #e3ece7;border-radius:18px;padding:18px}.card h3{margin:0 0 10px;color:#334155}.card p{margin:5px 0;color:#64748b}.hidden{display:none!important}
-.site-footer{margin-top:30px;background:linear-gradient(90deg,#e9f9ef,#f9fff8);border-top:1px solid #d7edde}.site-footer-in{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#64748b;font-size:13px}.site-footer-brand{display:flex;align-items:center;gap:11px}.site-footer-brand img{width:48px;height:48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}.site-footer-name{font-weight:700;color:#166749}.site-footer-values{font-size:12px;color:#27805f;margin-top:2px}.site-footer-version{text-align:right}@media(max-width:680px){.site-footer-in{flex-direction:column;text-align:center}.site-footer-version{text-align:center}}
-@media(max-width:760px){.login-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.profile-head{align-items:flex-start;flex-direction:column}}</style></head><body>
-<header class="top"><div class="wrap head"><img src="assets/association-logo.jpg" class="logo"><div><div class="brand">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sub">🌙 Nurul Islam · SK Alumni Member System</div></div></div></header>
-<main class="wrap main"><section class="portal"><div class="eyebrow">🎁 MEMBER BENEFITS & PORTAL</div><h1>สิทธิประโยชน์สมาชิก</h1><p>สำหรับสมาชิกที่ได้รับการอนุมัติแล้ว กรุณาใช้รหัสสมาชิกพร้อมอีเมลหรือเบอร์โทรศัพท์ที่ลงทะเบียน</p><div class="login-grid"><div class="field"><label>รหัสสมาชิก</label><input id="code" placeholder="69-SK0001"></div><div class="field"><label>อีเมล หรือ เบอร์โทรศัพท์</label><input id="identity" placeholder="name@example.com หรือ 08xxxxxxxx"></div><button id="loginBtn" class="login-btn">เปิดข้อมูลและสิทธิประโยชน์</button></div><div class="note">🔒 ระบบอนุญาตให้เข้าดูข้อมูลสมาชิกในหน้านี้เฉพาะผู้ที่มีสถานะ <b>ใช้งาน</b> เท่านั้น</div><section id="profile" class="profile hidden"><div class="profile-head"><div><div id="memberName" class="profile-name">-</div><div id="memberCode" class="sub">-</div></div><span class="badge">สมาชิกใช้งาน</span></div><div class="cards"><div class="card"><h3>👤 ข้อมูลสมาชิก</h3><p id="contact">-</p><p id="address">-</p></div><div class="card"><h3>🎁 สิทธิประโยชน์</h3><p>พื้นที่สมาชิกพร้อมใช้งานแล้ว</p><p>โมดูลสิทธิประโยชน์เพิ่มเติมจะเชื่อมต่อในเวอร์ชันถัดไป</p></div></div></section></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.jpg" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · Member V2.6.3</div></div></footer><script>
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ข้อมูลและสิทธิประโยชน์ของฉัน | SK Alumni</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans Thai",sans-serif;color:#334155;background:linear-gradient(135deg,#f0fbf5,#f8fbff 58%,#fff9eb);min-height:100vh}a{text-decoration:none;color:inherit}button,input{font:inherit}.wrap{width:min(1180px,94vw);margin:auto}.hidden{display:none!important}
+.top{background:rgba(255,255,255,.96);border-bottom:1px solid #d9eee3;position:sticky;top:0;z-index:20;backdrop-filter:blur(12px)}.top-in{min-height:92px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:12px}.brand img{width:64px;height:64px;border-radius:50%;object-fit:contain;background:transparent;border:4px solid #dcfce7;box-shadow:0 6px 20px rgba(15,118,80,.1)}.brand b{font-family:Mitr,sans-serif;color:#076846;font-size:20px;line-height:1.25}.brand small{display:block;color:#64748b;margin-top:2px}.nav{display:flex;gap:7px;align-items:center}.nav a{padding:10px 12px;border-radius:15px;text-align:center;color:#52645d;font-weight:700;font-size:12px}.nav a span{display:block;font-size:22px}.nav a.active,.nav a:hover{background:#eaf9f1;color:#08744c}.homebtn{border:1px solid #c9e8d7;background:#f7fff9;color:#08744c;border-radius:999px;padding:10px 15px;font-weight:800}
+main{padding:38px 0 55px}.portal{background:#fff;border:1px solid #dcece3;border-radius:30px;padding:clamp(22px,4vw,38px);box-shadow:0 18px 55px rgba(47,105,80,.08)}.eyebrow{font-size:12px;letter-spacing:2px;font-weight:900;color:#27805f}.intro h1{font-family:Mitr,sans-serif;color:#164d3d;font-size:clamp(32px,5vw,48px);margin:6px 0}.intro p{color:#7a8b84;margin:0 0 26px}
+.login{display:grid;grid-template-columns:1fr 1.3fr auto;gap:12px;align-items:end;background:linear-gradient(120deg,#f0fdf4,#f8fbff);border:1px solid #d8ebe1;border-radius:22px;padding:18px}.field label{display:block;font-weight:800;font-size:13px;margin-bottom:6px}.field input{width:100%;height:52px;border:1px solid #cbded4;border-radius:15px;padding:0 15px;outline:none;background:#fff}.field input:focus{border-color:#34a56f;box-shadow:0 0 0 4px rgba(52,165,111,.1)}.btn{border:0;border-radius:14px;min-height:48px;padding:0 18px;font-weight:800;cursor:pointer}.primary{background:#287b5d;color:#fff}.soft{background:#eef8f2;color:#25654e}.white{background:#fff;border:1px solid #d4e5dc;color:#2d6450}.danger{background:#fff1f2;color:#be123c}.login .btn{height:52px}.note{margin-top:12px;background:#fff8de;border:1px solid #efd997;border-radius:14px;padding:11px 14px;color:#806216;font-size:13px}
+.profile-head{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;margin-top:28px}.photo{width:118px;height:138px;object-fit:cover;border-radius:18px;background:#edf7f1;border:1px solid #d6e9df;box-shadow:0 8px 18px rgba(35,97,70,.1)}.status{display:inline-flex;background:#fff0cf;color:#a36a00;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800}.profile-head h2{font-family:Mitr,sans-serif;font-size:27px;margin:12px 0 4px;color:#203d34}.code{font-size:17px;font-weight:900}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}.sum-card{border-radius:16px;padding:15px;display:flex;align-items:center;gap:12px;border:1px solid}.sum-card span{font-size:28px}.sum-card small{display:block;color:#718096}.sum-card b{display:block;font-size:18px;margin-top:3px}.blue{background:#edf5ff;border-color:#c8defe;color:#2563a9}.green{background:#effbf4;border-color:#caecd8;color:#12804f}.pink{background:#fff0f4;border-color:#f6cfda;color:#d13f6d}.purple{background:#f7efff;border-color:#e4d2fa;color:#7c3cc5}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0}.tabs{display:flex;gap:8px;border-bottom:1px solid #dce8e1;overflow:auto}.tabs button{border:0;background:transparent;padding:13px 10px;font-weight:800;color:#334155;white-space:nowrap;cursor:pointer}.tabs button.active{color:#0c8458;border-bottom:3px solid #19a76f}.panel{padding-top:18px}
+.profile-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.profile-form label{font-weight:700}.profile-form input{width:100%;height:50px;border:1px solid #d3e3da;border-radius:14px;padding:0 14px;margin-top:6px;background:#fff}.profile-form input[readonly]{background:#f8fbf9;color:#64748b}.wide{grid-column:1/-1}
+.list{display:grid;gap:10px}.row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:14px 16px;border:1px solid #e2ece7;border-radius:15px;background:#fff}.row b{color:#234b3d}.row small{color:#819089}.amount{font-weight:900;color:#08744c}.empty{padding:25px;border:1px dashed #d1e2d9;border-radius:16px;text-align:center;color:#8a9a92;background:#fbfefc}
+.benefit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.benefit{border:1px solid #dcece3;border-radius:18px;padding:16px;background:linear-gradient(135deg,#fff,#f8fff9)}.benefit h3{margin:0 0 6px;color:#155f45}.benefit p{margin:0;color:#718096}.benefit .dates{font-size:12px;color:#8a9a92;margin-top:10px}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:grid;place-items:center;padding:20px;z-index:50}.modal-box{width:min(560px,95vw);background:#fff;border-radius:25px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.22)}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h2{font-family:Mitr,sans-serif;color:#0b6548;margin:0}.x{border:0;background:#f1f5f3;width:38px;height:38px;border-radius:50%;font-size:24px}.digital-card{border-radius:24px;padding:24px;background:linear-gradient(135deg,#eaf9f1,#fff6d9);border:1px solid #c9ead8;position:relative;overflow:hidden}.digital-card::after{content:"SK";position:absolute;right:-10px;bottom:-35px;font:900 120px Mitr;color:rgba(15,118,80,.06)}.dc-brand{display:flex;align-items:center;gap:10px;color:#08744c;font-weight:900}.dc-brand img{width:50px;height:50px;object-fit:contain}.dc-main{display:flex;gap:16px;align-items:center;margin-top:18px}.dc-main img{width:92px;height:110px;object-fit:cover;border-radius:14px;background:#fff}.dc-name{font:600 22px Mitr;color:#15483a}.dc-code{font-weight:900;margin-top:8px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.site-footer{background:linear-gradient(90deg,#e9f9ef,#fffceb);border-top:1px solid #d7edde}.foot{padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:15px;color:#64748b;font-size:13px}.foot-brand{display:flex;align-items:center;gap:10px}.foot-brand img{width:54px;height:54px;object-fit:contain;border-radius:50%;border:3px solid #d7f3e3}.foot b{color:#166749}
+@media(max-width:900px){.nav{display:none}.summary{grid-template-columns:repeat(2,1fr)}.login{grid-template-columns:1fr}.profile-head{grid-template-columns:auto 1fr}.profile-head>.btn{grid-column:1/-1;justify-self:end}.benefit-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.top-in{padding:10px 0}.brand{width:100%;justify-content:center;text-align:center}.brand img{width:72px;height:72px}.brand{flex-direction:column}.homebtn{display:none}main{padding-top:20px}.portal{border-radius:22px;padding:18px}.profile-head{grid-template-columns:1fr;text-align:center}.photo{margin:auto}.profile-head>.btn{justify-self:center}.summary{grid-template-columns:1fr 1fr}.sum-card{padding:12px}.profile-form{grid-template-columns:1fr}.wide{grid-column:auto}.foot{flex-direction:column;text-align:center}.foot-brand{flex-direction:column}.actions{justify-content:center}}
+@media print{.top,.site-footer,.login,.note,.actions,.tabs,.modal-actions{display:none!important}body{background:#fff}.portal{box-shadow:none;border:0}.panel{display:block!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap top-in">
+  <a class="brand" href="index.html"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><b>ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</b><small>🌙 Nurul Islam · SK Alumni Member System</small></div></a>
+  <nav class="nav"><a href="index.html"><span>🕌</span>หน้าแรก</a><a href="register.html"><span>🧕🏻</span>ลงทะเบียน</a><a href="status.html"><span>🔎</span>ตรวจสอบ</a><a class="active" href="member.html"><span>🎁</span>สิทธิประโยชน์</a><a href="donation.html"><span>🤲🏻</span>บริจาค</a><a href="news.html"><span>📣</span>ข่าวสาร</a><a href="admin.html"><span>🌙</span>Admin</a></nav>
+  <a class="homebtn" href="index.html">← กลับหน้าหลัก</a>
+</div></header>
+
+<main class="wrap"><section class="portal">
+  <div class="intro"><div class="eyebrow">🎁 MEMBER PORTAL PHASE 3</div><h1>ข้อมูลและสิทธิประโยชน์ของฉัน</h1><p>ดูข้อมูลสมาชิก แก้ไขข้อมูลติดต่อ ตรวจสอบประวัติ และใช้งานเอกสารสมาชิก</p></div>
+
+  <section id="loginBox">
+    <div class="login">
+      <div class="field"><label>รหัสสมาชิก</label><input id="code" placeholder="69-SK0001"></div>
+      <div class="field"><label>อีเมล หรือ เบอร์โทรศัพท์ที่ใช้สมัคร</label><input id="identity" placeholder="name@example.com หรือ 08xxxxxxxx"></div>
+      <button id="loginBtn" class="btn primary">เข้าสู่ข้อมูลสมาชิก</button>
+    </div>
+    <div class="note">🔒 สำหรับสมาชิกสถานะ <b>ใช้งาน</b> เท่านั้น · ใช้รหัสสมาชิก + อีเมล หรือเบอร์โทรศัพท์ที่มีในระบบ</div>
+  </section>
+
+  <section id="portalContent" class="hidden">
+    <div class="profile-head">
+      <img id="memberPhoto" class="photo" src="assets/cute-register.jpg" alt="รูปสมาชิก">
+      <div><span class="status">สมาชิกสมบูรณ์</span><h2 id="memberName">-</h2><div id="memberCode" class="code">-</div></div>
+      <button id="logoutBtn" class="btn white">ออกจากข้อมูลของฉัน</button>
+    </div>
+
+    <div class="summary">
+      <article class="sum-card blue"><span>🪪</span><div><small>สถานะสมาชิก</small><b>สมาชิกสมบูรณ์</b></div></article>
+      <article class="sum-card green"><span>💳</span><div><small>ชำระค่าสมาชิกสะสม</small><b id="sumPayments">0 บาท</b></div></article>
+      <article class="sum-card pink"><span>💚</span><div><small>บริจาคสะสม</small><b id="sumDonations">0 บาท</b></div></article>
+      <article class="sum-card purple"><span>🎁</span><div><small>ใช้สิทธิประโยชน์</small><b id="sumBenefits">0 ครั้ง</b></div></article>
+    </div>
+
+    <div class="actions">
+      <button id="cardBtn" class="btn soft">🪪 บัตรสมาชิกดิจิทัล</button>
+      <button id="certificateBtn" class="btn soft">📄 หลักฐานการเป็นสมาชิก / PDF</button>
+      <label class="btn soft" style="display:inline-flex;align-items:center;cursor:pointer">📷 เปลี่ยนรูปสมาชิก<input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden></label>
+    </div>
+
+    <div class="tabs">
+      <button class="active" data-tab="profile">ข้อมูลส่วนตัว</button>
+      <button data-tab="payments">ประวัติชำระสมาชิก</button>
+      <button data-tab="donations">ประวัติบริจาค</button>
+      <button data-tab="benefits">ประวัติสิทธิประโยชน์</button>
+      <button data-tab="available">สิทธิประโยชน์ที่ใช้ได้</button>
+    </div>
+
+    <div class="panel" data-panel="profile">
+      <form id="profileForm" class="profile-form">
+        <label>ชื่อ-สกุล<input id="fullName" readonly></label>
+        <label>ชื่ออาหรับ<input id="arabicName" readonly></label>
+        <label>เบอร์โทรศัพท์<input id="phone" inputmode="numeric" maxlength="10"></label>
+        <label>อีเมล<input id="email" type="email"></label>
+        <label class="wide">ที่อยู่<input id="address" readonly></label>
+        <div class="wide"><button class="btn primary" type="submit">บันทึกข้อมูลติดต่อ</button></div>
+      </form>
+    </div>
+    <div class="panel hidden" data-panel="payments"><div id="payments" class="list"></div></div>
+    <div class="panel hidden" data-panel="donations"><div id="donations" class="list"></div></div>
+    <div class="panel hidden" data-panel="benefits"><div id="benefitUsage" class="list"></div></div>
+    <div class="panel hidden" data-panel="available"><div id="benefitsAvailable" class="benefit-grid"></div></div>
+  </section>
+</section></main>
+
+<footer class="site-footer"><div class="wrap foot"><div class="foot-brand"><img src="assets/association-logo.png" alt=""><div><b>สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</b><div>🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div>© 2026 SK Alumni Member System by Kimhan · Member V2.6.4</div></div></footer>
+
+<div id="cardModal" class="modal hidden"><div class="modal-box"><div class="modal-head"><h2>บัตรสมาชิกดิจิทัล</h2><button class="x" data-close>×</button></div><div id="digitalCard" class="digital-card"></div><div class="modal-actions"><button class="btn white" data-close>ปิด</button><button id="printCardBtn" class="btn primary">🖨️ พิมพ์ / PDF</button></div></div></div>
+
+<script>
 const API='https://sk-alumni-api.itpcmc2024.workers.dev';
 const $=id=>document.getElementById(id);
-function displayName(m){
-  const p=String(m.prefix||'').trim();
-  const f=String(m.full_name||[m.first_name,m.last_name].filter(Boolean).join(' ')).trim();
-  return p&&f.startsWith(p)?f:[p,f].filter(Boolean).join(' ');
+let session={code:'',identity:'',data:null};
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]))}
+function fmtMoney(v){return new Intl.NumberFormat('th-TH',{maximumFractionDigits:2}).format(Number(v||0))+' บาท'}
+function fmtDate(v){if(!v)return '-';try{return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return String(v)}}
+function displayName(m){const p=String(m.prefix||'').trim(),f=String(m.full_name||[m.first_name,m.last_name].filter(Boolean).join(' ')).trim();return p&&f.startsWith(p)?f:[p,f].filter(Boolean).join(' ')}
+function addressText(a={}){return [a.address_line,a.subdistrict,a.district,a.province,a.postal_code].filter(Boolean).join(' · ')||'-'}
+async function api(path,opt={}){const r=await fetch(API+path,opt);let j={};try{j=await r.json()}catch{}if(!r.ok||j.success===false)throw new Error(j.message||'ระบบไม่สามารถดำเนินการได้');return j}
+function empty(text){return `<div class="empty">${esc(text)}</div>`}
+
+function renderList(el,rows,type){
+  if(!rows?.length){el.innerHTML=empty('ยังไม่มีข้อมูลรายการนี้');return}
+  el.innerHTML=rows.map(r=>{
+    if(type==='payment')return `<div class="row"><div><b>${esc(r.payment_type||'ชำระค่าสมาชิก')}</b><div><small>${fmtDate(r.paid_at)} · ${esc(r.status||'-')}</small></div></div><div class="amount">${fmtMoney(r.amount)}</div></div>`;
+    if(type==='donation')return `<div class="row"><div><b>บริจาค</b><div><small>${fmtDate(r.donated_at)} · ${esc(r.status||'-')}</small></div></div><div class="amount">${fmtMoney(r.amount)}</div></div>`;
+    return `<div class="row"><div><b>${esc(r.title||r.benefit_id||'สิทธิประโยชน์')}</b><div><small>${fmtDate(r.used_at)}${r.note?' · '+esc(r.note):''}</small></div></div><div class="amount">${Number(r.amount||0)>0?fmtMoney(r.amount):'ใช้สิทธิ์แล้ว'}</div></div>`;
+  }).join('');
+}
+function renderAvailable(rows){
+  const el=$('benefitsAvailable');
+  if(!rows?.length){el.innerHTML=empty('ยังไม่มีสิทธิประโยชน์ที่เปิดใช้งาน');return}
+  el.innerHTML=rows.map(b=>`<article class="benefit"><h3>🎁 ${esc(b.title)}</h3><p>${esc(b.description||'สิทธิพิเศษสำหรับสมาชิก')}</p><div class="dates">${b.start_date?'เริ่ม '+fmtDate(b.start_date):'เริ่มได้ทันที'}${b.end_date?' · ถึง '+fmtDate(b.end_date):''}</div></article>`).join('');
+}
+function fillPortal(d){
+  session.data=d;const m=d.member||{};
+  $('memberPhoto').src=m.photo_data||'assets/cute-register.jpg';
+  $('memberName').textContent=displayName(m)||'-';$('memberCode').textContent=m.member_code||session.code;
+  $('sumPayments').textContent=fmtMoney(d.summary?.payments_total);
+  $('sumDonations').textContent=fmtMoney(d.summary?.donations_total);
+  $('sumBenefits').textContent=Number(d.summary?.benefits_used||0)+' ครั้ง';
+  $('fullName').value=displayName(m)||'';$('arabicName').value=m.arabic_name||'';$('phone').value=m.phone||'';$('email').value=m.email||'';$('address').value=addressText(m.address);
+  renderList($('payments'),d.payments,'payment');renderList($('donations'),d.donations,'donation');renderList($('benefitUsage'),d.benefit_usage,'benefit');renderAvailable(d.benefits);
+  $('loginBox').classList.add('hidden');$('portalContent').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});
 }
 async function login(){
-  const code=$('code')?.value.trim().toUpperCase()||'';
-  const identity=$('identity')?.value.trim()||'';
-  if(!code||!identity){
-    Swal.fire({icon:'warning',title:'กรุณากรอกรหัสสมาชิกและอีเมล/เบอร์โทร'});
-    return;
-  }
-  const btn=$('loginBtn');
-  if(btn) btn.disabled=true;
-  try{
-    const r=await fetch(API+'/api/member/login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({member_code:code,identity})
-    });
-    const j=await r.json();
-    if(!r.ok||!j.success) throw new Error(j.message||'เข้าสู่ระบบสมาชิกไม่สำเร็จ');
-    const m=j.data||{};
-    const name=$('memberName'), codeEl=$('memberCode'), contact=$('contact'), addr=$('address'), profile=$('profile');
-    if(name) name.textContent=displayName(m)||'-';
-    if(codeEl) codeEl.textContent=m.member_code||code;
-    if(contact) contact.textContent=[m.phone,m.email].filter(Boolean).join(' · ')||'-';
-    const a=m.address||{};
-    if(addr) addr.textContent=[a.address_line,a.subdistrict,a.district,a.province,a.postal_code].filter(Boolean).join(' · ')||'-';
-    if(profile){
-      profile.classList.remove('hidden');
-      profile.scrollIntoView({behavior:'smooth',block:'nearest'});
-    }
-  }catch(e){
-    const profile=$('profile');
-    if(profile) profile.classList.add('hidden');
-    Swal.fire({icon:'warning',title:'เข้าสู่ข้อมูลสมาชิกไม่สำเร็จ',text:e.message||String(e)});
-  }finally{
-    if(btn) btn.disabled=false;
-  }
+  const code=$('code').value.trim().toUpperCase(),identity=$('identity').value.trim();
+  if(!code||!identity){Swal.fire({icon:'warning',title:'กรุณากรอกรหัสสมาชิกและอีเมล/เบอร์โทร'});return}
+  const btn=$('loginBtn');btn.disabled=true;btn.textContent='กำลังเข้าสู่ระบบ...';
+  try{const j=await api('/api/member/portal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:code,identity})});session={code,identity,data:j.data};fillPortal(j.data)}
+  catch(e){Swal.fire({icon:'warning',title:'เข้าสู่ข้อมูลสมาชิกไม่สำเร็จ',text:e.message})}
+  finally{btn.disabled=false;btn.textContent='เข้าสู่ข้อมูลสมาชิก'}
 }
-if($('loginBtn')) $('loginBtn').addEventListener('click',login);
-if($('identity')) $('identity').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
-const q=new URLSearchParams(location.search);
-if(q.get('code')&&$('code')) $('code').value=q.get('code').toUpperCase();
-</script></body></html>
+$('loginBtn').onclick=login;$('identity').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+$('logoutBtn').onclick=()=>{session={code:'',identity:'',data:null};$('portalContent').classList.add('hidden');$('loginBox').classList.remove('hidden');$('identity').value='';window.scrollTo({top:0,behavior:'smooth'})};
+
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('[data-panel]').forEach(p=>p.classList.toggle('hidden',p.dataset.panel!==b.dataset.tab))});
+
+$('profileForm').addEventListener('submit',async e=>{
+  e.preventDefault();const phone=$('phone').value.replace(/\D/g,'').slice(0,10),email=$('email').value.trim();
+  if(phone&&!/^\d{9,10}$/.test(phone)){Swal.fire({icon:'warning',title:'เบอร์โทรไม่ถูกต้อง'});return}
+  try{
+    const j=await api('/api/member/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:session.code,identity:session.identity,phone,email})});
+    session.identity=j.data?.email||j.data?.phone||session.identity;
+    if(session.data?.member){session.data.member.phone=j.data?.phone;session.data.member.email=j.data?.email}
+    Swal.fire({icon:'success',title:'บันทึกข้อมูลติดต่อแล้ว',timer:1400,showConfirmButton:false});
+  }catch(e){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:e.message})}
+});
+
+function fileToImage(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
+async function compressPhoto(file){
+  if(file.size>5*1024*1024)throw new Error('ไฟล์รูปต้นฉบับต้องไม่เกิน 5 MB');
+  const im=await fileToImage(file),max=720,scale=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(im.width*scale));c.height=Math.max(1,Math.round(im.height*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  let q=.82,data=c.toDataURL('image/webp',q);while(data.length>340000&&q>.42){q-=.08;data=c.toDataURL('image/webp',q)}if(data.length>360000)throw new Error('รูปยังมีขนาดใหญ่เกินไป กรุณาเลือกรูปอื่น');return data;
+}
+$('photoInput').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    Swal.fire({title:'กำลังปรับรูป...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
+    const photo_data=await compressPhoto(file);
+    const j=await api('/api/member/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:session.code,identity:session.identity,photo_data})});
+    $('memberPhoto').src=photo_data;if(session.data?.member)session.data.member.photo_data=photo_data;
+    Swal.fire({icon:'success',title:'เปลี่ยนรูปสมาชิกแล้ว',timer:1300,showConfirmButton:false});
+  }catch(err){Swal.fire({icon:'warning',title:'เปลี่ยนรูปไม่สำเร็จ',text:err.message})}finally{e.target.value=''}
+});
+
+function digitalCardHtml(){
+  const m=session.data?.member||{},photo=m.photo_data||'assets/cute-register.jpg';
+  return `<div class="dc-brand"><img src="assets/association-logo.png"><div>SK ALUMNI MEMBER<br><small>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</small></div></div><div class="dc-main"><img src="${photo}"><div><div class="dc-name">${esc(displayName(m))}</div><div class="dc-code">${esc(m.member_code||'')}</div><div style="margin-top:8px;color:#27805f">สมาชิกสมบูรณ์</div><small>หมดอายุ: ${esc(fmtDate(m.member_expire))}</small></div></div>`;
+}
+$('cardBtn').onclick=()=>{$('digitalCard').innerHTML=digitalCardHtml();$('cardModal').classList.remove('hidden')};
+document.querySelectorAll('[data-close]').forEach(x=>x.onclick=()=>$('cardModal').classList.add('hidden'));
+function printHtml(title,body){
+  const w=window.open('','_blank','width=850,height=700');if(!w){Swal.fire({icon:'info',title:'กรุณาอนุญาต Pop-up เพื่อพิมพ์เอกสาร'});return}
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Arial,"Noto Sans Thai",sans-serif;padding:35px;color:#24453a}.box{border:2px solid #26835f;border-radius:24px;padding:28px;max-width:720px;margin:auto}img.logo{width:80px;height:80px;object-fit:contain}.center{text-align:center}h1{color:#08744c}.photo{width:120px;height:145px;object-fit:cover;border-radius:14px}.row{display:flex;gap:24px;align-items:center;margin-top:25px}.code{font-size:26px;font-weight:800;color:#08744c}@media print{button{display:none}}</style></head><body>${body}<script>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close()
+}
+$('printCardBtn').onclick=()=>printHtml('บัตรสมาชิกดิจิทัล',`<div class="box">${digitalCardHtml()}</div>`);
+$('certificateBtn').onclick=()=>{
+  const m=session.data?.member||{},photo=m.photo_data||'assets/cute-register.jpg';
+  printHtml('หลักฐานการเป็นสมาชิก',`<div class="box"><div class="center"><img class="logo" src="assets/association-logo.png"><h1>หลักฐานการเป็นสมาชิก</h1><div>สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div></div><div class="row"><img class="photo" src="${photo}"><div><div style="font-size:24px;font-weight:800">${esc(displayName(m))}</div><div class="code">${esc(m.member_code||'')}</div><p>สถานะ: สมาชิกสมบูรณ์</p><p>เริ่มสมาชิก: ${esc(fmtDate(m.member_start))}</p><p>สิ้นสุดสมาชิก: ${esc(fmtDate(m.member_expire))}</p></div></div></div>`)
+};
+
+const q=new URLSearchParams(location.search);if(q.get('code'))$('code').value=q.get('code').toUpperCase();
+</script>
+</body>
+</html>

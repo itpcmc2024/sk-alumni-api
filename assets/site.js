@@ -1,4 +1,4 @@
-const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.6.1'};
+const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.6'};
 function e(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
 async function api(path,opts={}){const r=await fetch(SK.API+path,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});let j={};try{j=await r.json()}catch{}if(!r.ok)throw new Error(j.message||j.error||`HTTP ${r.status}`);return j}
 function fmtDate(v){if(!v)return'-';try{return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return String(v)}}

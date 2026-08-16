@@ -1,15 +1,15 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Finance</title><link rel="stylesheet" href="assets/site.css"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js"></script>
 
-<style id="v261-global-nav">
-.v261-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v261-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v26-global-nav">
+.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v261-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v261-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v261-homebtn{font-size:13px}}
+.v26-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
 </style>
 
-<style id="v261-footer-mobile">
+<style id="v26-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -51,6 +51,6 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 </style>
 
 </head><body>
-<div class="v261-homebar"><a class="v261-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">การเงิน</div><div class="brand-sub">Admin · Pastel Light</div></div><nav class="nav"><a href="admin-home.html">Admin Center</a><a class="active" href="admin-finance.html">การเงิน</a></nav></div></header><main class="wrap"><div class="card" style="margin-top:28px"><div class="row2"><div class="field"><label>Admin API Key</label><input id="key" class="control" type="password"></div><div style="display:flex;align-items:end"><button id="load" class="btn">โหลดรายการ</button></div></div></div><h2 class="section-title">💳 การชำระ</h2><div id="payments" class="list"></div><h2 class="section-title">💝 การบริจาค</h2><div id="donations" class="list"></div></main><div id="foot"></div><script>foot.innerHTML=footer('Admin Finance');load.onclick=async()=>{const headers={Authorization:'Bearer '+key.value.trim()};try{const [p,d]=await Promise.all([api('/api/admin/payments',{headers}),api('/api/admin/donations',{headers})]);payments.innerHTML=(p.data||[]).map(x=>`<div class="item"><b>${e(x.payment_id)}</b> · ${e(x.member_code)} · ฿${e(x.amount)} <span class="badge pending">${e(x.status)}</span><div class="sub">${fmtDate(x.paid_at)}</div></div>`).join('')||'<div class="item">ไม่มีรายการ</div>';donations.innerHTML=(d.data||[]).map(x=>`<div class="item"><b>${e(x.donation_id)}</b> · ${e(x.donor_name||'-')} · ฿${e(x.amount)} <span class="badge pending">${e(x.status)}</span></div>`).join('')||'<div class="item">ไม่มีรายการ</div>'}catch(err){Swal.fire({icon:'error',title:'โหลดไม่สำเร็จ',text:err.message})}};</script></body></html>
