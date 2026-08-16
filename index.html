@@ -1,11 +1,302 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SK Alumni Member System</title><link rel="stylesheet" href="assets/site.css"><script src="assets/site.js"></script></head><body>
-<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.jpg"><div><div class="brand">ระบบสมาชิกสมาคมศิษย์เก่า /<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="brand-sub">🌙 Nurul Islam · SK Alumni Member System</div></div><nav class="nav"><a class="active" href="index.html">หน้าแรก</a><a href="register.html">ลงทะเบียน</a><a href="status.html">ตรวจสอบสถานะ</a><a href="member.html">สิทธิประโยชน์</a><a href="payment.html">ชำระค่าสมาชิก</a><a href="donation.html">บริจาค</a><a href="news.html">ข่าวสาร</a><a href="admin-home.html">Admin</a></nav></div></header>
-<main class="wrap"><section class="hero"><div><span class="pill">🌿 ยินดีต้อนรับครอบครัวศิษย์เก่า</span><h1>นูรุ้ลอิสลามสัมพันธ์</h1><p>ศิษย์เก่าคือครอบครัว ร่วมกันพัฒนา สานสัมพันธ์ สู่อนาคตที่ดี</p><div class="quote-row"><span class="q p">💗 ครอบครัวศิษย์เก่า</span><span class="q b">🤝 สานสัมพันธ์</span><span class="q y">🌱 ร่วมกันพัฒนา</span><span class="q g">✨ สู่อนาคตที่ดี</span></div></div></section>
-<h2 class="section-title">บริการสำหรับศิษย์เก่า</h2><section class="grid">
-<div class="card module"><div class="icon">🧑‍🤝‍🧑</div><h3>ลงทะเบียนศิษย์เก่า</h3><p>สมัครและบันทึกข้อมูลศิษย์เก่าเข้าสู่ระบบ</p><a class="btn" href="register.html">ลงทะเบียน</a></div>
-<div class="card module"><div class="icon">🔎</div><h3>ตรวจสอบสถานะ</h3><p>ติดตามผลการตรวจสอบและสถานะสมาชิก</p><a class="btn" href="status.html">ตรวจสอบ</a></div>
-<div class="card module"><div class="icon">🎁</div><h3>สิทธิประโยชน์สมาชิก</h3><p>เข้าสู่ข้อมูลสมาชิกและสิทธิประโยชน์</p><a class="btn" href="member.html">เข้าสู่ระบบ</a></div>
-<div class="card module"><div class="icon">💳</div><h3>ชำระค่าสมาชิก</h3><p>แจ้งชำระค่าสมาชิกและติดตามรายการ</p><a class="btn" href="payment.html">ชำระค่าสมาชิก</a></div>
-<div class="card module"><div class="icon">💝</div><h3>บริจาค</h3><p>ร่วมสนับสนุนกิจกรรมและกองทุนของสมาคม</p><a class="btn" href="donation.html">บริจาค</a></div>
-<div class="card module"><div class="icon">📣</div><h3>ข่าวสาร</h3><p>ติดตามกิจกรรม ประกาศ และข่าวสารล่าสุด</p><a class="btn" href="news.html">ดูข่าวสาร</a></div>
-</section></main><div id="foot"></div><script>foot.innerHTML=footer('Home');</script></body></html>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7fff9" />
+  <title>ระบบสมาชิกสมาคมศิษย์เก่า นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</title>
+  <style>
+    :root{
+      --green:#0f8f5c;
+      --green-dark:#086143;
+      --mint:#eafbf2;
+      --mint2:#dff7ec;
+      --pink:#ffe8f1;
+      --blue:#e8f2ff;
+      --yellow:#fff4c9;
+      --purple:#f2e8ff;
+      --orange:#fff0df;
+      --teal:#e5fbf8;
+      --ink:#244137;
+      --muted:#718078;
+      --line:#dcebe3;
+      --shadow:0 12px 30px rgba(32,93,68,.09);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:"Noto Sans Thai","Thonburi","Tahoma",system-ui,-apple-system,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 4%, rgba(187,255,219,.42), transparent 26%),
+        radial-gradient(circle at 92% 12%, rgba(255,243,190,.38), transparent 24%),
+        linear-gradient(180deg,#fbfffd 0%,#f5fbff 56%,#fffaf7 100%);
+    }
+    a{color:inherit;text-decoration:none}
+    img{display:block;max-width:100%}
+    .wrap{width:min(1480px,calc(100% - 32px));margin:auto}
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      background:rgba(255,255,255,.94);
+      border-bottom:1px solid rgba(209,231,220,.85);
+      backdrop-filter:blur(12px);
+    }
+    .topbar-inner{
+      min-height:104px;display:flex;align-items:center;gap:28px;
+      justify-content:space-between;padding:12px 0;
+    }
+    .brand{display:flex;align-items:center;gap:16px;min-width:300px}
+    .brand img{
+      width:72px;height:72px;object-fit:contain;border-radius:50%;
+      padding:6px;background:#f7fff9;border:4px solid #dcf8e8;
+    }
+    .brand-title{font-size:21px;font-weight:900;line-height:1.28;color:#066442}
+    .brand-sub{font-size:14px;color:#667a70;margin-top:4px}
+    nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+    nav a{
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      min-width:74px;padding:8px 9px;border-radius:15px;font-size:12px;font-weight:800;color:#52675d
+    }
+    nav a:hover,nav a.active{background:#effaf4;color:var(--green)}
+    nav .ico{font-size:23px;line-height:1}
+    .line-btn{
+      white-space:nowrap;padding:14px 18px;border-radius:999px;background:#08aa5b;color:white;
+      font-weight:900;font-size:13px;box-shadow:0 8px 20px rgba(8,170,91,.18)
+    }
+    main{padding:22px 0 42px}
+    .hero{
+      min-height:320px;border:1px solid #dcebe3;border-radius:30px;overflow:hidden;
+      position:relative;box-shadow:var(--shadow);
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.93) 44%,rgba(255,255,255,.42) 72%,rgba(255,255,255,.18) 100%),
+        url("assets/mosque-reference.jpg") center/cover no-repeat;
+    }
+    .hero:before{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(198,255,221,.22),rgba(255,246,197,.08));
+      pointer-events:none
+    }
+    .hero-content{position:relative;z-index:1;max-width:760px;padding:52px 54px}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;background:#dcfae8;border:1px solid #9beec0;
+      color:#0d7b4e;padding:10px 18px;border-radius:999px;font-weight:900
+    }
+    h1{font-size:clamp(38px,5vw,64px);line-height:1.08;margin:18px 0 14px;color:#056545;letter-spacing:-1px}
+    .hero p{font-size:18px;line-height:1.8;color:#51665c;margin:0 0 22px}
+    .motto{display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+    .motto::-webkit-scrollbar{display:none}
+    .pill{flex:0 0 auto;padding:9px 15px;border-radius:999px;font-weight:900;font-size:14px;border:1px solid rgba(255,255,255,.9)}
+    .p1{background:var(--pink);color:#c92266}.p2{background:var(--blue);color:#2065c8}
+    .p3{background:var(--yellow);color:#ad6810}.p4{background:#dcfae8;color:#187c4a}
+    .quick-section{
+      margin-top:18px;background:rgba(255,255,255,.83);border:1px solid #dcebe3;border-radius:28px;
+      padding:18px;box-shadow:var(--shadow)
+    }
+    .quick-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px}
+    .quick-card{
+      position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(210,228,219,.95);
+      min-height:205px;background:white;display:flex;flex-direction:column;transition:.2s ease;
+    }
+    .quick-card:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(49,102,79,.12)}
+    .quick-visual{height:95px;display:grid;place-items:center;font-size:52px}
+    .q-green .quick-visual{background:linear-gradient(135deg,#e8fff1,#f9fff4)}
+    .q-blue .quick-visual{background:linear-gradient(135deg,#e6f2ff,#f7fbff)}
+    .q-pink .quick-visual{background:linear-gradient(135deg,#ffe8f0,#fff7f9)}
+    .q-purple .quick-visual{background:linear-gradient(135deg,#f1e7ff,#fbf7ff)}
+    .q-orange .quick-visual{background:linear-gradient(135deg,#fff0dc,#fffaf3)}
+    .q-teal .quick-visual{background:linear-gradient(135deg,#e1fbf7,#f6fffd)}
+    .q-admin .quick-visual{background:linear-gradient(135deg,#fff7d9,#f3f7ff)}
+    .quick-body{padding:13px 12px 14px;text-align:center;display:flex;flex-direction:column;flex:1}
+    .quick-body h3{margin:0;font-size:17px;color:#183f33}
+    .quick-body p{font-size:12px;color:#8a948f;line-height:1.5;margin:4px 0 12px;min-height:36px}
+    .quick-go{margin-top:auto;border-radius:999px;padding:9px 12px;font-weight:900;font-size:13px;color:white}
+    .q-green .quick-go{background:#0eb367}.q-blue .quick-go{background:#278fe8}.q-pink .quick-go{background:#ff3c73}
+    .q-purple .quick-go{background:#8f3be7}.q-orange .quick-go{background:#ff8200}.q-teal .quick-go{background:#14a89e}
+    .q-admin .quick-go{background:#6b70df}
+    .section-grid{display:grid;grid-template-columns:1.05fr .78fr 1fr;gap:16px;margin-top:18px}
+    .panel{
+      background:rgba(255,255,255,.86);border:1px solid #dcebe3;border-radius:26px;
+      padding:22px;box-shadow:var(--shadow);min-height:260px
+    }
+    .panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+    .panel-title h2{font-size:20px;margin:0;color:#087149}
+    .more{font-size:13px;font-weight:900;color:#0d9a61}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .stat{padding:16px;border-radius:20px;min-height:92px}
+    .stat strong{display:block;font-size:30px;line-height:1;margin-top:6px}
+    .s1{background:#eaf2ff;color:#2472d5}.s2{background:#e9f9f1;color:#0ba966}
+    .s3{background:#ffeef3;color:#ec3d70}.s4{background:#f2eaff;color:#8a55da}
+    .quote{
+      background:linear-gradient(145deg,#f0fff7,#fffdf3);display:flex;flex-direction:column;
+      align-items:center;justify-content:center;text-align:center
+    }
+    .quote-mark{font-size:58px;color:#f6b800;height:42px;line-height:.7}
+    .quote p{font-size:21px;font-weight:900;line-height:1.65;color:#315388}
+    .quote small{color:#77a18e}
+    .news-list{display:flex;flex-direction:column;gap:10px}
+    .news-item{
+      display:grid;grid-template-columns:54px 1fr 24px;gap:12px;align-items:center;
+      padding:10px;border-radius:17px;background:#fbfefc;border:1px solid #edf3ef
+    }
+    .news-thumb{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:27px;background:#eef8ff}
+    .news-item b{display:block;font-size:14px}.news-item small{color:#93a09a;font-size:11px}.arrow{font-size:22px;color:#0a9360}
+    footer{background:linear-gradient(90deg,#e5faef,#f6fff8,#fff9e9);border-top:1px solid #d7ebe0;padding:24px 0}
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:24px}
+    .footer-brand{display:flex;align-items:center;gap:14px}
+    .footer-brand img{width:62px;height:62px;object-fit:contain;border-radius:50%;background:white;padding:5px}
+    .footer-title{font-weight:900;color:#106744;font-size:16px}.footer-sub{font-size:12px;color:#73867d}
+    .copyright{font-size:13px;color:#64766e;text-align:right}
+    @media(max-width:1180px){
+      .topbar-inner{align-items:flex-start;flex-wrap:wrap}.brand{flex:1}
+      nav{order:3;width:100%;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;padding-bottom:5px}
+      .quick-grid{grid-template-columns:repeat(4,1fr)}.section-grid{grid-template-columns:1fr 1fr}.news-panel{grid-column:1/-1}
+    }
+    @media(max-width:760px){
+      .wrap{width:min(100% - 20px,1480px)}.topbar-inner{min-height:auto;gap:10px}
+      .brand img{width:58px;height:58px}.brand-title{font-size:16px}.brand-sub{font-size:12px}
+      .line-btn{padding:11px 13px;font-size:11px}.hero{min-height:420px;background-position:62% center}
+      .hero-content{padding:36px 24px;background:linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,.79))}
+      .hero p{font-size:16px}.motto{width:100%}
+      .quick-grid{grid-template-columns:repeat(2,1fr)}.quick-card{min-height:190px}
+      .section-grid{grid-template-columns:1fr}.news-panel{grid-column:auto}.footer-inner{flex-direction:column;align-items:flex-start}.copyright{text-align:left}
+    }
+    @media(max-width:420px){
+      .brand{min-width:0}.brand-title{font-size:14px}
+      nav a{min-width:66px}.quick-grid{grid-template-columns:1fr 1fr;gap:9px}
+      .quick-body h3{font-size:15px}.quick-visual{height:82px;font-size:44px}.quick-body p{font-size:11px}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/association-logo.jpg" alt="โลโก้สมาคม">
+        <div>
+          <div class="brand-title">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div>
+          <div class="brand-sub">🌙 Nurul Islam · SK Alumni Member System</div>
+        </div>
+      </a>
+      <nav aria-label="เมนูหลัก">
+        <a class="active" href="index.html"><span class="ico">🕌</span><span>หน้าแรก</span></a>
+        <a href="register.html"><span class="ico">🧕</span><span>ลงทะเบียน</span></a>
+        <a href="status.html"><span class="ico">🔎</span><span>ตรวจสอบสถานะ</span></a>
+        <a href="benefits.html"><span class="ico">🎁</span><span>สิทธิประโยชน์</span></a>
+        <a href="donation.html"><span class="ico">🤲</span><span>บริจาค</span></a>
+        <a href="news.html"><span class="ico">📣</span><span>ข่าวสาร</span></a>
+        <a href="admin-home.html"><span class="ico">🌙</span><span>Admin</span></a>
+      </nav>
+      <a class="line-btn" href="register.html">LINE ลงทะเบียนผ่าน LINE ›</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow">🌿 ยินดีต้อนรับศิษย์เก่าทุกคน</div>
+          <h1>นูรุ้ลอิสลามสัมพันธ์</h1>
+          <p>พื้นที่กลางของครอบครัวศิษย์เก่า สำหรับลงทะเบียน ติดตามสถานะ ข่าวสาร สิทธิประโยชน์ และกิจกรรมของสมาคม</p>
+          <div class="motto" aria-label="คำขวัญ">
+            <span class="pill p1">💗 ครอบครัวศิษย์เก่า</span>
+            <span class="pill p2">🤝 สานสัมพันธ์</span>
+            <span class="pill p3">🌱 ร่วมกันพัฒนา</span>
+            <span class="pill p4">✨ สู่อนาคตที่ดี</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-section" aria-label="เมนูลัด">
+        <div class="quick-grid">
+          <a class="quick-card q-green" href="register.html">
+            <div class="quick-visual">🧑🏻‍🤝‍🧑🏻</div>
+            <div class="quick-body"><h3>ลงทะเบียนศิษย์เก่า</h3><p>ลงทะเบียนข้อมูลศิษย์เก่า</p><div class="quick-go">ลงทะเบียน ›</div></div>
+          </a>
+          <a class="quick-card q-blue" href="status.html">
+            <div class="quick-visual">🪪🔍</div>
+            <div class="quick-body"><h3>ตรวจสอบสถานะ</h3><p>เช็กผลและสถานะการสมัคร</p><div class="quick-go">ตรวจสอบ ›</div></div>
+          </a>
+          <a class="quick-card q-pink" href="payment.html">
+            <div class="quick-visual">👛💳</div>
+            <div class="quick-body"><h3>ชำระค่าสมาชิก</h3><p>แจ้งชำระและแนบสลิป</p><div class="quick-go">ชำระเงิน ›</div></div>
+          </a>
+          <a class="quick-card q-purple" href="donation.html">
+            <div class="quick-visual">💝</div>
+            <div class="quick-body"><h3>บริจาค</h3><p>ร่วมสนับสนุนกิจกรรมสมาคม</p><div class="quick-go">บริจาค ›</div></div>
+          </a>
+          <a class="quick-card q-orange" href="benefits.html">
+            <div class="quick-visual">🎁</div>
+            <div class="quick-body"><h3>สิทธิประโยชน์</h3><p>สิทธิพิเศษสำหรับสมาชิก</p><div class="quick-go">ดูสิทธิประโยชน์ ›</div></div>
+          </a>
+          <a class="quick-card q-teal" href="news.html">
+            <div class="quick-visual">📣</div>
+            <div class="quick-body"><h3>ข่าวสาร</h3><p>กิจกรรมและประชาสัมพันธ์</p><div class="quick-go">ดูข่าว ›</div></div>
+          </a>
+          <a class="quick-card q-admin" href="admin-home.html">
+            <div class="quick-visual">🛠️</div>
+            <div class="quick-body"><h3>Admin</h3><p>ระบบบริหารจัดการหลังบ้าน</p><div class="quick-go">เข้าสู่ระบบ ›</div></div>
+          </a>
+        </div>
+      </section>
+
+      <section class="section-grid">
+        <article class="panel">
+          <div class="panel-title"><h2>👥 จำนวนสมาชิกล่าสุด</h2><a class="more" href="status.html">ตรวจสอบสถานะ ›</a></div>
+          <div class="stats">
+            <div class="stat s1"><span>สมาชิกทั้งหมด</span><strong id="statTotal">—</strong></div>
+            <div class="stat s2"><span>สมาชิกปีนี้</span><strong id="statActive">—</strong></div>
+            <div class="stat s3"><span>รอตรวจสอบ</span><strong id="statPending">—</strong></div>
+            <div class="stat s4"><span>กิจกรรม/ข่าว</span><strong id="statNews">—</strong></div>
+          </div>
+        </article>
+
+        <article class="panel quote">
+          <div class="quote-mark">“</div>
+          <p>เราอาจไกลเพราะการศึกษา<br>แต่เราจะไปได้ไกลกว่า<br>เพราะความร่วมมือของเรา ❤️</p>
+          <small>— สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ —</small>
+        </article>
+
+        <article class="panel news-panel">
+          <div class="panel-title"><h2>📣 ข่าวสารล่าสุด</h2><a class="more" href="news.html">ดูทั้งหมด ›</a></div>
+          <div class="news-list" id="newsList">
+            <a class="news-item" href="news.html">
+              <div class="news-thumb">🌿</div><div><b>ติดตามข่าวสารและกิจกรรมของสมาคม</b><small>เปิดศูนย์ข่าวสารเพื่อดูข้อมูลล่าสุด</small></div><div class="arrow">›</div>
+            </a>
+            <a class="news-item" href="register.html">
+              <div class="news-thumb">🧑🏻‍🤝‍🧑🏻</div><div><b>ลงทะเบียนศิษย์เก่า</b><small>เริ่มต้นสร้างข้อมูลสมาชิกของคุณ</small></div><div class="arrow">›</div>
+            </a>
+            <a class="news-item" href="benefits.html">
+              <div class="news-thumb">🎁</div><div><b>สิทธิประโยชน์สมาชิก</b><small>สำหรับสมาชิกที่ได้รับการอนุมัติแล้ว</small></div><div class="arrow">›</div>
+            </a>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div class="footer-brand">
+        <img src="assets/association-logo.jpg" alt="">
+        <div><div class="footer-title">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="footer-sub">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div>
+      </div>
+      <div class="copyright">© 2026 SK Alumni Member System by Kimhan · Public Home V2.1</div>
+    </div>
+  </footer>
+
+  <script>
+    /*
+      Public Home V2.1
+      - ใช้ลิงก์ relative เพื่อทำงานได้ทั้ง GitHub Pages และ static hosting
+      - ค่า card สถิติเป็น placeholder เพื่อไม่ผูกหน้า Home กับ API endpoint ที่อาจเปลี่ยน
+      - เมื่อมี endpoint dashboard/public-stats ในรอบถัดไป สามารถเติมค่าจริงได้ทันที
+    */
+    document.querySelectorAll('a[href]').forEach(a=>{
+      const href=a.getAttribute('href');
+      if(href && href.startsWith('#')) return;
+    });
+  </script>
+</body>
+</html>
