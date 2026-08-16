@@ -80,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.6",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.7",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.6"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.7"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -182,7 +182,7 @@ export default {
         if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
 
         // Portal V2.6.5: โมดูลประวัติแต่ละส่วนต้องไม่ทำให้ทั้ง Portal ล่ม
-        let payments=[],donations=[],usages=[],benefits=[];
+        let payments=[],donations=[],usages=[],benefits=[],editHistory=[];
         const moduleWarnings=[];
 
         try{
@@ -247,6 +247,23 @@ export default {
           benefits=[];
         }
 
+        try{
+          const exists=await sql`SELECT to_regclass('public.member_edit_history') AS table_name`;
+          if(exists[0]?.table_name){
+            editHistory=await sql`
+              SELECT edit_id,changed_fields,change_summary,source,changed_at
+              FROM member_edit_history
+              WHERE member_code=${code}
+              ORDER BY changed_at DESC
+              LIMIT 200
+            `;
+          }
+        }catch(e){
+          console.error("Member Portal edit history module",e);
+          moduleWarnings.push("edit_history");
+          editHistory=[];
+        }
+
         const paymentApproved=x=>["ชำระแล้ว","อนุมัติ","approved","paid","verified"].includes(String(x.status||"").toLowerCase());
         const donationApproved=x=>["ตรวจสอบแล้ว","อนุมัติ","approved","verified"].includes(String(x.status||"").toLowerCase());
         const sum=x=>x.reduce((a,r)=>a+Number(r.amount||0),0);
@@ -265,7 +282,7 @@ export default {
               donations_total:sum(donations.filter(donationApproved)),
               benefits_used:usages.length
             },
-            payments,donations,benefit_usage:usages,benefits,
+            payments,donations,benefit_usage:usages,benefits,edit_history:editHistory,
             module_warnings:moduleWarnings
           }
         });
@@ -274,61 +291,86 @@ export default {
       if(path==="/api/member/update"&&request.method==="POST"){
         const b=await body(request);
         const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
-        const prefix=clean(b.prefix),firstName=clean(b.first_name),lastName=clean(b.last_name),arabicName=clean(b.arabic_name);
-        const phone=clean(b.phone),email=clean(b.email).toLowerCase(),photo=clean(b.photo_data);
-        const addressLine=clean(b.address_line),subdistrict=clean(b.subdistrict),district=clean(b.district),province=clean(b.province),postalCode=clean(b.postal_code);
         if(!code||!identity)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ครบ"},400);
-        if(phone&&!/^\d{9,10}$/.test(phone.replace(/\D/g,"")))return json(request,{success:false,message:"เบอร์โทรศัพท์ไม่ถูกต้อง"},400);
-        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
-        if(postalCode&&!/^\d{5}$/.test(postalCode))return json(request,{success:false,message:"รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก"},400);
-        if(photo&&!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
-        const rows=await sql`SELECT member_code,status,email,phone,prefix,first_name,last_name,full_name FROM members WHERE member_code=${code} LIMIT 1`;
-        if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
-        const m=rows[0];
+
+        const currentRows=await sql`
+          SELECT m.member_code,m.status,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.phone,m.email,m.photo_data,
+                 a.address_line,a.subdistrict,a.district,a.province,a.postal_code
+          FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code
+          WHERE m.member_code=${code} LIMIT 1
+        `;
+        if(!currentRows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
+        const m=currentRows[0];
         if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
         const normPhone=v=>String(v||"").replace(/\D/g,"");
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
         if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่"},401);
 
-        const nextFirst=firstName||clean(m.first_name),nextLast=lastName||clean(m.last_name),nextEmail=email||clean(m.email).toLowerCase();
-        if(!nextFirst||!nextLast||!nextEmail)return json(request,{success:false,message:"ชื่อ นามสกุล และอีเมลต้องมีข้อมูลครบ"},400);
+        const has=k=>Object.prototype.hasOwnProperty.call(b,k);
+        const val=(k,old)=>has(k)?clean(b[k]):clean(old);
+        const next={
+          prefix:val('prefix',m.prefix),first_name:val('first_name',m.first_name),last_name:val('last_name',m.last_name),
+          arabic_name:val('arabic_name',m.arabic_name),phone:val('phone',m.phone),email:val('email',m.email).toLowerCase(),
+          photo_data:has('photo_data')?clean(b.photo_data):clean(m.photo_data),
+          address_line:val('address_line',m.address_line),subdistrict:val('subdistrict',m.subdistrict),district:val('district',m.district),
+          province:val('province',m.province),postal_code:val('postal_code',m.postal_code)
+        };
+        if(!next.first_name||!next.last_name||!next.email)return json(request,{success:false,message:"ชื่อ นามสกุล และอีเมลต้องมีข้อมูลครบ"},400);
+        if(next.phone&&!/^\d{9,10}$/.test(normPhone(next.phone)))return json(request,{success:false,message:"เบอร์โทรศัพท์ไม่ถูกต้อง"},400);
+        next.phone=normPhone(next.phone);
+        if(next.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next.email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
+        if(next.postal_code&&!/^\d{5}$/.test(next.postal_code))return json(request,{success:false,message:"รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก"},400);
+        if(has('photo_data')&&next.photo_data&&!photoOK(next.photo_data))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
+
         const dup=await sql`
           SELECT member_code FROM members
           WHERE member_code<>${code}
-            AND LOWER(TRIM(COALESCE(first_name,'')))=LOWER(TRIM(${nextFirst}))
-            AND LOWER(TRIM(COALESCE(last_name,'')))=LOWER(TRIM(${nextLast}))
-            AND LOWER(TRIM(COALESCE(email,'')))=LOWER(TRIM(${nextEmail}))
+            AND LOWER(TRIM(COALESCE(first_name,'')))=LOWER(TRIM(${next.first_name}))
+            AND LOWER(TRIM(COALESCE(last_name,'')))=LOWER(TRIM(${next.last_name}))
+            AND LOWER(TRIM(COALESCE(email,'')))=LOWER(TRIM(${next.email}))
           LIMIT 1
         `;
-        if(dup.length)return json(request,{success:false,message:`มีสมาชิกชื่อ ${nextFirst} ${nextLast} และอีเมลนี้อยู่ในระบบแล้ว (${dup[0].member_code})`},409);
-        const full=[nextFirst,nextLast].filter(Boolean).join(' ');
+        if(dup.length)return json(request,{success:false,message:`มีสมาชิกชื่อ ${next.first_name} ${next.last_name} และอีเมลนี้อยู่ในระบบแล้ว (${dup[0].member_code})`},409);
+
+        const fields=['prefix','first_name','last_name','arabic_name','phone','email','address_line','subdistrict','district','province','postal_code','photo_data'];
+        const changedFields=fields.filter(k=>String(next[k]||'')!==String(m[k]||''));
+        const full=[next.first_name,next.last_name].filter(Boolean).join(' ');
+        const oldSnap={prefix:m.prefix,first_name:m.first_name,last_name:m.last_name,arabic_name:m.arabic_name,phone:m.phone,email:m.email,address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code};
+        const newSnap={prefix:next.prefix,first_name:next.first_name,last_name:next.last_name,arabic_name:next.arabic_name,phone:next.phone,email:next.email,address_line:next.address_line,subdistrict:next.subdistrict,district:next.district,province:next.province,postal_code:next.postal_code};
+        const changeSummary=changedFields.includes('photo_data')&&changedFields.length===1?'เปลี่ยนรูปสมาชิก':`แก้ไข ${changedFields.filter(x=>x!=='photo_data').length} รายการ${changedFields.includes('photo_data')?' และรูปสมาชิก':''}`;
+
         await sql.begin(async tx=>{
           await tx`
-            UPDATE members SET
-              prefix=COALESCE(NULLIF(${prefix},''),prefix),
-              first_name=${nextFirst},last_name=${nextLast},full_name=${full},
-              arabic_name=${arabicName||null},
-              phone=COALESCE(NULLIF(${phone},''),phone),email=${nextEmail},
-              photo_data=COALESCE(NULLIF(${photo},''),photo_data),updated_at=NOW()
-            WHERE member_code=${code}
+            CREATE TABLE IF NOT EXISTS member_edit_history(
+              edit_id TEXT PRIMARY KEY,member_code TEXT NOT NULL REFERENCES members(member_code) ON UPDATE CASCADE ON DELETE CASCADE,
+              changed_fields TEXT[] NOT NULL DEFAULT '{}',change_summary TEXT,source TEXT NOT NULL DEFAULT 'member_portal',
+              old_data JSONB,new_data JSONB,changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+          `;
+          await tx`
+            UPDATE members SET prefix=${next.prefix||null},first_name=${next.first_name},last_name=${next.last_name},full_name=${full},
+              arabic_name=${next.arabic_name||null},phone=${next.phone||null},email=${next.email},
+              photo_data=${next.photo_data||null},updated_at=NOW() WHERE member_code=${code}
           `;
           await tx`
             INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at)
-            VALUES(${code},${addressLine||null},${subdistrict||null},${district||null},${province||null},${postalCode||null},NOW())
-            ON CONFLICT(member_code) DO UPDATE SET
-              address_line=COALESCE(NULLIF(EXCLUDED.address_line,''),addresses.address_line),
-              subdistrict=COALESCE(NULLIF(EXCLUDED.subdistrict,''),addresses.subdistrict),
-              district=COALESCE(NULLIF(EXCLUDED.district,''),addresses.district),
-              province=COALESCE(NULLIF(EXCLUDED.province,''),addresses.province),
-              postal_code=COALESCE(NULLIF(EXCLUDED.postal_code,''),addresses.postal_code),updated_at=NOW()
+            VALUES(${code},${next.address_line||null},${next.subdistrict||null},${next.district||null},${next.province||null},${next.postal_code||null},NOW())
+            ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,
+              province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()
           `;
+          if(changedFields.length){
+            await tx`
+              INSERT INTO member_edit_history(edit_id,member_code,changed_fields,change_summary,source,old_data,new_data,changed_at)
+              VALUES(${id('EDIT')},${code},${changedFields},${changeSummary},'member_portal',CAST(${JSON.stringify(oldSnap)} AS JSONB),CAST(${JSON.stringify(newSnap)} AS JSONB),NOW())
+            `;
+          }
         });
         const updated=await sql`
           SELECT m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.phone,m.email,m.photo_data,
                  a.address_line,a.subdistrict,a.district,a.province,a.postal_code
           FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1
         `;
-        return json(request,{success:true,message:"บันทึกข้อมูลสมาชิกแล้ว",data:updated[0]});
+        return json(request,{success:true,message:changedFields.length?"บันทึกข้อมูลสมาชิกแล้ว":"ข้อมูลไม่มีการเปลี่ยนแปลง",data:updated[0],changed_fields:changedFields});
       }
 
       if(/^\/api\/members\//.test(path)&&request.method==="GET"){
