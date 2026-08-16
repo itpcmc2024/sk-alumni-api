@@ -23,7 +23,11 @@ function id(prefix){return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(
 async function body(request){try{return await request.json()}catch{return {}}}
 function db(env){
   if(!env?.HYPERDRIVE?.connectionString) throw new Error("HYPERDRIVE binding is missing");
-  return postgres(env.HYPERDRIVE.connectionString,{max:5,fetch_types:false,prepare:true});
+  return postgres(env.HYPERDRIVE.connectionString,{
+  max: 1,
+  fetch_types: false,
+  prepare: false
+});
 }
 function photoOK(v){
   if(!v) return true;
