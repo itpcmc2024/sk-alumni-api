@@ -1,8 +1,12 @@
 {
-  "name":"sk-alumni-api",
-  "version":"2.0.0",
-  "private":true,
-  "type":"module",
-  "dependencies":{"postgres":"^3.4.9"},
-  "devDependencies":{"wrangler":"^4.123.0"}
+  "name": "sk-alumni-api",
+  "version": "2.6.3",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^4.123.0"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
 }

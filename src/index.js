@@ -1,4 +1,4 @@
-import postgres from "postgres";
+import { Client } from "pg";
 
 function cors(request){
   return {
@@ -23,11 +23,50 @@ function id(prefix){return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(
 async function body(request){try{return await request.json()}catch{return {}}}
 function db(env){
   if(!env?.HYPERDRIVE?.connectionString) throw new Error("HYPERDRIVE binding is missing");
-  return postgres(env.HYPERDRIVE.connectionString,{
-  max: 1,
-  fetch_types: false,
-  prepare: false
-});
+
+  const client = new Client({
+    connectionString: env.HYPERDRIVE.connectionString
+  });
+  let connected = false;
+
+  async function connect(){
+    if(!connected){
+      await client.connect();
+      connected = true;
+    }
+  }
+
+  async function run(strings,...values){
+    await connect();
+    const queryText = strings.reduce(
+      (sql,part,i) => sql + part + (i < values.length ? `$${i+1}` : ""),
+      ""
+    );
+    const result = await client.query(queryText,values);
+    return result.rows;
+  }
+
+  run.begin = async function(callback){
+    await connect();
+    await client.query("BEGIN");
+    try{
+      const result = await callback(run);
+      await client.query("COMMIT");
+      return result;
+    }catch(error){
+      await client.query("ROLLBACK").catch(()=>{});
+      throw error;
+    }
+  };
+
+  run.end = async function(){
+    if(connected){
+      connected = false;
+      await client.end();
+    }
+  };
+
+  return run;
 }
 function photoOK(v){
   if(!v) return true;
@@ -41,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.1",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.3",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.1"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.3"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -59,14 +98,44 @@ export default {
         if(!prefix||!first||!last||!/^\d{9,10}$/.test(phone))return json(request,{success:false,message:"ข้อมูลลงทะเบียนไม่ครบหรือเบอร์โทรไม่ถูกต้อง"},400);
         if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
         if(!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
-        const dup=await sql`SELECT member_code FROM members WHERE phone=${phone} OR (${email}<>'' AND LOWER(COALESCE(email,''))=${email}) LIMIT 1`;
-        if(dup.length)return json(request,{success:false,duplicate:true,member_code:dup[0].member_code,message:"พบข้อมูลที่อาจลงทะเบียนไว้แล้ว"},409);
+        const dup=await sql`
+          SELECT member_code
+          FROM members
+          WHERE LOWER(TRIM(COALESCE(first_name,'')))=LOWER(TRIM(${first}))
+            AND LOWER(TRIM(COALESCE(last_name,'')))=LOWER(TRIM(${last}))
+            AND LOWER(TRIM(COALESCE(email,'')))=LOWER(TRIM(${email}))
+          LIMIT 1
+        `;
+        if(dup.length)return json(request,{success:false,duplicate:true,member_code:dup[0].member_code,message:"พบชื่อ นามสกุล และอีเมลนี้ลงทะเบียนไว้แล้ว"},409);
         const yy=String(new Date().getFullYear()+543).slice(-2);
-        const seq=await sql`SELECT COALESCE(MAX(NULLIF(regexp_replace(member_code,'\\D','','g'),'')::bigint),0)+1 n FROM members WHERE member_code LIKE ${yy+'-SK%'}`;
+        const seq=await sql`
+          SELECT COALESCE(
+            MAX(
+              CASE
+                WHEN member_code ~ ${'^'+yy+'-SK[0-9]+$'}
+                THEN CAST(SUBSTRING(member_code FROM '-SK([0-9]+)$') AS INTEGER)
+                ELSE NULL
+              END
+            ),0
+          ) + 1 AS n
+          FROM members
+          WHERE member_code LIKE ${yy+'-SK%'}
+        `;
         const code=`${yy}-SK${String(seq[0].n||1).padStart(4,'0')}`;
         const full=`${first} ${last}`.trim();
         await sql.begin(async tx=>{
-          await tx`INSERT INTO members(member_code,prefix,full_name,arabic_name,email,phone,line_user_id,photo_data,status,consent_at,registered_at,updated_at) VALUES(${code},${prefix},${full},${clean(b.arabic_name)||null},${email||null},${phone},${clean(b.line_id)||null},${photo||null},'pending',NOW(),NOW(),NOW())`;
+          await tx`
+            INSERT INTO members(
+              member_code,prefix,first_name,last_name,full_name,arabic_name,
+              email,phone,line_id,line_user_id,photo_data,status,consent,consent_at,
+              registered_at,updated_at
+            )
+            VALUES(
+              ${code},${prefix},${first},${last},${full},${clean(b.arabic_name)||null},
+              ${email||null},${phone},${clean(b.line_id)||null},${clean(b.line_id)||null},
+              ${photo||null},'pending',TRUE,NOW(),NOW(),NOW()
+            )
+          `;
           await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`;
         });
         return json(request,{success:true,message:"ลงทะเบียนเรียบร้อยแล้ว",member_code:code,data:{member_code:code,status:"pending"}},201);
@@ -74,14 +143,14 @@ export default {
 
       if(/^\/api\/status\//.test(path)&&request.method==="GET"){
         const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
-        const rows=await sql`SELECT member_code,prefix,full_name,arabic_name,status,registered_at,member_start,member_expire FROM members WHERE member_code=${code} LIMIT 1`;
+        const rows=await sql`SELECT member_code,prefix,first_name,last_name,full_name,arabic_name,status,registered_at,member_start,member_expire FROM members WHERE member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:true,found:false,message:"ไม่พบข้อมูลสมาชิก"},404);
         return json(request,{success:true,found:true,data:{...rows[0],status:memberStatusText(rows[0].status)}});
       }
 
       if(path==="/api/member/login"&&request.method==="POST"){
         const b=await body(request);const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
-        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.photo_data,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.photo_data,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
         if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&String(m.phone).replace(/\D/g,'')===identity.replace(/\D/g,''));
@@ -91,7 +160,7 @@ export default {
 
       if(/^\/api\/members\//.test(path)&&request.method==="GET"){
         const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
-        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.line_user_id,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.line_id,m.line_user_id,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:true,found:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
         return json(request,{success:true,found:true,data:{...m,status:memberStatusText(m.status),address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
       }
@@ -121,7 +190,7 @@ export default {
 
       if(path==="/api/admin/members"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
-        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.email,m.phone,m.line_user_id,m.status,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
+        const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.email,m.phone,m.line_id,m.line_user_id,m.status,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
         return json(request,{success:true,data:rows.map(x=>({...x,status:memberStatusText(x.status)}))});
       }
       if(/^\/api\/admin\/members\/[^/]+$/.test(path)){
@@ -131,7 +200,7 @@ export default {
         }
         if(request.method==="PUT"||request.method==="PATCH"){
           const b=await body(request);const full=[clean(b.first_name),clean(b.last_name)].filter(Boolean).join(' ')||clean(b.full_name);
-          await sql.begin(async tx=>{await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_user_id=${clean(b.line_id)||null},photo_data=COALESCE(NULLIF(${clean(b.photo_data)},''),photo_data),status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`});
+          await sql.begin(async tx=>{await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),first_name=COALESCE(NULLIF(${clean(b.first_name)},''),first_name),last_name=COALESCE(NULLIF(${clean(b.last_name)},''),last_name),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_id=${clean(b.line_id)||null},line_user_id=${clean(b.line_id)||null},photo_data=COALESCE(NULLIF(${clean(b.photo_data)},''),photo_data),status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`});
           return json(request,{success:true,message:"บันทึกแล้ว"});
         }
       }
