@@ -80,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.4",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.5",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.4"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.5"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -164,6 +164,7 @@ export default {
         const b=await body(request);
         const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
         if(!code||!identity)return json(request,{success:false,message:"กรุณากรอกรหัสสมาชิกและอีเมลหรือเบอร์โทรศัพท์"},400);
+
         const rows=await sql`
           SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,
                  m.email,m.phone,m.photo_data,m.member_start,m.member_expire,m.registered_at,
@@ -180,38 +181,76 @@ export default {
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
         if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
 
-        const payments=await sql`
-          SELECT payment_id,payment_type,amount,paid_at,status,note
-          FROM payments WHERE member_code=${code}
-          ORDER BY paid_at DESC,created_at DESC
-          LIMIT 200
-        `;
-        const donations=await sql`
-          SELECT donation_id,amount,donated_at,status,note
-          FROM donations WHERE member_code=${code}
-          ORDER BY donated_at DESC,created_at DESC
-          LIMIT 200
-        `;
-        const usages=await sql`
-          SELECT u.usage_id,u.benefit_id,bf.title,u.used_at,u.amount,u.note
-          FROM benefit_usage u
-          LEFT JOIN benefits bf ON bf.benefit_id=u.benefit_id
-          WHERE u.member_code=${code}
-          ORDER BY u.used_at DESC,u.created_at DESC
-          LIMIT 200
-        `;
-        const benefits=await sql`
-          SELECT benefit_id,title,description,start_date,end_date,default_amount
-          FROM benefits
-          WHERE active=TRUE
-            AND (start_date IS NULL OR start_date<=CURRENT_DATE)
-            AND (end_date IS NULL OR end_date>=CURRENT_DATE)
-          ORDER BY created_at DESC
-          LIMIT 100
-        `;
-        const approvedPayments=payments.filter(x=>String(x.status||"")==="ชำระแล้ว");
-        const approvedDonations=donations.filter(x=>String(x.status||"")==="ตรวจสอบแล้ว");
+        // Portal V2.6.5: โมดูลประวัติแต่ละส่วนต้องไม่ทำให้ทั้ง Portal ล่ม
+        let payments=[],donations=[],usages=[],benefits=[];
+        const moduleWarnings=[];
+
+        try{
+          payments=await sql`
+            SELECT payment_id,payment_type,amount,paid_at,status,note
+            FROM payments
+            WHERE member_code=${code}
+            ORDER BY paid_at DESC,created_at DESC
+            LIMIT 200
+          `;
+        }catch(e){
+          console.error("Member Portal payments module",e);
+          moduleWarnings.push("payments");
+        }
+
+        try{
+          donations=await sql`
+            SELECT donation_id,amount,donated_at,status,note
+            FROM donations
+            WHERE member_code=${code}
+            ORDER BY donated_at DESC,created_at DESC
+            LIMIT 200
+          `;
+        }catch(e){
+          console.error("Member Portal donations module",e);
+          moduleWarnings.push("donations");
+        }
+
+        // benefit_usage เป็นโมดูลเสริม: V2.6 schema บางฐานยังไม่มีตารางนี้
+        try{
+          const exists=await sql`SELECT to_regclass('public.benefit_usage') AS table_name`;
+          if(exists[0]?.table_name){
+            usages=await sql`
+              SELECT u.usage_id,u.benefit_id,bf.title,u.used_at,u.amount,u.note
+              FROM benefit_usage u
+              LEFT JOIN benefits bf ON bf.benefit_id=u.benefit_id
+              WHERE u.member_code=${code}
+              ORDER BY u.used_at DESC,u.created_at DESC
+              LIMIT 200
+            `;
+          }
+        }catch(e){
+          console.error("Member Portal benefit usage module",e);
+          moduleWarnings.push("benefit_usage");
+          usages=[];
+        }
+
+        // ใช้เฉพาะ column ที่มีใน schema จริงของ benefits
+        try{
+          benefits=await sql`
+            SELECT benefit_id,title,description,start_date,end_date
+            FROM benefits
+            WHERE active=TRUE
+              AND (start_date IS NULL OR start_date<=CURRENT_DATE)
+              AND (end_date IS NULL OR end_date>=CURRENT_DATE)
+            ORDER BY created_at DESC
+            LIMIT 100
+          `;
+        }catch(e){
+          console.error("Member Portal benefits module",e);
+          moduleWarnings.push("benefits");
+          benefits=[];
+        }
+
+        const paymentApproved=x=>["ชำระแล้ว","อนุมัติ","approved","paid","verified"].includes(String(x.status||"").toLowerCase());
+        const donationApproved=x=>["ตรวจสอบแล้ว","อนุมัติ","approved","verified"].includes(String(x.status||"").toLowerCase());
         const sum=x=>x.reduce((a,r)=>a+Number(r.amount||0),0);
+
         return json(request,{
           success:true,
           data:{
@@ -221,8 +260,13 @@ export default {
               photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,registered_at:m.registered_at,
               address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}
             },
-            summary:{payments_total:sum(approvedPayments),donations_total:sum(approvedDonations),benefits_used:usages.length},
-            payments,donations,benefit_usage:usages,benefits
+            summary:{
+              payments_total:sum(payments.filter(paymentApproved)),
+              donations_total:sum(donations.filter(donationApproved)),
+              benefits_used:usages.length
+            },
+            payments,donations,benefit_usage:usages,benefits,
+            module_warnings:moduleWarnings
           }
         });
       }

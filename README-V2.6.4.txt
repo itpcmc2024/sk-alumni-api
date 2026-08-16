@@ -1,4 +1,4 @@
-SK Alumni System V2.6.4 – Member Code + Photo + Full Member Portal
+SK Alumni System V2.6.5 – Member Code + Photo + Full Member Portal
 =====================================================================
 
 แก้ไขจาก V2.6.3
@@ -13,7 +13,7 @@ SK Alumni System V2.6.4 – Member Code + Photo + Full Member Portal
    - นับเฉพาะรหัสที่ถูกต้องรูปแบบ YY-SK + เลข 4 หลัก
    - รหัสผิดเดิม เช่น 69-SK690005 จะไม่ถูกนำไปคำนวณเลขถัดไป
    - เปลี่ยนปี พ.ศ. แล้วเริ่มเลขใหม่จาก 0001
-   - มี SQL สำหรับแก้ข้อมูลผิดเดิม: sql/V2.6.4-fix-member-codes.sql
+   - มี SQL สำหรับแก้ข้อมูลผิดเดิม: sql/V2.6.5-fix-member-codes.sql
 
 3. Member Portal / สิทธิประโยชน์สมาชิก
    - Login ด้วยรหัสสมาชิก + Email/โทรศัพท์
@@ -34,29 +34,29 @@ SK Alumni System V2.6.4 – Member Code + Photo + Full Member Portal
 - member.html
 - package.json
 - .gitignore
-- sql/V2.6.4-fix-member-codes.sql
+- sql/V2.6.5-fix-member-codes.sql
 
 ขั้นตอนติดตั้ง
 A) แตก ZIP แล้ว Copy ทุกไฟล์ไปทับ repo sk-alumni-api
 B) อย่า Copy node_modules และอย่า Commit node_modules
 C) Commit:
-   SK Alumni System V2.6.4 Member Code Photo Full Portal
+   SK Alumni System V2.6.5 Member Code Photo Full Portal
 D) Sync / Push
 E) Cloudflare:
    npm install
    npx wrangler deploy
    (หรือปล่อย Auto Deploy หากตั้งไว้)
-F) ทดสอบ /api/health ต้องแสดง version 2.6.4
+F) ทดสอบ /api/health ต้องแสดง version 2.6.5
 
 การแก้รหัสสมาชิกที่ผิดอยู่แล้ว
 - หลัง deploy สำเร็จ เปิด Aiven PG Studio
-- เปิด sql/V2.6.4-fix-member-codes.sql
+- เปิด sql/V2.6.5-fix-member-codes.sql
 - Run 1 ครั้ง
 - ตัวอย่าง 69-SK690005 -> 69-SK0005 และ 69-SK690006 -> 69-SK0006
 - Script จะย้าย FK ที่อ้าง member_code ให้อัตโนมัติ
 
 ลำดับทดสอบ
-1) /api/health = 2.6.4
+1) /api/health = 2.6.5
 2) Run SQL fix member codes (ถ้ามีรหัส 69-SK69xxxx)
 3) สมัครใหม่พร้อม/ไม่พร้อมรูป
 4) ตรวจว่ารหัสใหม่ต่อจาก 69-SK0006 เป็น 69-SK0007
