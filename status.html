@@ -7,16 +7,16 @@
 .site-footer{margin-top:30px;background:linear-gradient(90deg,#e9f9ef,#f9fff8);border-top:1px solid #d7edde}.site-footer-in{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#64748b;font-size:13px}.site-footer-brand{display:flex;align-items:center;gap:11px}.site-footer-brand img{width:48px;height:48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}.site-footer-name{font-weight:700;color:#166749}.site-footer-values{font-size:12px;color:#27805f;margin-top:2px}.site-footer-version{text-align:right}@media(max-width:680px){.site-footer-in{flex-direction:column;text-align:center}.site-footer-version{text-align:center}}
 @media(max-width:640px){.searchbox{grid-template-columns:1fr}.searchbox button{width:100%}.result-head{align-items:flex-start;flex-direction:column}}</style>
 
-<style id="v25-global-nav">
-.v25-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v25-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v26-global-nav">
+.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v25-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v25-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v25-homebtn{font-size:13px}}
+.v26-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
 </style>
 
-<style id="v25-footer-mobile">
+<style id="v26-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -59,16 +59,22 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 
 </head>
 <body>
-<div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap head"><img src="assets/association-logo.png" class="logo" alt="โลโก้สมาคม"><div><div class="brand">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sub">🌙 Nurul Islam · SK Alumni Member System</div></div></div></header>
-<main class="wrap main"><section class="hero"><div class="eyebrow">🔎 ตรวจสอบสถานะ</div><h1>ติดตามข้อมูลศิษย์เก่า</h1><p>กรอกรหัสสมาชิก เช่น 69-SK0002 เพื่อดูสถานะล่าสุดของคุณ</p><div class="searchbox"><input id="memberCode" autocomplete="off" placeholder="กรอกรหัสสมาชิก เช่น 69-SK0002"><button id="checkBtn">ตรวจสอบสถานะ</button></div><div id="result" class="result" hidden></div><div class="actions"><a class="back" href="register.html">← กลับไปหน้าลงทะเบียนศิษย์เก่า</a></div></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · status V2.5</div></div></footer>
+<main class="wrap main"><section class="hero"><div class="eyebrow">🔎 ตรวจสอบสถานะ</div><h1>ติดตามข้อมูลศิษย์เก่า</h1><p>กรอกรหัสสมาชิก เช่น 69-SK0002 เพื่อดูสถานะล่าสุดของคุณ</p><div class="searchbox"><input id="memberCode" autocomplete="off" placeholder="กรอกรหัสสมาชิก เช่น 69-SK0002"><button id="checkBtn">ตรวจสอบสถานะ</button></div><div id="result" class="result" hidden></div><div class="actions"><a class="back" href="register.html">← กลับไปหน้าลงทะเบียนศิษย์เก่า</a></div></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · status V2.6</div></div></footer>
 <script>
-const API='https://sk-alumni-api.itpcmc2024.workers.dev';const $=id=>document.getElementById(id);const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const API='https://sk-alumni-api.itpcmc2024.workers.dev';
+async function safeFetch(url,opt={}){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);
+  try{return await fetch(url,{...opt,signal:c.signal})}
+  catch(e){throw new Error(e?.name==='AbortError'?'API ตอบสนองช้าเกินไป':'เชื่อมต่อ API ไม่สำเร็จ กรุณาตรวจสอบ Cloudflare Worker / Deployment')}
+  finally{clearTimeout(t)}
+}const $=id=>document.getElementById(id);const esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 function st(s){s=String(s||'').toLowerCase().trim();if(['active','ใช้งาน','approved','อนุมัติ','อนุมัติแล้ว'].includes(s))return['active','ใช้งาน'];if(['cancelled','canceled','ยกเลิก','ไม่อนุมัติ','rejected'].includes(s))return['cancel','ยกเลิก'];return['pending','รออนุมัติ']}
 function fmt(v){if(!v)return'-';try{return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return String(v)}}
 function displayName(m){const prefix=String(m.prefix||'').trim();let full=String(m.full_name||'').trim();if(prefix&&full.startsWith(prefix)){return full}return [prefix,full].filter(Boolean).join(' ')||'-'}
-async function check(){const code=$('memberCode').value.trim().toUpperCase();if(!code){Swal.fire({icon:'warning',title:'กรุณากรอกรหัสสมาชิก'});return}$('checkBtn').disabled=true;$('checkBtn').textContent='กำลังตรวจสอบ...';try{const r=await fetch(API+'/api/status/'+encodeURIComponent(code));const j=await r.json();if(!r.ok||j.found===false)throw new Error(j.message||'ไม่พบข้อมูลสมาชิก');const m=j.data||j.member||j;const [cl,txt]=st(m.status);const name=displayName(m);let title='',detail='',link='';if(cl==='active'){title=`${esc(name)} เป็นสมาชิกเรียบร้อยแล้ว`;detail='สถานะสมาชิกของคุณพร้อมใช้งาน สามารถเข้าสู่หน้าสิทธิประโยชน์สมาชิกได้';link=`<a class="member-link" href="member.html?code=${encodeURIComponent(m.member_code||code)}">🎁 เข้าสู่ระบบสิทธิประโยชน์สมาชิก</a>`}else if(cl==='pending'){title=`${esc(name)} อยู่ระหว่างรออนุมัติ`;detail='ระบบได้รับข้อมูลลงทะเบียนแล้ว กรุณารอการตรวจสอบและอนุมัติจากผู้ดูแลระบบ'}else{title=`${esc(name)} มีสถานะยกเลิก`;detail='หากต้องการสอบถามหรือแก้ไขสถานะ กรุณาติดต่อผู้ดูแลสมาคม'}$('result').hidden=false;$('result').innerHTML=`<div class="result-head"><div><div class="code">${esc(m.member_code||code)}</div><div class="sub">ข้อมูลล่าสุดจากระบบ</div></div><span class="badge ${cl}">${txt}</span></div><div class="status-body"><div class="status-message"><h2>${title}</h2><p>${detail}</p>${link}<div class="meta">วันที่ลงทะเบียน: ${esc(fmt(m.registered_at))}</div></div></div>`;$('result').scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){$('result').hidden=true;Swal.fire({icon:'info',title:'ตรวจสอบไม่สำเร็จ',text:e.message})}finally{$('checkBtn').disabled=false;$('checkBtn').textContent='ตรวจสอบสถานะ'}}
+async function check(){const code=$('memberCode').value.trim().toUpperCase();if(!code){Swal.fire({icon:'warning',title:'กรุณากรอกรหัสสมาชิก'});return}$('checkBtn').disabled=true;$('checkBtn').textContent='กำลังตรวจสอบ...';try{const r=await safeFetch(API+'/api/status/'+encodeURIComponent(code));const j=await r.json();if(!r.ok||j.found===false)throw new Error(j.message||'ไม่พบข้อมูลสมาชิก');const m=j.data||j.member||j;const [cl,txt]=st(m.status);const name=displayName(m);let title='',detail='',link='';if(cl==='active'){title=`${esc(name)} เป็นสมาชิกเรียบร้อยแล้ว`;detail='สถานะสมาชิกของคุณพร้อมใช้งาน สามารถเข้าสู่หน้าสิทธิประโยชน์สมาชิกได้';link=`<a class="member-link" href="member.html?code=${encodeURIComponent(m.member_code||code)}">🎁 เข้าสู่ระบบสิทธิประโยชน์สมาชิก</a>`}else if(cl==='pending'){title=`${esc(name)} อยู่ระหว่างรออนุมัติ`;detail='ระบบได้รับข้อมูลลงทะเบียนแล้ว กรุณารอการตรวจสอบและอนุมัติจากผู้ดูแลระบบ'}else{title=`${esc(name)} มีสถานะยกเลิก`;detail='หากต้องการสอบถามหรือแก้ไขสถานะ กรุณาติดต่อผู้ดูแลสมาคม'}$('result').hidden=false;$('result').innerHTML=`<div class="result-head"><div><div class="code">${esc(m.member_code||code)}</div><div class="sub">ข้อมูลล่าสุดจากระบบ</div></div><span class="badge ${cl}">${txt}</span></div><div class="status-body"><div class="status-message"><h2>${title}</h2><p>${detail}</p>${link}<div class="meta">วันที่ลงทะเบียน: ${esc(fmt(m.registered_at))}</div></div></div>`;$('result').scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){$('result').hidden=true;Swal.fire({icon:'info',title:'ตรวจสอบไม่สำเร็จ',text:e.message})}finally{$('checkBtn').disabled=false;$('checkBtn').textContent='ตรวจสอบสถานะ'}}
 $('checkBtn').onclick=check;$('memberCode').addEventListener('keydown',e=>{if(e.key==='Enter')check()});const qs=new URLSearchParams(location.search);if(qs.get('code')){$('memberCode').value=qs.get('code').toUpperCase();check()}
 </script>
 <div style="max-width:980px;margin:12px auto 28px;padding:0 18px">

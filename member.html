@@ -3,16 +3,16 @@
 .site-footer{margin-top:30px;background:linear-gradient(90deg,#e9f9ef,#f9fff8);border-top:1px solid #d7edde}.site-footer-in{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#64748b;font-size:13px}.site-footer-brand{display:flex;align-items:center;gap:11px}.site-footer-brand img{width:48px;height:48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}.site-footer-name{font-weight:700;color:#166749}.site-footer-values{font-size:12px;color:#27805f;margin-top:2px}.site-footer-version{text-align:right}@media(max-width:680px){.site-footer-in{flex-direction:column;text-align:center}.site-footer-version{text-align:center}}
 @media(max-width:760px){.login-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.profile-head{align-items:flex-start;flex-direction:column}}</style>
 
-<style id="v25-global-nav">
-.v25-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v25-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v26-global-nav">
+.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v25-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v25-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v25-homebtn{font-size:13px}}
+.v26-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
 </style>
 
-<style id="v25-footer-mobile">
+<style id="v26-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -54,7 +54,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 </style>
 
 </head><body>
-<div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap head"><img src="assets/association-logo.png" class="logo"><div><div class="brand">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sub">🌙 Nurul Islam · SK Alumni Member System</div></div></div></header>
 <main class="wrap main"><section class="portal"><div class="eyebrow">🎁 MEMBER BENEFITS & PORTAL</div><h1>สิทธิประโยชน์สมาชิก</h1><p>สำหรับสมาชิกที่ได้รับการอนุมัติแล้ว กรุณาใช้รหัสสมาชิกพร้อมอีเมลหรือเบอร์โทรศัพท์ที่ลงทะเบียน</p><div class="login-grid"><div class="field"><label>รหัสสมาชิก</label><input id="code" placeholder="69-SK0001"></div><div class="field"><label>อีเมล หรือ เบอร์โทรศัพท์</label><input id="identity" placeholder="name@example.com หรือ 08xxxxxxxx"></div><button id="loginBtn" class="login-btn">เปิดข้อมูลและสิทธิประโยชน์</button></div><div class="note">🔒 ระบบอนุญาตให้เข้าดูข้อมูลสมาชิกในหน้านี้เฉพาะผู้ที่มีสถานะ <b>ใช้งาน</b> เท่านั้น</div><section id="profile" class="profile hidden"><div class="profile-head"><div><div id="memberName" class="profile-name">-</div><div id="memberCode" class="sub">-</div></div><span class="badge">สมาชิกใช้งาน</span></div><div class="cards"><div class="card"><h3>👤 ข้อมูลสมาชิก</h3><p id="contact">-</p><p id="address">-</p></div><div class="card"><h3>🎁 สิทธิประโยชน์</h3><p>สิทธิประโยชน์ที่เปิดใช้งานสำหรับสมาชิก จะแสดงด้านล่างหลังเข้าสู่ระบบสำเร็จ</p><p><a href="benefits.html" style="color:#08744c;font-weight:700">ดูหน้าสิทธิประโยชน์ทั้งหมด ›</a></p></div></div>
@@ -62,10 +62,16 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
         <h3 class="benefit-title">🎁 สิทธิประโยชน์ที่เปิดใช้งาน</h3>
         <div id="benefitList" class="benefit-list"><div class="benefit-empty">กรุณาเข้าสู่ระบบสมาชิกก่อน</div></div>
       </div>
-    </section></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · member V2.5</div></div></footer><script>
-const API='https://sk-alumni-api.itpcmc2024.workers.dev';const $=id=>document.getElementById(id);function active(s){return ['active','ใช้งาน','approved','อนุมัติ','อนุมัติแล้ว'].includes(String(s||'').toLowerCase().trim())}function displayName(m){const p=String(m.prefix||'').trim(),f=String(m.full_name||'').trim();return p&&f.startsWith(p)?f:[p,f].filter(Boolean).join(' ')}async function login(){const code=$('code').value.trim().toUpperCase(),id=$('identity').value.trim();if(!code||!id){Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูลให้ครบ'});return}$('loginBtn').disabled=true;try{const r=await fetch(API+'/api/member/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:code,identity:id})});const j=await r.json();if(!r.ok)throw new Error(j.message||'เข้าสู่ระบบไม่สำเร็จ');const m=j.data||j;$('memberName').textContent=displayName(m)||'-';$('memberCode').textContent=m.member_code||code;$('contact').textContent=[m.phone,m.email].filter(Boolean).join(' · ')||'-';const a=m.address||{};$('address').textContent=[a.subdistrict,a.district,a.province,a.postal_code].filter(Boolean).join(' · ')||'-';$('profile').classList.remove('hidden');
+    </section></section></main><footer class="site-footer"><div class="site-footer-in"><div class="site-footer-brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="site-footer-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="site-footer-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="site-footer-version">© 2026 SK Alumni Member System by Kimhan · member V2.6</div></div></footer><script>
+const API='https://sk-alumni-api.itpcmc2024.workers.dev';
+async function safeFetch(url,opt={}){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),20000);
+  try{return await fetch(url,{...opt,signal:c.signal})}
+  catch(e){throw new Error(e?.name==='AbortError'?'API ตอบสนองช้าเกินไป':'เชื่อมต่อ API ไม่สำเร็จ กรุณาตรวจสอบ Cloudflare Worker / Deployment')}
+  finally{clearTimeout(t)}
+}const $=id=>document.getElementById(id);function active(s){return ['active','ใช้งาน','approved','อนุมัติ','อนุมัติแล้ว'].includes(String(s||'').toLowerCase().trim())}function displayName(m){const p=String(m.prefix||'').trim(),f=String(m.full_name||'').trim();return p&&f.startsWith(p)?f:[p,f].filter(Boolean).join(' ')}async function login(){const code=$('code').value.trim().toUpperCase(),id=$('identity').value.trim();if(!code||!id){Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูลให้ครบ'});return}$('loginBtn').disabled=true;try{const r=await safeFetch(API+'/api/member/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:code,identity:id})});const j=await r.json();if(!r.ok)throw new Error(j.message||'เข้าสู่ระบบไม่สำเร็จ');const m=j.data||j;$('memberName').textContent=displayName(m)||'-';if(m.photo_data){$('profilePhoto').src=m.photo_data;$('profilePhoto').style.display='block'}else{$('profilePhoto').style.display='none'};$('memberCode').textContent=m.member_code||code;$('contact').textContent=[m.phone,m.email].filter(Boolean).join(' · ')||'-';const a=m.address||{};$('address').textContent=[a.subdistrict,a.district,a.province,a.postal_code].filter(Boolean).join(' · ')||'-';$('profile').classList.remove('hidden');
 try{
-  const br=await fetch(API+'/api/benefits');
+  const br=await safeFetch(API+'/api/benefits');
   const bj=await br.json();
   const benefits=(bj.data||[]);
   $('benefitList').innerHTML=benefits.length

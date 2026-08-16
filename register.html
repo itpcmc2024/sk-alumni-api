@@ -31,7 +31,15 @@
     footer{background:linear-gradient(90deg,#e9f9ef,#f9fff8);border-top:1px solid #d7edde;margin-top:26px}.footer-logo{width:58px;height:58px;border-radius:50%;object-fit:contain;background:white;border:4px solid #dcfce7}.footer-brand{font-family:"Mitr","Noto Sans Thai",sans-serif;font-weight:600}
     @media(max-width:720px){.hero{min-height:330px;background-position:63% center}.hero::before{background:linear-gradient(90deg,rgba(255,255,255,.985) 0%,rgba(251,255,252,.96) 54%,rgba(244,255,248,.62) 77%,rgba(255,255,255,.30) 100%)}.hero-inner{padding:22px!important}.hero-copy{max-width:100%}.logo-round{width:66px;height:66px}.sec-icon{width:62px;height:62px}.quote-row{gap:5px}.chip{font-size:clamp(8px,2.2vw,11px);padding:7px 4px;border-radius:14px}}
     @media(max-width:420px){.quote-row{gap:4px}.chip{font-size:8px;padding:6px 2px;letter-spacing:-.15px}}
-  </style>
+  
+.photo-box{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;margin-top:18px;padding:16px;border:1px dashed #b9dec9;border-radius:18px;background:#fbfffc}
+.photo-preview{width:138px;height:160px;border-radius:16px;object-fit:cover;background:#eef8f2;border:1px solid #dcebe3}
+.photo-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.photo-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 13px;border-radius:12px;border:1px solid #bfe4cf;background:#fff;color:#08744c;font-weight:800;cursor:pointer}
+.photo-note{font-size:12px;color:#7d8a84;line-height:1.55;margin-top:7px}
+@media(max-width:640px){.photo-box{grid-template-columns:1fr;text-align:center}.photo-preview{margin:auto}.photo-actions{justify-content:center}}
+
+</style>
 
 
 <style id="v25-global-nav">
@@ -88,14 +96,14 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 <body>
 <div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
-<!-- SK Alumni Register V2.5 – Responsive Branding + Smart Address -->
+<!-- SK Alumni Register V2.6 – Responsive Branding + Smart Address -->
 <header class="top sticky top-0 z-30">
   <div class="wrap px-4 py-3 flex items-center gap-4">
     <div class="logo-round"><img src="assets/association-logo.png" alt="โลโก้สมาคม"></div>
     <div class="min-w-0">
       <div class="brand-title text-lg md:text-2xl font-semibold text-emerald-800 leading-tight">ทะเบียนสมาชิกสมาคมศิษย์เก่า</div>
       <div class="brand-title text-lg md:text-2xl font-semibold text-emerald-800 leading-tight">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div>
-      <div class="text-sm text-slate-500 mt-1"><a href="index.html" class="hover:text-emerald-700">SK Alumni Member System · หน้าแรก</a></div>
+      <div class="text-sm text-slate-500 mt-1"><a href="index.html" class="hover:text-emerald-700">SK Alumni Member System</a></div>
     </div>
   </div>
 </header>
@@ -121,6 +129,18 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
         <div><label>ชื่อ <span class="req">*</span></label><input id="firstName" class="input" required maxlength="120" placeholder="ชื่อ"></div>
         <div class="md:col-span-2"><label>นามสกุล <span class="req">*</span></label><input id="lastName" class="input" required maxlength="120" placeholder="นามสกุล"></div>
         <div><label>ชื่อภาษาอาหรับ</label><input id="arabicName" class="input" maxlength="250" placeholder="ถ้ามี"></div>
+      </div>
+      <div class="photo-box">
+        <img id="photoPreview" class="photo-preview" src="assets/cute-register.jpg" alt="ตัวอย่างรูปสมาชิก">
+        <div>
+          <label>รูปสมาชิก <span class="text-slate-400 font-normal">(ไม่บังคับ)</span></label>
+          <div class="photo-actions">
+            <label class="photo-btn" for="memberPhoto">📷 เลือกรูปสมาชิก</label>
+            <button type="button" id="removePhoto" class="photo-btn">ลบรูป</button>
+          </div>
+          <input id="memberPhoto" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+          <div id="photoInfo" class="photo-note">รองรับ JPG / PNG / WEBP · ไฟล์ต้นฉบับไม่เกิน 5 MB · ระบบจะย่ออัตโนมัติประมาณ 720 px และควบคุมขนาดเพื่อประหยัดพื้นที่</div>
+        </div>
       </div>
     </section>
 
@@ -160,14 +180,35 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 <footer>
   <div class="wrap px-5 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3"><img src="assets/association-logo.png" class="footer-logo" alt=""><div><div class="footer-brand text-emerald-800">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="text-xs text-emerald-700 mt-1">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div>
-    <div class="text-sm text-slate-500 text-center md:text-right">© 2026 SK Alumni Member System by Kimhan · register V2.5</div>
+    <div class="text-sm text-slate-500 text-center md:text-right">© 2026 SK Alumni Member System by Kimhan · register V2.6</div>
   </div>
 </footer>
 
 <script>
 const API_BASE='https://sk-alumni-api.itpcmc2024.workers.dev';
 const GEO_URL='https://raw.githubusercontent.com/thailand-geography-data/thailand-geography-json/main/src/geography.json';
-const $=id=>document.getElementById(id); let geo=[], postalRows=[], addressReady=false;
+const $=id=>document.getElementById(id); let geo=[], postalRows=[], addressReady=false, photoData='';
+async function apiFetch(path,options={}){
+  const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),20000);
+  try{
+    return await fetch(API_BASE+path,{...options,signal:controller.signal});
+  }catch(e){
+    if(e?.name==='AbortError') throw new Error('API ตอบสนองช้าเกินไป กรุณาลองใหม่');
+    throw new Error('เชื่อมต่อ API ไม่สำเร็จ กรุณาตรวจสอบ Cloudflare Worker / Deployment');
+  }finally{clearTimeout(timer)}
+}
+function fileToImage(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
+async function compressMemberPhoto(file){
+  if(!file)return '';
+  if(file.size>5*1024*1024)throw new Error('ไฟล์รูปต้นฉบับต้องไม่เกิน 5 MB');
+  const im=await fileToImage(file), max=720, scale=Math.min(1,max/Math.max(im.width,im.height));
+  const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);
+  c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  let q=.82,data='';
+  for(let i=0;i<6;i++){data=c.toDataURL('image/webp',q);if(data.length<=320000)break;q-=.1}
+  if(data.length>350000)throw new Error('รูปยังมีขนาดใหญ่เกินไป กรุณาเลือกรูปอื่น');
+  return data;
+}
 
 function clean(v){return String(v??'').trim()}
 function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
@@ -181,6 +222,22 @@ $('postalCode').addEventListener('input',()=>{$('postalCode').value=$('postalCod
 function validEmail(v){return !v || /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(v)}
 function checkEmail(alertUser=false){const v=clean($('email').value);const ok=$('email').checkValidity()&&validEmail(v);$('email').classList.toggle('err',!ok);$('emailHelp').textContent=ok?'❖ หากกรอก ต้องเป็นรูปแบบอีเมลที่ถูกต้อง':'❖ รูปแบบอีเมลไม่ถูกต้อง เช่น name@example.com';$('emailHelp').className=ok?'text-xs text-slate-400 mt-1':'text-xs text-rose-500 mt-1 font-bold';if(!ok&&alertUser)Swal.fire({icon:'warning',title:'รูปแบบอีเมลไม่ถูกต้อง',text:'กรุณากรอก เช่น name@example.com'});return ok}
 $('email').addEventListener('blur',()=>checkEmail(true));$('email').addEventListener('input',()=>{if(!$('email').value.trim())checkEmail(false)});
+
+
+$('memberPhoto').addEventListener('change',async e=>{
+  const file=e.target.files?.[0]; if(!file)return;
+  try{
+    $('photoInfo').textContent='⏳ กำลังย่อและปรับรูป...';
+    photoData=await compressMemberPhoto(file);
+    $('photoPreview').src=photoData;
+    const kb=Math.round(photoData.length*0.75/1024);
+    $('photoInfo').textContent=`✓ พร้อมใช้งาน · รูปหลังย่อประมาณ ${kb} KB`;
+  }catch(err){
+    photoData=''; e.target.value=''; $('photoPreview').src='assets/cute-register.jpg';
+    $('photoInfo').textContent=err.message; Swal.fire({icon:'warning',title:'ไม่สามารถใช้รูปนี้ได้',text:err.message});
+  }
+});
+$('removePhoto').addEventListener('click',()=>{photoData='';$('memberPhoto').value='';$('photoPreview').src='assets/cute-register.jpg';$('photoInfo').textContent='ยังไม่ได้แนบรูปสมาชิก (ไม่บังคับ)'});
 
 $('consent').addEventListener('change',()=>{$('submitButton').disabled=!$('consent').checked});
 
@@ -202,10 +259,10 @@ function selectedText(el){return el.value?el.options[el.selectedIndex]?.textCont
 
 function validate(){if(!prefixValue()){Swal.fire({icon:'warning',title:'กรุณาเลือกคำนำหน้า'});return false}if(!clean($('firstName').value)){Swal.fire({icon:'warning',title:'กรุณากรอกชื่อ'});return false}if(!clean($('lastName').value)){Swal.fire({icon:'warning',title:'กรุณากรอกนามสกุล'});return false}if(!/^[0-9]{9,10}$/.test(clean($('phone').value))){Swal.fire({icon:'warning',title:'เบอร์โทรศัพท์ไม่ถูกต้อง',text:'กรุณากรอกตัวเลข 9–10 หลัก'});return false}if(!checkEmail(false)){Swal.fire({icon:'warning',title:'รูปแบบอีเมลไม่ถูกต้อง',text:'กรุณากรอก เช่น name@example.com'});return false}if(!$('consent').checked){Swal.fire({icon:'warning',title:'กรุณายืนยันความถูกต้องของข้อมูล'});return false}return true}
 
-$('registerForm').addEventListener('submit',async e=>{e.preventDefault();if(!validate())return;const c=await Swal.fire({icon:'question',title:'ยืนยันการลงทะเบียนศิษย์เก่า?',text:'กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนส่ง',showCancelButton:true,confirmButtonText:'ยืนยันลงทะเบียน',cancelButtonText:'กลับไปตรวจสอบ',confirmButtonColor:'#10b981'});if(!c.isConfirmed)return;$('submitButton').disabled=true;Swal.fire({title:'กำลังบันทึกข้อมูล...',text:'รอสักครู่นะคะ 🌿',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const payload={prefix:prefixValue(),first_name:clean($('firstName').value),last_name:clean($('lastName').value),arabic_name:clean($('arabicName').value),phone:clean($('phone').value),email:clean($('email').value),line_id:clean($('lineId').value),address_line:clean($('addressLine').value),subdistrict:selectedText($('subdistrict')),district:selectedText($('district')),province:selectedText($('province')),postal_code:clean($('postalCode').value),consent:true};const r=await fetch(`${API_BASE}/api/members/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok){if(r.status===409&&j.duplicate){await Swal.fire({icon:'warning',title:'พบข้อมูลศิษย์เก่าเดิม',html:`${esc(j.message||'พบข้อมูลเดิมในระบบ')}<div style="font-size:26px;font-weight:800;color:#16a34a;margin-top:12px">${esc(j.member_code||'')}</div>`});return}throw new Error(j.message||'ไม่สามารถบันทึกข้อมูลได้')}const code=j.member_code||j.data?.member_code||'-';await Swal.fire({icon:'success',title:'ลงทะเบียนเรียบร้อยแล้ว 💚',html:`ระบบได้รับข้อมูลของคุณแล้ว<div style="margin-top:12px;color:#64748b">รหัสสมาชิก</div><div style="font-size:30px;font-weight:900;color:#16a34a">${esc(code)}</div><div style="margin-top:10px;color:#64748b">สถานะ: <b style="color:#f59e0b">รออนุมัติ</b></div>`,confirmButtonColor:'#10b981'});resetForm()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message||'เกิดข้อผิดพลาด'})}finally{$('submitButton').disabled=!$('consent').checked}});
+$('registerForm').addEventListener('submit',async e=>{e.preventDefault();if(!validate())return;const c=await Swal.fire({icon:'question',title:'ยืนยันการลงทะเบียนศิษย์เก่า?',text:'กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนส่ง',showCancelButton:true,confirmButtonText:'ยืนยันลงทะเบียน',cancelButtonText:'กลับไปตรวจสอบ',confirmButtonColor:'#10b981'});if(!c.isConfirmed)return;$('submitButton').disabled=true;Swal.fire({title:'กำลังบันทึกข้อมูล...',text:'รอสักครู่นะคะ 🌿',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const payload={prefix:prefixValue(),first_name:clean($('firstName').value),last_name:clean($('lastName').value),arabic_name:clean($('arabicName').value),phone:clean($('phone').value),email:clean($('email').value),line_id:clean($('lineId').value),address_line:clean($('addressLine').value),subdistrict:selectedText($('subdistrict')),district:selectedText($('district')),province:selectedText($('province')),postal_code:clean($('postalCode').value),photo_data:photoData,consent:true};const r=await apiFetch('/api/members/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok){if(r.status===409&&j.duplicate){await Swal.fire({icon:'warning',title:'พบข้อมูลศิษย์เก่าเดิม',html:`${esc(j.message||'พบข้อมูลเดิมในระบบ')}<div style="font-size:26px;font-weight:800;color:#16a34a;margin-top:12px">${esc(j.member_code||'')}</div>`});return}throw new Error(j.message||'ไม่สามารถบันทึกข้อมูลได้')}const code=j.member_code||j.data?.member_code||'-';await Swal.fire({icon:'success',title:'ลงทะเบียนเรียบร้อยแล้ว 💚',html:`ระบบได้รับข้อมูลของคุณแล้ว<div style="margin-top:12px;color:#64748b">รหัสสมาชิก</div><div style="font-size:30px;font-weight:900;color:#16a34a">${esc(code)}</div><div style="margin-top:10px;color:#64748b">สถานะ: <b style="color:#f59e0b">รออนุมัติ</b></div>`,confirmButtonColor:'#10b981'});resetForm()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message||'เกิดข้อผิดพลาด'})}finally{$('submitButton').disabled=!$('consent').checked}});
 
 $('resetBtn').addEventListener('click',async()=>{const c=await Swal.fire({icon:'question',title:'ล้างข้อมูลทั้งหมด?',showCancelButton:true,confirmButtonText:'ล้างข้อมูล',cancelButtonText:'ยกเลิก'});if(c.isConfirmed)resetForm()});
-function resetForm(){$('registerForm').reset();$('prefixOtherBox').classList.add('hidden');$('prefixOther').required=false;postalRows=[];checkEmail(false);if(addressReady){provinces(geo);$('province').disabled=false}resetDistrict();resetSub();$('postalHelp').textContent='❖ พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้';$('submitButton').disabled=true;window.scrollTo({top:0,behavior:'smooth'})}
+function resetForm(){$('registerForm').reset();photoData='';$('photoPreview').src='assets/cute-register.jpg';$('photoInfo').textContent='ยังไม่ได้แนบรูปสมาชิก (ไม่บังคับ)';$('prefixOtherBox').classList.add('hidden');$('prefixOther').required=false;postalRows=[];checkEmail(false);if(addressReady){provinces(geo);$('province').disabled=false}resetDistrict();resetSub();$('postalHelp').textContent='❖ พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้';$('submitButton').disabled=true;window.scrollTo({top:0,behavior:'smooth'})}
 loadGeo();
 </script>
 </body>

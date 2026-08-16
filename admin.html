@@ -24,16 +24,16 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradi
 </style>
 
 
-<style id="v25-global-nav">
-.v25-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v25-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+<style id="v26-global-nav">
+.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
 border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
 box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v25-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v25-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v25-homebtn{font-size:13px}}
+.v26-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
 </style>
 
-<style id="v25-footer-mobile">
+<style id="v26-footer-mobile">
 @media(max-width:760px){
   footer .wrap, .site-footer-in, .footin{
     text-align:center!important;
@@ -76,7 +76,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 
 </head>
 <body>
-<div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <div id="loginBack" class="login-back">
   <div class="login">
@@ -126,13 +126,16 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 <footer class="admin-footer">
   <div class="admin-footer-in">
     <div class="admin-footer-brand"><img src="assets/association-logo.png" alt=""><span>สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div>
-    <div>© 2026 SK Alumni Member System by Kimhan · admin V2.5</div>
+    <div>© 2026 SK Alumni Member System by Kimhan · admin V2.6</div>
   </div>
 </footer>
 <div id="modalBack" class="modal-back hidden">
   <div class="modal">
     <div class="modal-head"><div><h3>รายละเอียดสมาชิก</h3><small id="modalCode">-</small></div><button id="closeModal" class="close">×</button></div>
     <div class="modal-body">
+      <div id="memberPhotoWrap" style="display:none;text-align:center;margin:0 0 16px">
+        <img id="memberPhotoView" alt="รูปสมาชิก" style="width:130px;height:155px;object-fit:cover;border-radius:16px;border:1px solid #dcebe3;box-shadow:0 8px 20px rgba(39,100,74,.12);margin:auto">
+      </div>
       <div class="grid2">
         <div class="field"><label>คำนำหน้า</label><input id="fPrefix"></div>
         <div class="field"><label>ชื่อ</label><input id="fFirstName"></div>
@@ -200,7 +203,7 @@ function render(){const total=state.all.length,p=state.all.filter(x=>x.status===
 async function reload(show=true){if(show)toast('กำลังโหลดข้อมูล...');try{const rows=await loadFromServer();state.all=rows.map(normalizeMember);state.page=1;applyFilters();hideToast()}catch(e){hideToast();if(e.status===401||e.status===403){logout(false);showLoginError('Admin API Key ไม่ถูกต้อง หรือหมดสิทธิ์ใช้งาน')}else Swal.fire({icon:'error',title:'โหลดข้อมูลไม่สำเร็จ',text:e.message})}}
 function payloadFromForm(){return {prefix:$('fPrefix').value.trim(),first_name:$('fFirstName').value.trim(),last_name:$('fLastName').value.trim(),arabic_name:$('fArabic').value.trim(),phone:$('fPhone').value.trim(),email:$('fEmail').value.trim(),line_id:$('fLine').value.trim(),status:$('fStatus').value,address_line:$('fAddress').value.trim(),subdistrict:$('fSubdistrict').value.trim(),district:$('fDistrict').value.trim(),province:$('fProvince').value.trim(),postal_code:$('fPostal').value.trim()}}
 async function getDetail(code){const candidates=[`/api/admin/members/${encodeURIComponent(code)}`,`/api/members/${encodeURIComponent(code)}`];for(const p of candidates){try{const j=await raw(p);state.detailEndpoint=p;return normalizeMember(j?.data||j?.member||j)}catch(e){if(e.status===401||e.status===403)throw e}}return state.all.find(x=>x.code===code)||null}
-window.openMember=async code=>{try{const m=await getDetail(code);if(!m)throw new Error('ไม่พบข้อมูลสมาชิก');state.current=m;$('modalCode').textContent=m.code;$('fPrefix').value=m.prefix;$('fFirstName').value=m.first;$('fLastName').value=m.last;$('fArabic').value=m.arabic;$('fPhone').value=m.phone;$('fEmail').value=m.email;$('fLine').value=m.line;$('fStatus').value=m.status;$('fAddress').value=m.address;$('fSubdistrict').value=m.subdistrict;$('fDistrict').value=m.district;$('fProvince').value=m.province;$('fPostal').value=m.postal;const isActive=m.status==='active',isCancelled=m.status==='cancelled';$('approveBtn').disabled=isActive;$('approveBtn').textContent=isActive?'อนุมัติแล้ว':'อนุมัติสมาชิก';$('cancelBtn').disabled=isCancelled;$('cancelBtn').textContent=isCancelled?'ยกเลิกแล้ว':'ยกเลิกสมาชิก';$('modalBack').classList.remove('hidden')}catch(e){Swal.fire({icon:'error',title:'เปิดข้อมูลไม่สำเร็จ',text:e.message})}};
+window.openMember=async code=>{try{const m=await getDetail(code);if(!m)throw new Error('ไม่พบข้อมูลสมาชิก');state.current=m;$('modalCode').textContent=m.code;$('memberPhotoWrap').style.display=m.photo?'block':'none';if(m.photo)$('memberPhotoView').src=m.photo;$('fPrefix').value=m.prefix;$('fFirstName').value=m.first;$('fLastName').value=m.last;$('fArabic').value=m.arabic;$('fPhone').value=m.phone;$('fEmail').value=m.email;$('fLine').value=m.line;$('fStatus').value=m.status;$('fAddress').value=m.address;$('fSubdistrict').value=m.subdistrict;$('fDistrict').value=m.district;$('fProvince').value=m.province;$('fPostal').value=m.postal;const isActive=m.status==='active',isCancelled=m.status==='cancelled';$('approveBtn').disabled=isActive;$('approveBtn').textContent=isActive?'อนุมัติแล้ว':'อนุมัติสมาชิก';$('cancelBtn').disabled=isCancelled;$('cancelBtn').textContent=isCancelled?'ยกเลิกแล้ว':'ยกเลิกสมาชิก';$('modalBack').classList.remove('hidden')}catch(e){Swal.fire({icon:'error',title:'เปิดข้อมูลไม่สำเร็จ',text:e.message})}};
 function closeModal(){$('modalBack').classList.add('hidden');state.current=null}
 async function tryMutation(kind,payload){const code=state.current?.code;if(!code)throw new Error('ไม่พบรหัสสมาชิก');let tries=[];
   if(kind==='save')tries=[['PUT',`/api/admin/members/${encodeURIComponent(code)}`,payload],['PATCH',`/api/admin/members/${encodeURIComponent(code)}`,payload],['PUT',`/api/members/${encodeURIComponent(code)}`,payload]];

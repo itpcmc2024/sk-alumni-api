@@ -1,15 +1,13 @@
 import postgres from "postgres";
 
-const ALLOWED_ORIGINS = ["https://itpcmc2024.github.io"];
-
 function cors(request){
-  const origin=request.headers.get("Origin")||"";
   return {
-    "Access-Control-Allow-Origin":ALLOWED_ORIGINS.includes(origin)?origin:ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Origin":"*",
     "Access-Control-Allow-Methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS",
     "Access-Control-Allow-Headers":"Content-Type, Authorization, X-Admin-Key",
-    "Access-Control-Max-Age":"86400","Vary":"Origin",
-    "Content-Type":"application/json; charset=utf-8","X-Robots-Tag":"noindex, nofollow"
+    "Access-Control-Max-Age":"86400",
+    "Content-Type":"application/json; charset=utf-8",
+    "X-Robots-Tag":"noindex, nofollow"
   };
 }
 function json(request,data,status=200){return new Response(JSON.stringify(data),{status,headers:cors(request)})}
@@ -23,17 +21,27 @@ function requireAdmin(request,env){return adminOK(request,env)?null:json(request
 function memberStatusText(s){s=String(s||"").toLowerCase();if(["active","ใช้งาน","approved","สมาชิกสมบูรณ์"].includes(s))return"active";if(["cancelled","canceled","rejected","ยกเลิก","ไม่อนุมัติ"].includes(s))return"cancelled";return"pending"}
 function id(prefix){return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0,8)}`}
 async function body(request){try{return await request.json()}catch{return {}}}
+function db(env){
+  if(!env?.HYPERDRIVE?.connectionString) throw new Error("HYPERDRIVE binding is missing");
+  return postgres(env.HYPERDRIVE.connectionString,{max:5,fetch_types:false,prepare:true});
+}
+function photoOK(v){
+  if(!v) return true;
+  const t=String(v);
+  return /^data:image\/(jpeg|jpg|webp);base64,/i.test(t) && t.length<=360000;
+}
 
 export default {
   async fetch(request,env){
     if(request.method==="OPTIONS") return new Response(null,{status:204,headers:cors(request)});
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
-    const sql=postgres(env.HYPERDRIVE.connectionString,{max:5,fetch_types:false,prepare:true});
+    let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.0.0",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.0",status:"online"});
+      sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.0.0"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.0"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -43,9 +51,9 @@ export default {
       }
 
       if(path==="/api/members/register"&&request.method==="POST"){
-        const b=await body(request);const prefix=clean(b.prefix),first=clean(b.first_name),last=clean(b.last_name),phone=clean(b.phone),email=clean(b.email).toLowerCase();
+        const b=await body(request);const prefix=clean(b.prefix),first=clean(b.first_name),last=clean(b.last_name),phone=clean(b.phone),email=clean(b.email).toLowerCase(),photo=clean(b.photo_data);
         if(!prefix||!first||!last||!/^\d{9,10}$/.test(phone))return json(request,{success:false,message:"ข้อมูลลงทะเบียนไม่ครบหรือเบอร์โทรไม่ถูกต้อง"},400);
-        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
+        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);\n        if(!photoOK(photo))return json(request,{success:false,message:"รูปสมาชิกไม่ถูกต้องหรือมีขนาดใหญ่เกินกำหนด"},400);
         const dup=await sql`SELECT member_code FROM members WHERE phone=${phone} OR (${email}<>'' AND LOWER(COALESCE(email,''))=${email}) LIMIT 1`;
         if(dup.length)return json(request,{success:false,duplicate:true,member_code:dup[0].member_code,message:"พบข้อมูลที่อาจลงทะเบียนไว้แล้ว"},409);
         const yy=String(new Date().getFullYear()+543).slice(-2);
@@ -53,7 +61,7 @@ export default {
         const code=`${yy}-SK${String(seq[0].n||1).padStart(4,'0')}`;
         const full=`${first} ${last}`.trim();
         await sql.begin(async tx=>{
-          await tx`INSERT INTO members(member_code,prefix,full_name,arabic_name,email,phone,line_user_id,status,consent_at,registered_at,updated_at) VALUES(${code},${prefix},${full},${clean(b.arabic_name)||null},${email||null},${phone},${clean(b.line_id)||null},'pending',NOW(),NOW(),NOW())`;
+          await tx`INSERT INTO members(member_code,prefix,full_name,arabic_name,email,phone,line_user_id,photo_data,status,consent_at,registered_at,updated_at) VALUES(${code},${prefix},${full},${clean(b.arabic_name)||null},${email||null},${phone},${clean(b.line_id)||null},${photo||null},'pending',NOW(),NOW(),NOW())`;
           await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`;
         });
         return json(request,{success:true,message:"ลงทะเบียนเรียบร้อยแล้ว",member_code:code,data:{member_code:code,status:"pending"}},201);
@@ -68,12 +76,12 @@ export default {
 
       if(path==="/api/member/login"&&request.method==="POST"){
         const b=await body(request);const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
-        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.photo_data,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
         if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&String(m.phone).replace(/\D/g,'')===identity.replace(/\D/g,''));
         if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
-        return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
+        return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
       }
 
       if(/^\/api\/members\//.test(path)&&request.method==="GET"){
@@ -118,7 +126,7 @@ export default {
         }
         if(request.method==="PUT"||request.method==="PATCH"){
           const b=await body(request);const full=[clean(b.first_name),clean(b.last_name)].filter(Boolean).join(' ')||clean(b.full_name);
-          await sql.begin(async tx=>{await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_user_id=${clean(b.line_id)||null},status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`});
+          await sql.begin(async tx=>{await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_user_id=${clean(b.line_id)||null},photo_data=COALESCE(NULLIF(${clean(b.photo_data)},''),photo_data),status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`});
           return json(request,{success:true,message:"บันทึกแล้ว"});
         }
       }
@@ -133,6 +141,6 @@ export default {
       if(path==="/api/admin/settings"&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request);for(const [k,v] of Object.entries(b)){if(!['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','CONTACT_EMAIL'].includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})}
 
       return json(request,{success:false,message:"API endpoint not found"},404);
-    }catch(error){console.error("SK Alumni API Error",error);return json(request,{success:false,message:"Internal server error",error:String(error?.message||error),code:error?.code||null},500)}finally{await sql.end().catch(()=>{})}
+    }catch(error){console.error("SK Alumni API Error",error);return json(request,{success:false,message:"Internal server error",error:String(error?.message||error),code:error?.code||null},500)}finally{if(sql)await sql.end().catch(()=>{})}
   }
 };
