@@ -3,18 +3,11 @@
   "name": "sk-alumni-api",
   "main": "src/index.js",
   "compatibility_date": "2026-08-15",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
-
+  "compatibility_flags": ["nodejs_compat"],
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
       "id": "929781346eaa42cdb929220136b7f88a"
     }
-  ],
-
-  "observability": {
-    "enabled": true
-  }
+  ]
 }

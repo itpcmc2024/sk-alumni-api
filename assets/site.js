@@ -1,0 +1,5 @@
+const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.0'};
+function e(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+async function api(path,opts={}){const r=await fetch(SK.API+path,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});let j={};try{j=await r.json()}catch{}if(!r.ok)throw new Error(j.message||j.error||`HTTP ${r.status}`);return j}
+function fmtDate(v){if(!v)return'-';try{return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return String(v)}}
+function footer(moduleName){return `<footer class="footer"><div class="wrap footin"><div class="footbrand"><img src="assets/association-logo.jpg"><div><b style="color:#086a4b">สมาคมนูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</b><div style="font-size:12px;color:#748396">🌙 Nurul Islam · สานสัมพันธ์ศิษย์เก่า</div></div></div><div class="footcopy">© 2026 SK Alumni Member System by Kimhan · ${moduleName} ${SK.VERSION}</div></div></footer>`}

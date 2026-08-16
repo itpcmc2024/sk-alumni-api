@@ -1,1143 +1,138 @@
-import { Client } from "pg";
+import postgres from "postgres";
 
-const ALLOWED_ORIGINS = [
-  "https://itpcmc2024.github.io"
-];
+const ALLOWED_ORIGINS = ["https://itpcmc2024.github.io"];
 
-// =====================================================
-// COMMON HELPERS
-// =====================================================
-
-function corsHeaders(request) {
-  const origin = request.headers.get("Origin") || "";
-
-  const allowOrigin = ALLOWED_ORIGINS.includes(origin)
-    ? origin
-    : ALLOWED_ORIGINS[0];
-
+function cors(request){
+  const origin=request.headers.get("Origin")||"";
   return {
-    "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400",
-    "Vary": "Origin",
-    "Content-Type": "application/json; charset=utf-8",
-    "X-Robots-Tag": "noindex, nofollow"
+    "Access-Control-Allow-Origin":ALLOWED_ORIGINS.includes(origin)?origin:ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers":"Content-Type, Authorization, X-Admin-Key",
+    "Access-Control-Max-Age":"86400","Vary":"Origin",
+    "Content-Type":"application/json; charset=utf-8","X-Robots-Tag":"noindex, nofollow"
   };
 }
-
-function json(request, data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: corsHeaders(request)
-  });
+function json(request,data,status=200){return new Response(JSON.stringify(data),{status,headers:cors(request)})}
+function clean(v){return String(v??"").trim()}
+function adminOK(request,env){
+  const bearer=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"").trim();
+  const key=request.headers.get("X-Admin-Key")||bearer;
+  return !!env.ADMIN_API_KEY && key===env.ADMIN_API_KEY;
 }
-
-function clean(value) {
-  if (value === undefined || value === null) return null;
-
-  const text = String(value).trim();
-
-  return text === "" ? null : text;
-}
-
-function currentThaiYear2Digits() {
-  const yearText = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Bangkok",
-    year: "numeric"
-  }).format(new Date());
-
-  const buddhistYear = Number(yearText) + 543;
-
-  return String(buddhistYear).slice(-2);
-}
-
-function getBearerToken(request) {
-  const auth = request.headers.get("Authorization") || "";
-
-  if (!auth.startsWith("Bearer ")) {
-    return "";
-  }
-
-  return auth.substring(7).trim();
-}
-
-function isAdmin(request, env) {
-  const token = getBearerToken(request);
-
-  if (!env.ADMIN_API_KEY) {
-    return false;
-  }
-
-  return token === String(env.ADMIN_API_KEY);
-}
-
-function adminDenied(request, env) {
-  if (!env.ADMIN_API_KEY) {
-    return json(request, {
-      success: false,
-      message: "ADMIN_API_KEY ยังไม่ได้ตั้งค่า"
-    }, 500);
-  }
-
-  return json(request, {
-    success: false,
-    message: "ไม่มีสิทธิ์เข้าถึงข้อมูลส่วนผู้ดูแล"
-  }, 401);
-}
-
-// =====================================================
-// WORKER
-// =====================================================
+function requireAdmin(request,env){return adminOK(request,env)?null:json(request,{success:false,message:"Unauthorized"},401)}
+function memberStatusText(s){s=String(s||"").toLowerCase();if(["active","ใช้งาน","approved","สมาชิกสมบูรณ์"].includes(s))return"active";if(["cancelled","canceled","rejected","ยกเลิก","ไม่อนุมัติ"].includes(s))return"cancelled";return"pending"}
+function id(prefix){return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0,8)}`}
+async function body(request){try{return await request.json()}catch{return {}}}
 
 export default {
-  async fetch(request, env) {
-
-    // =================================================
-    // CORS PREFLIGHT
-    // =================================================
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders(request)
-      });
-    }
-
-    const url = new URL(request.url);
-    const path = url.pathname.replace(/\/+$/, "") || "/";
-
-    // =================================================
-    // HOME
-    // =================================================
-    if (path === "/") {
-      return json(request, {
-        success: true,
-        app: "SK Alumni API",
-        version: "1.2.0",
-        status: "online",
-        endpoints: {
-          public: [
-            "GET /api/health",
-            "GET /api/settings/public",
-            "GET /api/members",
-            "GET /api/members/:memberCode",
-            "POST /api/members/register"
-          ],
-          admin: [
-            "GET /api/admin/check",
-            "GET /api/admin/members",
-            "GET /api/admin/members/:memberCode",
-            "PATCH /api/admin/members/:memberCode",
-            "POST /api/admin/members/:memberCode/approve",
-            "POST /api/admin/members/:memberCode/cancel"
-          ]
-        }
-      });
-    }
-
-    // =================================================
-    // ADMIN CHECK
-    // ไม่ต้องต่อฐานข้อมูล
-    // =================================================
-    if (
-      path === "/api/admin/check" &&
-      request.method === "GET"
-    ) {
-      if (!isAdmin(request, env)) {
-        return adminDenied(request, env);
+  async fetch(request,env){
+    if(request.method==="OPTIONS") return new Response(null,{status:204,headers:cors(request)});
+    const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
+    const sql=postgres(env.HYPERDRIVE.connectionString,{max:5,fetch_types:false,prepare:true});
+    try{
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.0.0",status:"online"});
+      if(path==="/api/health"&&request.method==="GET"){
+        const r=await sql`SELECT current_database() database,NOW() server_time`;
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.0.0"});
       }
 
-      return json(request, {
-        success: true,
-        admin: true,
-        message: "Admin API Key ถูกต้อง"
-      });
-    }
+      if(path==="/api/settings/public"&&request.method==="GET"){
+        const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','CONTACT_EMAIL') ORDER BY setting_key`;
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;
+        return json(request,{success:true,data});
+      }
 
-    // =================================================
-    // HYPERDRIVE CHECK
-    // =================================================
-    if (!env.HYPERDRIVE?.connectionString) {
-      return json(request, {
-        success: false,
-        message: "Hyperdrive binding not found"
-      }, 500);
-    }
-
-    const client = new Client({
-      connectionString: env.HYPERDRIVE.connectionString
-    });
-
-    let inTransaction = false;
-
-    try {
-
-      await client.connect();
-
-      // =====================================================
-      // HEALTH
-      // GET /api/health
-      // =====================================================
-      if (
-        path === "/api/health" &&
-        request.method === "GET"
-      ) {
-
-        const result = await client.query(`
-          SELECT
-            current_database() AS database,
-            NOW() AS server_time
-        `);
-
-        return json(request, {
-          success: true,
-          service: "sk-alumni-api",
-          version: "1.2.0",
-          database: result.rows[0]?.database || null,
-          server_time: result.rows[0]?.server_time || null
+      if(path==="/api/members/register"&&request.method==="POST"){
+        const b=await body(request);const prefix=clean(b.prefix),first=clean(b.first_name),last=clean(b.last_name),phone=clean(b.phone),email=clean(b.email).toLowerCase();
+        if(!prefix||!first||!last||!/^\d{9,10}$/.test(phone))return json(request,{success:false,message:"ข้อมูลลงทะเบียนไม่ครบหรือเบอร์โทรไม่ถูกต้อง"},400);
+        if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return json(request,{success:false,message:"รูปแบบอีเมลไม่ถูกต้อง"},400);
+        const dup=await sql`SELECT member_code FROM members WHERE phone=${phone} OR (${email}<>'' AND LOWER(COALESCE(email,''))=${email}) LIMIT 1`;
+        if(dup.length)return json(request,{success:false,duplicate:true,member_code:dup[0].member_code,message:"พบข้อมูลที่อาจลงทะเบียนไว้แล้ว"},409);
+        const yy=String(new Date().getFullYear()+543).slice(-2);
+        const seq=await sql`SELECT COALESCE(MAX(NULLIF(regexp_replace(member_code,'\\D','','g'),'')::bigint),0)+1 n FROM members WHERE member_code LIKE ${yy+'-SK%'}`;
+        const code=`${yy}-SK${String(seq[0].n||1).padStart(4,'0')}`;
+        const full=`${first} ${last}`.trim();
+        await sql.begin(async tx=>{
+          await tx`INSERT INTO members(member_code,prefix,full_name,arabic_name,email,phone,line_user_id,status,consent_at,registered_at,updated_at) VALUES(${code},${prefix},${full},${clean(b.arabic_name)||null},${email||null},${phone},${clean(b.line_id)||null},'pending',NOW(),NOW(),NOW())`;
+          await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`;
         });
+        return json(request,{success:true,message:"ลงทะเบียนเรียบร้อยแล้ว",member_code:code,data:{member_code:code,status:"pending"}},201);
       }
 
-      // =====================================================
-      // PUBLIC SETTINGS
-      // GET /api/settings/public
-      // =====================================================
-      if (
-        path === "/api/settings/public" &&
-        request.method === "GET"
-      ) {
-
-        const result = await client.query(`
-          SELECT
-            setting_key,
-            setting_value
-          FROM public.app_settings
-          WHERE setting_key IN (
-            'APP_NAME',
-            'APP_VERSION',
-            'MEMBERSHIP_FEE_YEARLY',
-            'MEMBERSHIP_FEE_MONTHLY',
-            'PROMPTPAY',
-            'CONTACT_EMAIL'
-          )
-          ORDER BY setting_key
-        `);
-
-        const settings = {};
-
-        for (const row of result.rows) {
-          settings[row.setting_key] = row.setting_value;
-        }
-
-        return json(request, {
-          success: true,
-          data: settings
-        });
+      if(/^\/api\/status\//.test(path)&&request.method==="GET"){
+        const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
+        const rows=await sql`SELECT member_code,prefix,full_name,arabic_name,status,registered_at,member_start,member_expire FROM members WHERE member_code=${code} LIMIT 1`;
+        if(!rows.length)return json(request,{success:true,found:false,message:"ไม่พบข้อมูลสมาชิก"},404);
+        return json(request,{success:true,found:true,data:{...rows[0],status:memberStatusText(rows[0].status)}});
       }
 
-      // =====================================================
-      // PUBLIC MEMBER LIST
-      // GET /api/members
-      //
-      // ไม่ส่ง email / phone
-      // =====================================================
-      if (
-        path === "/api/members" &&
-        request.method === "GET"
-      ) {
-
-        const result = await client.query(`
-          SELECT
-            member_code,
-            prefix,
-            full_name,
-            status,
-            member_start,
-            member_expire,
-            registered_at
-          FROM public.members
-          ORDER BY registered_at DESC
-          LIMIT 100
-        `);
-
-        return json(request, {
-          success: true,
-          data: result.rows
-        });
+      if(path==="/api/member/login"&&request.method==="POST"){
+        const b=await body(request);const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
+        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
+        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&String(m.phone).replace(/\D/g,'')===identity.replace(/\D/g,''));
+        if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
+        return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
       }
 
-      // =====================================================
-      // REGISTER MEMBER
-      // POST /api/members/register
-      // =====================================================
-      if (
-        path === "/api/members/register" &&
-        request.method === "POST"
-      ) {
-
-        let body;
-
-        try {
-          body = await request.json();
-        } catch {
-          return json(request, {
-            success: false,
-            message: "รูปแบบข้อมูลไม่ถูกต้อง"
-          }, 400);
-        }
-
-        const prefix = clean(body.prefix);
-        const firstName = clean(body.first_name);
-        const lastName = clean(body.last_name);
-        const arabicName = clean(body.arabic_name);
-
-        const phone = clean(body.phone);
-        const email = clean(body.email);
-        const lineId = clean(body.line_id);
-
-        const addressLine = clean(body.address_line);
-        const subdistrict = clean(body.subdistrict);
-        const district = clean(body.district);
-        const province = clean(body.province);
-        const postalCode = clean(body.postal_code);
-
-        const consent = body.consent === true;
-
-        // ===============================================
-        // VALIDATION
-        // ===============================================
-        if (!firstName) {
-          return json(request, {
-            success: false,
-            message: "กรุณาระบุชื่อ"
-          }, 400);
-        }
-
-        if (!lastName) {
-          return json(request, {
-            success: false,
-            message: "กรุณาระบุนามสกุล"
-          }, 400);
-        }
-
-        if (!phone) {
-          return json(request, {
-            success: false,
-            message: "กรุณาระบุเบอร์โทรศัพท์"
-          }, 400);
-        }
-
-        if (!consent) {
-          return json(request, {
-            success: false,
-            message: "กรุณายอมรับเงื่อนไขและนโยบายข้อมูลส่วนบุคคล"
-          }, 400);
-        }
-
-        if (
-          email &&
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-        ) {
-          return json(request, {
-            success: false,
-            message: "รูปแบบอีเมลไม่ถูกต้อง"
-          }, 400);
-        }
-
-        // ===============================================
-        // CHECK DUPLICATE
-        // ===============================================
-        const duplicate = await client.query(
-          `
-          SELECT
-            member_code,
-            phone,
-            email
-          FROM public.members
-          WHERE phone = $1
-             OR (
-               $2::text IS NOT NULL
-               AND LOWER(email) = LOWER($2)
-             )
-          LIMIT 1
-          `,
-          [phone, email]
-        );
-
-        if (duplicate.rows.length > 0) {
-          return json(request, {
-            success: false,
-            duplicate: true,
-            message: "พบข้อมูลสมาชิกที่ใช้เบอร์โทรศัพท์หรืออีเมลนี้แล้ว",
-            member_code: duplicate.rows[0].member_code
-          }, 409);
-        }
-
-        // ===============================================
-        // GENERATE MEMBER CODE
-        // เช่น 69-SK0003
-        // ===============================================
-        const yy = currentThaiYear2Digits();
-        const codePrefix = `${yy}-SK`;
-
-        await client.query("BEGIN");
-        inTransaction = true;
-
-        await client.query(
-          `SELECT pg_advisory_xact_lock(hashtext($1))`,
-          [codePrefix]
-        );
-
-        const nextResult = await client.query(
-          `
-          SELECT
-            COALESCE(
-              MAX(
-                CAST(
-                  SUBSTRING(
-                    member_code
-                    FROM '([0-9]+)$'
-                  ) AS INTEGER
-                )
-              ),
-              0
-            ) + 1 AS next_no
-          FROM public.members
-          WHERE member_code LIKE $1
-          `,
-          [`${codePrefix}%`]
-        );
-
-        const nextNo = Number(
-          nextResult.rows[0]?.next_no || 1
-        );
-
-        const memberCode =
-          `${codePrefix}${String(nextNo).padStart(4, "0")}`;
-
-        const fullName = [
-          prefix,
-          firstName,
-          lastName
-        ]
-          .filter(Boolean)
-          .join(" ");
-
-        // ===============================================
-        // INSERT MEMBER
-        // ===============================================
-        const memberResult = await client.query(
-          `
-          INSERT INTO public.members (
-            member_code,
-            prefix,
-            first_name,
-            last_name,
-            full_name,
-            arabic_name,
-            phone,
-            email,
-            line_id,
-            status,
-            consent,
-            registered_at,
-            updated_at
-          )
-          VALUES (
-            $1,
-            $2,
-            $3,
-            $4,
-            $5,
-            $6,
-            $7,
-            $8,
-            $9,
-            'pending',
-            $10,
-            NOW(),
-            NOW()
-          )
-          RETURNING
-            member_code,
-            prefix,
-            first_name,
-            last_name,
-            full_name,
-            arabic_name,
-            status,
-            registered_at
-          `,
-          [
-            memberCode,
-            prefix,
-            firstName,
-            lastName,
-            fullName,
-            arabicName,
-            phone,
-            email,
-            lineId,
-            consent
-          ]
-        );
-
-        // ===============================================
-        // INSERT ADDRESS
-        // ===============================================
-        if (
-          addressLine ||
-          subdistrict ||
-          district ||
-          province ||
-          postalCode
-        ) {
-
-          await client.query(
-            `
-            INSERT INTO public.addresses (
-              member_code,
-              address_line,
-              subdistrict,
-              district,
-              province,
-              postal_code,
-              created_at,
-              updated_at
-            )
-            VALUES (
-              $1,$2,$3,$4,$5,$6,NOW(),NOW()
-            )
-            `,
-            [
-              memberCode,
-              addressLine,
-              subdistrict,
-              district,
-              province,
-              postalCode
-            ]
-          );
-        }
-
-        await client.query("COMMIT");
-        inTransaction = false;
-
-        return json(request, {
-          success: true,
-          message: "สมัครสมาชิกเรียบร้อยแล้ว",
-          member_code: memberCode,
-          data: memberResult.rows[0]
-        }, 201);
+      if(/^\/api\/members\//.test(path)&&request.method==="GET"){
+        const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
+        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.line_user_id,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        if(!rows.length)return json(request,{success:true,found:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
+        return json(request,{success:true,found:true,data:{...m,status:memberStatusText(m.status),address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
       }
 
-      // =====================================================
-      // ADMIN MEMBER LIST
-      // GET /api/admin/members
-      // =====================================================
-      if (
-        path === "/api/admin/members" &&
-        request.method === "GET"
-      ) {
-
-        if (!isAdmin(request, env)) {
-          return adminDenied(request, env);
-        }
-
-        const search = clean(
-          url.searchParams.get("search")
-        );
-
-        const status = clean(
-          url.searchParams.get("status")
-        );
-
-        const limit = Math.min(
-          Math.max(
-            Number(url.searchParams.get("limit")) || 20,
-            1
-          ),
-          100
-        );
-
-        const offset = Math.max(
-          Number(url.searchParams.get("offset")) || 0,
-          0
-        );
-
-        const result = await client.query(
-          `
-          SELECT
-            member_code,
-            prefix,
-            first_name,
-            last_name,
-            full_name,
-            arabic_name,
-            phone,
-            email,
-            line_id,
-            status,
-            member_start,
-            member_expire,
-            registered_at,
-            COUNT(*) OVER()::int AS total_count
-          FROM public.members
-          WHERE
-            (
-              $1::text IS NULL
-              OR member_code ILIKE '%' || $1 || '%'
-              OR full_name ILIKE '%' || $1 || '%'
-              OR phone ILIKE '%' || $1 || '%'
-              OR email ILIKE '%' || $1 || '%'
-            )
-            AND
-            (
-              $2::text IS NULL
-              OR status = $2
-            )
-          ORDER BY registered_at DESC
-          LIMIT $3
-          OFFSET $4
-          `,
-          [
-            search,
-            status,
-            limit,
-            offset
-          ]
-        );
-
-        const total =
-          result.rows.length > 0
-            ? Number(result.rows[0].total_count || 0)
-            : 0;
-
-        const rows = result.rows.map(row => {
-          const {
-            total_count,
-            ...member
-          } = row;
-
-          return member;
-        });
-
-        return json(request, {
-          success: true,
-          total,
-          limit,
-          offset,
-          data: rows
-        });
+      if(path==="/api/payments"&&request.method==="POST"){
+        const b=await body(request);const code=clean(b.member_code).toUpperCase(),amount=Number(b.amount||0);if(!code||amount<=0)return json(request,{success:false,message:"ข้อมูลการชำระไม่ครบ"},400);
+        const m=await sql`SELECT member_code FROM members WHERE member_code=${code}`;if(!m.length)return json(request,{success:false,message:"ไม่พบรหัสสมาชิก"},404);
+        const paymentId=id('PAY');
+        await sql`INSERT INTO payments(payment_id,member_code,topic_id,payment_type,amount,paid_at,slip_url,status,created_at,updated_at) VALUES(${paymentId},${code},${clean(b.topic_id)||null},${clean(b.topic_id)||'ชำระค่าสมาชิก'},${amount},${b.paid_at||new Date().toISOString()},${clean(b.slip_url)||null},'รอตรวจสอบการชำระ',NOW(),NOW())`;
+        return json(request,{success:true,payment_id:paymentId},201);
       }
 
-      // =====================================================
-      // ADMIN MEMBER DETAIL
-      // GET /api/admin/members/:memberCode
-      // =====================================================
-      if (
-        path.startsWith("/api/admin/members/") &&
-        request.method === "GET"
-      ) {
-
-        if (!isAdmin(request, env)) {
-          return adminDenied(request, env);
-        }
-
-        const memberCode = decodeURIComponent(
-          path.substring("/api/admin/members/".length)
-        ).trim();
-
-        const result = await client.query(
-          `
-          SELECT
-            m.member_code,
-            m.prefix,
-            m.first_name,
-            m.last_name,
-            m.full_name,
-            m.arabic_name,
-            m.phone,
-            m.email,
-            m.line_id,
-            m.status,
-            m.member_start,
-            m.member_expire,
-            m.photo_url,
-            m.consent,
-            m.registered_at,
-            m.updated_at,
-
-            a.address_line,
-            a.subdistrict,
-            a.district,
-            a.province,
-            a.postal_code
-
-          FROM public.members AS m
-
-          LEFT JOIN public.addresses AS a
-            ON a.member_code = m.member_code
-
-          WHERE m.member_code = $1
-          LIMIT 1
-          `,
-          [memberCode]
-        );
-
-        if (result.rows.length === 0) {
-          return json(request, {
-            success: false,
-            message: "ไม่พบข้อมูลสมาชิก"
-          }, 404);
-        }
-
-        return json(request, {
-          success: true,
-          data: result.rows[0]
-        });
+      if(path==="/api/donations"&&request.method==="POST"){
+        const b=await body(request),amount=Number(b.amount||0);if(amount<=0||!clean(b.donor_name))return json(request,{success:false,message:"ข้อมูลบริจาคไม่ครบ"},400);const donationId=id('DON');
+        await sql`INSERT INTO donations(donation_id,member_code,topic_id,amount,donated_at,slip_url,status,donor_name,phone,email,created_at,updated_at) VALUES(${donationId},${clean(b.member_code)||null},${clean(b.topic_id)||null},${amount},NOW(),${clean(b.slip_url)||null},'รอตรวจสอบ',${clean(b.donor_name)},${clean(b.phone)||null},${clean(b.email)||null},NOW(),NOW())`;
+        return json(request,{success:true,donation_id:donationId},201);
       }
 
-      // =====================================================
-      // ADMIN UPDATE MEMBER
-      // PATCH /api/admin/members/:memberCode
-      // =====================================================
-      if (
-        path.startsWith("/api/admin/members/") &&
-        request.method === "PATCH"
-      ) {
-
-        if (!isAdmin(request, env)) {
-          return adminDenied(request, env);
-        }
-
-        const memberCode = decodeURIComponent(
-          path.substring("/api/admin/members/".length)
-        ).trim();
-
-        let body;
-
-        try {
-          body = await request.json();
-        } catch {
-          return json(request, {
-            success: false,
-            message: "รูปแบบข้อมูลไม่ถูกต้อง"
-          }, 400);
-        }
-
-        const prefix = clean(body.prefix);
-        const firstName = clean(body.first_name);
-        const lastName = clean(body.last_name);
-        const arabicName = clean(body.arabic_name);
-
-        const phone = clean(body.phone);
-        const email = clean(body.email);
-        const lineId = clean(body.line_id);
-
-        const addressLine = clean(body.address_line);
-        const subdistrict = clean(body.subdistrict);
-        const district = clean(body.district);
-        const province = clean(body.province);
-        const postalCode = clean(body.postal_code);
-
-        if (
-          email &&
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-        ) {
-          return json(request, {
-            success: false,
-            message: "รูปแบบอีเมลไม่ถูกต้อง"
-          }, 400);
-        }
-
-        const existing = await client.query(
-          `
-          SELECT
-            prefix,
-            first_name,
-            last_name
-          FROM public.members
-          WHERE member_code = $1
-          LIMIT 1
-          `,
-          [memberCode]
-        );
-
-        if (existing.rows.length === 0) {
-          return json(request, {
-            success: false,
-            message: "ไม่พบข้อมูลสมาชิก"
-          }, 404);
-        }
-
-        const old = existing.rows[0];
-
-        const finalPrefix =
-          prefix ?? old.prefix;
-
-        const finalFirstName =
-          firstName ?? old.first_name;
-
-        const finalLastName =
-          lastName ?? old.last_name;
-
-        const fullName = [
-          finalPrefix,
-          finalFirstName,
-          finalLastName
-        ]
-          .filter(Boolean)
-          .join(" ");
-
-        const duplicate = await client.query(
-          `
-          SELECT
-            member_code
-          FROM public.members
-          WHERE member_code <> $1
-            AND (
-              ($2::text IS NOT NULL AND phone = $2)
-              OR
-              (
-                $3::text IS NOT NULL
-                AND LOWER(email) = LOWER($3)
-              )
-            )
-          LIMIT 1
-          `,
-          [
-            memberCode,
-            phone,
-            email
-          ]
-        );
-
-        if (duplicate.rows.length > 0) {
-          return json(request, {
-            success: false,
-            duplicate: true,
-            message: "เบอร์โทรศัพท์หรืออีเมลนี้ถูกใช้งานแล้ว",
-            member_code: duplicate.rows[0].member_code
-          }, 409);
-        }
-
-        await client.query("BEGIN");
-        inTransaction = true;
-
-        const updateResult = await client.query(
-          `
-          UPDATE public.members
-          SET
-            prefix = COALESCE($2, prefix),
-            first_name = COALESCE($3, first_name),
-            last_name = COALESCE($4, last_name),
-            full_name = $5,
-            arabic_name = COALESCE($6, arabic_name),
-            phone = COALESCE($7, phone),
-            email = COALESCE($8, email),
-            line_id = COALESCE($9, line_id),
-            updated_at = NOW()
-          WHERE member_code = $1
-          RETURNING
-            member_code,
-            prefix,
-            first_name,
-            last_name,
-            full_name,
-            arabic_name,
-            phone,
-            email,
-            line_id,
-            status,
-            member_start,
-            member_expire,
-            updated_at
-          `,
-          [
-            memberCode,
-            prefix,
-            firstName,
-            lastName,
-            fullName,
-            arabicName,
-            phone,
-            email,
-            lineId
-          ]
-        );
-
-        if (
-          addressLine ||
-          subdistrict ||
-          district ||
-          province ||
-          postalCode
-        ) {
-
-          await client.query(
-            `
-            INSERT INTO public.addresses (
-              member_code,
-              address_line,
-              subdistrict,
-              district,
-              province,
-              postal_code,
-              created_at,
-              updated_at
-            )
-            VALUES (
-              $1,$2,$3,$4,$5,$6,NOW(),NOW()
-            )
-            ON CONFLICT (member_code)
-            DO UPDATE SET
-              address_line = COALESCE(EXCLUDED.address_line, public.addresses.address_line),
-              subdistrict = COALESCE(EXCLUDED.subdistrict, public.addresses.subdistrict),
-              district = COALESCE(EXCLUDED.district, public.addresses.district),
-              province = COALESCE(EXCLUDED.province, public.addresses.province),
-              postal_code = COALESCE(EXCLUDED.postal_code, public.addresses.postal_code),
-              updated_at = NOW()
-            `,
-            [
-              memberCode,
-              addressLine,
-              subdistrict,
-              district,
-              province,
-              postalCode
-            ]
-          );
-        }
-
-        await client.query("COMMIT");
-        inTransaction = false;
-
-        return json(request, {
-          success: true,
-          message: "แก้ไขข้อมูลสมาชิกเรียบร้อยแล้ว",
-          data: updateResult.rows[0]
-        });
+      if(path==="/api/news"&&request.method==="GET"){
+        const rows=await sql`SELECT news_id,category,title,content,publish_date FROM news WHERE active=TRUE ORDER BY publish_date DESC LIMIT 50`;
+        return json(request,{success:true,data:rows});
+      }
+      if(path==="/api/benefits"&&request.method==="GET"){
+        const rows=await sql`SELECT benefit_id,title,description,start_date,end_date FROM benefits WHERE active=TRUE AND (start_date IS NULL OR start_date<=CURRENT_DATE) AND (end_date IS NULL OR end_date>=CURRENT_DATE) ORDER BY created_at DESC`;
+        return json(request,{success:true,data:rows});
       }
 
-      // =====================================================
-      // ADMIN APPROVE MEMBER
-      // POST /api/admin/members/:memberCode/approve
-      // =====================================================
-      if (
-        path.startsWith("/api/admin/members/") &&
-        path.endsWith("/approve") &&
-        request.method === "POST"
-      ) {
-
-        if (!isAdmin(request, env)) {
-          return adminDenied(request, env);
+      if(path==="/api/admin/members"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        const rows=await sql`SELECT m.member_code,m.prefix,m.full_name,m.arabic_name,m.email,m.phone,m.line_user_id,m.status,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
+        return json(request,{success:true,data:rows.map(x=>({...x,status:memberStatusText(x.status)}))});
+      }
+      if(/^\/api\/admin\/members\/[^/]+$/.test(path)){
+        const denied=requireAdmin(request,env);if(denied)return denied;const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
+        if(request.method==="GET"){
+          const rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);return json(request,{success:true,data:{...rows[0],status:memberStatusText(rows[0].status)}});
         }
-
-        const memberCode = decodeURIComponent(
-          path
-            .replace("/api/admin/members/", "")
-            .replace("/approve", "")
-        ).trim();
-
-        const result = await client.query(
-          `
-          UPDATE public.members
-          SET
-            status = 'active',
-            member_start = CURRENT_DATE,
-            member_expire = CURRENT_DATE + INTERVAL '1 year',
-            updated_at = NOW()
-          WHERE member_code = $1
-          RETURNING
-            member_code,
-            full_name,
-            status,
-            member_start,
-            member_expire
-          `,
-          [memberCode]
-        );
-
-        if (result.rows.length === 0) {
-          return json(request, {
-            success: false,
-            message: "ไม่พบข้อมูลสมาชิก"
-          }, 404);
+        if(request.method==="PUT"||request.method==="PATCH"){
+          const b=await body(request);const full=[clean(b.first_name),clean(b.last_name)].filter(Boolean).join(' ')||clean(b.full_name);
+          await sql.begin(async tx=>{await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_user_id=${clean(b.line_id)||null},status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`});
+          return json(request,{success:true,message:"บันทึกแล้ว"});
         }
-
-        return json(request, {
-          success: true,
-          message: "อนุมัติสมาชิกเรียบร้อยแล้ว",
-          data: result.rows[0]
-        });
+      }
+      if(/^\/api\/admin\/members\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){
+        const denied=requireAdmin(request,env);if(denied)return denied;const code=decodeURIComponent(path.split('/')[4]).toUpperCase(),b=await body(request),st=memberStatusText(b.status);await sql`UPDATE members SET status=${st},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;return json(request,{success:true,status:st});
       }
 
-      // =====================================================
-      // ADMIN CANCEL MEMBER
-      // POST /api/admin/members/:memberCode/cancel
-      // =====================================================
-      if (
-        path.startsWith("/api/admin/members/") &&
-        path.endsWith("/cancel") &&
-        request.method === "POST"
-      ) {
+      if(path==="/api/admin/payments"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;const rows=await sql`SELECT * FROM payments ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows})}
+      if(path==="/api/admin/donations"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;const rows=await sql`SELECT * FROM donations ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows})}
+      if(path==="/api/admin/news"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),nid=id('NEWS');if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at) VALUES(${nid},${clean(b.category)||'ข่าวสาร'},${clean(b.title)},${clean(b.content)},NOW(),TRUE,NOW(),NOW())`;return json(request,{success:true,news_id:nid},201)}
+      if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
+      if(path==="/api/admin/settings"&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request);for(const [k,v] of Object.entries(b)){if(!['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','CONTACT_EMAIL'].includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})}
 
-        if (!isAdmin(request, env)) {
-          return adminDenied(request, env);
-        }
-
-        const memberCode = decodeURIComponent(
-          path
-            .replace("/api/admin/members/", "")
-            .replace("/cancel", "")
-        ).trim();
-
-        const result = await client.query(
-          `
-          UPDATE public.members
-          SET
-            status = 'cancelled',
-            updated_at = NOW()
-          WHERE member_code = $1
-          RETURNING
-            member_code,
-            full_name,
-            status
-          `,
-          [memberCode]
-        );
-
-        if (result.rows.length === 0) {
-          return json(request, {
-            success: false,
-            message: "ไม่พบข้อมูลสมาชิก"
-          }, 404);
-        }
-
-        return json(request, {
-          success: true,
-          message: "ยกเลิกสมาชิกเรียบร้อยแล้ว",
-          data: result.rows[0]
-        });
-      }
-
-      // =====================================================
-      // PUBLIC MEMBER LOOKUP
-      // GET /api/members/:memberCode
-      //
-      // ต้องอยู่หลัง /register และ admin routes
-      // =====================================================
-      if (
-        path.startsWith("/api/members/") &&
-        request.method === "GET"
-      ) {
-
-        const memberCode = decodeURIComponent(
-          path.substring("/api/members/".length)
-        ).trim();
-
-        if (!memberCode) {
-          return json(request, {
-            success: false,
-            message: "กรุณาระบุรหัสสมาชิก"
-          }, 400);
-        }
-
-        const result = await client.query(
-          `
-          SELECT
-            m.member_code,
-            m.prefix,
-            m.full_name,
-            m.arabic_name,
-            m.status,
-            m.member_start,
-            m.member_expire,
-            m.registered_at,
-
-            a.subdistrict,
-            a.district,
-            a.province,
-            a.postal_code
-
-          FROM public.members AS m
-
-          LEFT JOIN public.addresses AS a
-            ON a.member_code = m.member_code
-
-          WHERE m.member_code = $1
-          LIMIT 1
-          `,
-          [memberCode]
-        );
-
-        if (result.rows.length === 0) {
-          return json(request, {
-            success: true,
-            found: false,
-            member_code: memberCode,
-            message: "ไม่พบข้อมูลสมาชิก"
-          });
-        }
-
-        const member = result.rows[0];
-
-        return json(request, {
-          success: true,
-          found: true,
-          data: {
-            member_code: member.member_code,
-            prefix: member.prefix,
-            full_name: member.full_name,
-            arabic_name: member.arabic_name,
-            status: member.status,
-            member_start: member.member_start,
-            member_expire: member.member_expire,
-            registered_at: member.registered_at,
-
-            address: {
-              subdistrict: member.subdistrict,
-              district: member.district,
-              province: member.province,
-              postal_code: member.postal_code
-            }
-          }
-        });
-      }
-
-      // =====================================================
-      // NOT FOUND
-      // =====================================================
-      return json(request, {
-        success: false,
-        message: "API endpoint not found"
-      }, 404);
-
-    } catch (error) {
-
-      if (inTransaction) {
-        try {
-          await client.query("ROLLBACK");
-        } catch (_) {}
-      }
-
-      console.error(
-        "SK Alumni API ERROR:",
-        error?.message || error
-      );
-
-      return json(request, {
-        success: false,
-        message: "เกิดข้อผิดพลาดในการทำงานของระบบ"
-      }, 500);
-
-    } finally {
-
-      try {
-        await client.end();
-      } catch (_) {}
-
-    }
+      return json(request,{success:false,message:"API endpoint not found"},404);
+    }catch(error){console.error("SK Alumni API Error",error);return json(request,{success:false,message:"Internal server error",error:String(error?.message||error),code:error?.code||null},500)}finally{await sql.end().catch(()=>{})}
   }
 };
