@@ -18,7 +18,15 @@ function adminOK(request,env){
   return !!env.ADMIN_API_KEY && key===env.ADMIN_API_KEY;
 }
 function requireAdmin(request,env){return adminOK(request,env)?null:json(request,{success:false,message:"Unauthorized"},401)}
-function memberStatusText(s){s=String(s||"").toLowerCase();if(["active","ใช้งาน","approved","สมาชิกสมบูรณ์"].includes(s))return"active";if(["cancelled","canceled","rejected","ยกเลิก","ไม่อนุมัติ"].includes(s))return"cancelled";return"pending"}
+function memberStatusText(s){s=String(s||"").toLowerCase();if(["active","ใช้งาน","approved","สมาชิกสมบูรณ์"].includes(s))return"active";if(["cancelled","canceled","rejected","ยกเลิก","ไม่อนุมัติ"].includes(s))return"cancelled";if(["renewal","รอต่ออายุ","รอต่ออายุสมาชิก"].includes(s))return"renewal";return"pending"}
+function effectiveMemberStatus(m){
+  const base=memberStatusText(m?.status);
+  if(base==="active" && m?.member_expire){
+    const exp=new Date(m.member_expire);
+    if(!Number.isNaN(exp.getTime()) && exp.getTime()<=Date.now()) return "renewal";
+  }
+  return base;
+}
 function id(prefix){return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0,8)}`}
 async function body(request){try{return await request.json()}catch{return {}}}
 function db(env){
@@ -80,11 +88,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.9",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.10",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.9"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.10"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -153,7 +161,7 @@ export default {
         const b=await body(request);const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
         const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.photo_data,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
-        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        { const eff=effectiveMemberStatus(m); if(eff!=="active")return json(request,{success:false,message:eff==="renewal"?"สมาชิกอยู่ในสถานะรอต่ออายุสมาชิก กรุณาชำระค่าบำรุงสมาชิกรายปี":"สมาชิกยังไม่อยู่ในสถานะใช้งาน",status:eff},403); }
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&String(m.phone).replace(/\D/g,'')===identity.replace(/\D/g,''));
         if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
         return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,first_name:m.first_name,last_name:m.last_name,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
@@ -176,7 +184,7 @@ export default {
         `;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
         const m=rows[0];
-        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        { const eff=effectiveMemberStatus(m); if(eff!=="active")return json(request,{success:false,message:eff==="renewal"?"สมาชิกอยู่ในสถานะรอต่ออายุสมาชิก กรุณาชำระค่าบำรุงสมาชิกรายปี":"สมาชิกยังไม่อยู่ในสถานะใช้งาน",status:eff},403); }
         const normPhone=v=>String(v||"").replace(/\D/g,"");
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
         if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
@@ -296,7 +304,7 @@ export default {
         const rows=await sql`SELECT member_code,status,email,phone FROM members WHERE member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
         const m=rows[0],normPhone=v=>String(v||"").replace(/\D/g,"");
-        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        { const eff=effectiveMemberStatus(m); if(eff!=="active")return json(request,{success:false,message:eff==="renewal"?"สมาชิกอยู่ในสถานะรอต่ออายุสมาชิก กรุณาชำระค่าบำรุงสมาชิกรายปี":"สมาชิกยังไม่อยู่ในสถานะใช้งาน",status:eff},403); }
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
         if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่"},401);
         await sql`CREATE TABLE IF NOT EXISTS member_edit_history(
@@ -321,7 +329,7 @@ export default {
         `;
         if(!currentRows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
         const m=currentRows[0];
-        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        { const eff=effectiveMemberStatus(m); if(eff!=="active")return json(request,{success:false,message:eff==="renewal"?"สมาชิกอยู่ในสถานะรอต่ออายุสมาชิก กรุณาชำระค่าบำรุงสมาชิกรายปี":"สมาชิกยังไม่อยู่ในสถานะใช้งาน",status:eff},403); }
         const normPhone=v=>String(v||"").replace(/\D/g,"");
         const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
         if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่"},401);
@@ -397,7 +405,7 @@ export default {
         const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
         const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.line_id,m.line_user_id,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
         if(!rows.length)return json(request,{success:true,found:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
-        return json(request,{success:true,found:true,data:{...m,status:memberStatusText(m.status),address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
+        return json(request,{success:true,found:true,data:{...m,status:effectiveMemberStatus(m),address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
       }
 
       if(path==="/api/payments"&&request.method==="POST"){
@@ -440,6 +448,18 @@ export default {
         const usageId=id('USE');
         await sql`INSERT INTO benefit_usage(usage_id,member_code,benefit_id,used_at,recorded_by,note,amount,created_at) VALUES(${usageId},${code},${benefitId},${b.used_at||new Date().toISOString()},${clean(b.recorded_by)||'admin'},${clean(b.note)||null},${amount},NOW())`;
         return json(request,{success:true,usage_id:usageId,message:"บันทึกการใช้สิทธิประโยชน์แล้ว"},201);
+      }
+
+      if(path==="/api/member/benefits-info"&&request.method==="POST"){
+        const b=await body(request),code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
+        if(!code||!identity)return json(request,{success:false,message:"กรุณากรอกรหัสสมาชิกและอีเมลหรือเบอร์โทรศัพท์"},400);
+        const rows=await sql`SELECT member_code,prefix,first_name,last_name,full_name,arabic_name,status,email,phone,member_expire FROM members WHERE member_code=${code} LIMIT 1`;
+        if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
+        const m=rows[0],norm=v=>String(v||"").replace(/\D/g,"");
+        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&norm(m.phone)===norm(identity));
+        if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
+        const st=effectiveMemberStatus(m);
+        return json(request,{success:true,data:{member_code:m.member_code,arabic_name:m.arabic_name,full_name:m.full_name,prefix:m.prefix,first_name:m.first_name,last_name:m.last_name,status:st,member_expire:m.member_expire}});
       }
 
       if(path==="/api/benefits"&&request.method==="GET"){
