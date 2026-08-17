@@ -80,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.7",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.8",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.7"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.8"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -286,6 +286,26 @@ export default {
             module_warnings:moduleWarnings
           }
         });
+      }
+
+
+      if(path==="/api/member/edit-history"&&request.method==="POST"){
+        const b=await body(request);
+        const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
+        if(!code||!identity)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ครบ"},400);
+        const rows=await sql`SELECT member_code,status,email,phone FROM members WHERE member_code=${code} LIMIT 1`;
+        if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
+        const m=rows[0],normPhone=v=>String(v||"").replace(/\D/g,"");
+        if(memberStatusText(m.status)!=="active")return json(request,{success:false,message:"สมาชิกยังไม่อยู่ในสถานะใช้งาน"},403);
+        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
+        if(!ok)return json(request,{success:false,message:"ข้อมูลยืนยันสมาชิกไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่"},401);
+        await sql`CREATE TABLE IF NOT EXISTS member_edit_history(
+          edit_id TEXT PRIMARY KEY,member_code TEXT NOT NULL REFERENCES members(member_code) ON UPDATE CASCADE ON DELETE CASCADE,
+          changed_fields TEXT[] NOT NULL DEFAULT '{}',change_summary TEXT,source TEXT NOT NULL DEFAULT 'member_portal',
+          old_data JSONB,new_data JSONB,changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )`;
+        const history=await sql`SELECT edit_id,changed_fields,change_summary,source,changed_at FROM member_edit_history WHERE member_code=${code} ORDER BY changed_at DESC LIMIT 500`;
+        return json(request,{success:true,data:history});
       }
 
       if(path==="/api/member/update"&&request.method==="POST"){

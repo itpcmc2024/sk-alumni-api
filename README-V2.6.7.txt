@@ -1,4 +1,4 @@
-SK Alumni System V2.6.7 – Smart Address + Member Edit History + Certificate Polish
+SK Alumni System V2.6.8 – Smart Address + Member Edit History + Certificate Polish
 
 ปรับปรุงหลัก:
 1. Member Portal: Smart Address กลับมาใช้งาน โดยเรียงฟิลด์ ตำบล/แขวง, อำเภอ/เขต, จังหวัด, รหัสไปรษณีย์
@@ -12,10 +12,10 @@ SK Alumni System V2.6.7 – Smart Address + Member Edit History + Certificate Po
    - วันเวลาพิมพ์ซ้ายล่าง และ copyright ขวาล่าง
 5. API /api/member/portal ส่ง edit_history เพิ่ม
 6. /api/member/update สร้าง member_edit_history อัตโนมัติเมื่อจำเป็น ไม่ต้องรัน SQL แยก
-7. /api/health version = 2.6.7
+7. /api/health version = 2.6.8
 
 การติดตั้ง:
 - Copy ทั้งโฟลเดอร์ทับ repo sk-alumni-api
 - Commit/Sync
 - รอ Cloudflare Worker deploy
-- ตรวจ /api/health ต้องเห็น 2.6.7
+- ตรวจ /api/health ต้องเห็น 2.6.8
