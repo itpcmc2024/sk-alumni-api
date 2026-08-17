@@ -80,11 +80,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.8",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.9",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.8"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.9"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -251,7 +251,7 @@ export default {
           const exists=await sql`SELECT to_regclass('public.member_edit_history') AS table_name`;
           if(exists[0]?.table_name){
             editHistory=await sql`
-              SELECT edit_id,changed_fields,change_summary,source,changed_at
+              SELECT edit_id,changed_fields,change_summary,source,old_data,new_data,changed_at
               FROM member_edit_history
               WHERE member_code=${code}
               ORDER BY changed_at DESC
@@ -304,7 +304,7 @@ export default {
           changed_fields TEXT[] NOT NULL DEFAULT '{}',change_summary TEXT,source TEXT NOT NULL DEFAULT 'member_portal',
           old_data JSONB,new_data JSONB,changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )`;
-        const history=await sql`SELECT edit_id,changed_fields,change_summary,source,changed_at FROM member_edit_history WHERE member_code=${code} ORDER BY changed_at DESC LIMIT 500`;
+        const history=await sql`SELECT edit_id,changed_fields,change_summary,source,old_data,new_data,changed_at FROM member_edit_history WHERE member_code=${code} ORDER BY changed_at DESC LIMIT 500`;
         return json(request,{success:true,data:history});
       }
 
