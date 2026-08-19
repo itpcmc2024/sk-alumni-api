@@ -102,11 +102,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.13",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.14",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.13"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.14"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -570,7 +570,9 @@ export default {
         await sql.begin(async tx=>{
           await tx`UPDATE payments SET status='ชำระแล้ว',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE payment_id=${paymentId}`;
           await tx`UPDATE members SET status='active',member_start=COALESCE(member_start,NOW()),member_expire=(CASE WHEN member_expire IS NULL OR member_expire<NOW() THEN NOW() ELSE member_expire END)+INTERVAL '1 year',updated_at=NOW() WHERE member_code=${pay.member_code}`;
-          await tx`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${id('LED')},NOW(),'รายรับ','ค่าสมาชิก',${pay.payment_type},${pay.amount},'payment',${pay.payment_id},${pay.member_code},${'รับค่าบำรุงสมาคมศิษย์เก่าฯ รายปี '+pay.member_code},${clean(b.note)||null},${admin},'posted',NOW(),NOW()) ON CONFLICT(reference_type,reference_id,entry_type) DO NOTHING`;
+          await tx`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at)
+            SELECT ${id('LED')},NOW(),'รายรับ','ค่าสมาชิก',${pay.payment_type},${pay.amount},'payment',${pay.payment_id},${pay.member_code},${'รับค่าบำรุงสมาคมศิษย์เก่าฯ รายปี '+pay.member_code},${clean(b.note)||null},${admin},'posted',NOW(),NOW()
+            WHERE NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference_type='payment' AND reference_id=${pay.payment_id} AND entry_type='รายรับ')`;
         });
         return json(request,{success:true,message:"ยืนยันการชำระแล้ว ต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับเรียบร้อย"});
       }
@@ -600,7 +602,9 @@ export default {
         }
         await sql.begin(async tx=>{
           await tx`UPDATE donations SET status='ตรวจสอบแล้ว',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE donation_id=${donationId}`;
-          await tx`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${id('LED')},NOW(),'รายรับ','เงินบริจาค',${don.topic_title||'บริจาค'},${don.amount},'donation',${don.donation_id},${don.member_code||null},${'รับเงินบริจาค '+(don.donor_name||'')},${clean(b.note)||null},${admin},'posted',NOW(),NOW()) ON CONFLICT(reference_type,reference_id,entry_type) DO NOTHING`;
+          await tx`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at)
+            SELECT ${id('LED')},NOW(),'รายรับ','เงินบริจาค',${don.topic_title||'บริจาค'},${don.amount},'donation',${don.donation_id},${don.member_code||null},${'รับเงินบริจาค '+(don.donor_name||'')},${clean(b.note)||null},${admin},'posted',NOW(),NOW()
+            WHERE NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference_type='donation' AND reference_id=${don.donation_id} AND entry_type='รายรับ')`;
         });
         return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย"})
       }
@@ -615,7 +619,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.13',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.14',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
