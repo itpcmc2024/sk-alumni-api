@@ -1,4 +1,4 @@
-SK Alumni System V2.6.17 – Finance UX + Receipt Polish + Admin Card Ordering
+SK Alumni System V2.6.18 – Finance UX + Receipt Polish + Admin Card Ordering
 
 สิ่งที่ปรับในเวอร์ชันนี้
 1) ชื่อระบบบน Header แบ่งเป็น 2 บรรทัดอัตโนมัติ โดยแยกก่อนคำว่า “นูรุ้ลอิสลามสัมพันธ์” และบรรทัด Nurul Islam เดิมยังคงอยู่
@@ -8,14 +8,14 @@ SK Alumni System V2.6.17 – Finance UX + Receipt Polish + Admin Card Ordering
 5) ใบเสร็จ A4 ต้นฉบับ+สำเนา: โลโก้ใหญ่ขึ้น, ใช้ที่อยู่สมาคมแทนชื่อระบบบรรทัดรอง, ตัวเลขเป็นคำอ่านภาษาไทย, ช่องคำอ่านยอดเงินมีพื้นหลัง, ลายเซ็นมีพื้นที่มากขึ้นและมีตราประทับ, มุมขวาใช้ ต้นฉบับ/สำเนา และลายน้ำกลางใบเป็น “ใบเสร็จรับเงิน”
 6) จำนวนครั้งพิมพ์จะเพิ่มและบันทึก Log เฉพาะเมื่อกดปุ่ม “พิมพ์ต้นฉบับ + สำเนา” เท่านั้น (ทั้งรายใบและพิมพ์ชุด)
 7) Modal ประวัติธุรกรรมเพิ่มปุ่ม “ปิด” ด้านล่างหลังปุ่มใบเสร็จ/สถานะ
-8) API /api/health และ APP_VERSION เป็น 2.6.17
+8) API /api/health และ APP_VERSION เป็น 2.6.18
 
 วิธีติดตั้ง
 - แตก ZIP แล้วนำไฟล์ทั้งหมดแทน V2.6.16
 - npx wrangler deploy
-- ตรวจ https://sk-alumni-api.itpcmc2024.workers.dev/api/health ต้องเห็น version 2.6.17
+- ตรวจ https://sk-alumni-api.itpcmc2024.workers.dev/api/health ต้องเห็น version 2.6.18
 - git add .
-- git commit -m "SK Alumni System V2.6.17 - Finance UX Receipt Polish Admin Card Ordering"
+- git commit -m "SK Alumni System V2.6.18 - Finance UX Receipt Polish Admin Card Ordering"
 - git pull --rebase origin main
 - git push origin main
 

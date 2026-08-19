@@ -1,4 +1,4 @@
-SK Alumni System V2.6.17 – Receipt + Settings Sync
+SK Alumni System V2.6.18 – Receipt + Settings Sync
 
 ปรับปรุงจาก V2.6.14
 - จำกัดขนาดตัวอย่างสลิปใน Admin Transaction ให้พอดี และมีปุ่มเปิดรูปขนาดเต็ม

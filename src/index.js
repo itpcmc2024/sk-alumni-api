@@ -116,11 +116,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.17",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.18",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.17"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.18"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -563,7 +563,7 @@ export default {
         }
       }
       if(/^\/api\/admin\/payment-topics\/[^/]+$/.test(path)&&request.method==="DELETE"){
-        const denied=requireAdmin(request,env);if(denied)return denied;const tid=decodeURIComponent(path.split('/').pop());await sql`UPDATE payment_topics SET active=FALSE,updated_at=NOW() WHERE topic_id=${tid}`;return json(request,{success:true,message:"ปิดใช้งานหัวข้อแล้ว"});
+        const denied=requireAdmin(request,env);if(denied)return denied;const tid=decodeURIComponent(path.split('/').pop());if(url.searchParams.get('hard')==='1'){if(tid==='membership')return json(request,{success:false,message:'หัวข้อค่าบำรุงหลักไม่สามารถลบได้ ให้แก้ไขหรือปิดใช้งานแทน'},409);const c=await sql`SELECT COUNT(*)::int n FROM payments WHERE topic_id=${tid}`;if(Number(c[0]?.n||0)>0)return json(request,{success:false,message:'หัวข้อนี้มีประวัติการชำระอ้างอิงอยู่ จึงลบไม่ได้ ให้ปิดใช้งานแทน'},409);await sql`DELETE FROM payment_topics WHERE topic_id=${tid}`;return json(request,{success:true,message:'ลบหัวข้อแล้ว'})}await sql`UPDATE payment_topics SET active=FALSE,updated_at=NOW() WHERE topic_id=${tid}`;return json(request,{success:true,message:"ปิดใช้งานหัวข้อแล้ว"});
       }
 
       if(path==="/api/admin/donation-topics"){
@@ -577,7 +577,7 @@ export default {
         }
       }
       if(/^\/api\/admin\/donation-topics\/[^/]+$/.test(path)&&request.method==="DELETE"){
-        const denied=requireAdmin(request,env);if(denied)return denied;const tid=decodeURIComponent(path.split('/').pop());await sql`UPDATE donation_topics SET active=FALSE,updated_at=NOW() WHERE topic_id=${tid}`;return json(request,{success:true,message:"ปิดใช้งานหัวข้อบริจาคแล้ว"});
+        const denied=requireAdmin(request,env);if(denied)return denied;const tid=decodeURIComponent(path.split('/').pop());if(url.searchParams.get('hard')==='1'){const c=await sql`SELECT COUNT(*)::int n FROM donations WHERE topic_id=${tid}`;if(Number(c[0]?.n||0)>0)return json(request,{success:false,message:'หัวข้อนี้มีประวัติการสนับสนุนอ้างอิงอยู่ จึงลบไม่ได้ ให้ปิดใช้งานแทน'},409);await sql`DELETE FROM donation_topics WHERE topic_id=${tid}`;return json(request,{success:true,message:'ลบหัวข้อแล้ว'})}await sql`UPDATE donation_topics SET active=FALSE,updated_at=NOW() WHERE topic_id=${tid}`;return json(request,{success:true,message:"ปิดใช้งานหัวข้อบริจาคแล้ว"});
       }
       if(/^\/api\/admin\/payments\/[^/]+\/verify$/.test(path)&&request.method==="PATCH"){
         const denied=requireAdmin(request,env);if(denied)return denied;const paymentId=decodeURIComponent(path.split('/')[4]),b=await body(request),approve=String(b.action||'approve').toLowerCase()==='approve',admin=clean(b.verified_by)||'admin';
@@ -605,7 +605,7 @@ export default {
         const rows=await sql`SELECT p.payment_id,p.member_code,p.payment_type,p.amount,p.paid_at,p.status,p.verified_by,p.verified_at,p.receipt_no,p.receipt_issued_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM payments p LEFT JOIN members m ON m.member_code=p.member_code LEFT JOIN addresses a ON a.member_code=p.member_code WHERE p.payment_id=${paymentId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการชำระ"},404);
         if(rows[0].status!=="ชำระแล้ว")return json(request,{success:false,message:"ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว"},409);
-        const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS')`;
+        const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP')`;
         const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;
         return json(request,{success:true,data:{...rows[0],settings}})
       }
@@ -670,11 +670,17 @@ export default {
       }
       if(path==="/api/admin/news"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),nid=id('NEWS');if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at) VALUES(${nid},${clean(b.category)||'ข่าวสาร'},${clean(b.title)},${clean(b.content)},NOW(),TRUE,NOW(),NOW())`;return json(request,{success:true,news_id:nid},201)}
       if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
+      if(path==="/api/admin/settings"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);
+        const rows=await sql`SELECT setting_key,setting_value FROM app_settings ORDER BY setting_key`;
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;
+        return json(request,{success:true,data});
+      }
       if(path==="/api/admin/settings"&&request.method==="PUT"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
-        const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS'];
+        const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.17',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.18',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }

@@ -8,3 +8,5 @@
 .sk-module-badge{display:inline-flex;align-items:center;gap:8px;background:#dff8e8;color:#08774f;border:1px solid #a7efc5;border-radius:999px;padding:9px 15px;font-weight:800;font-size:14px;line-height:1.2;margin:0 0 14px;box-shadow:0 4px 12px rgba(15,118,80,.04)}
 .eyebrow.sk-module-badge{letter-spacing:0;font-size:14px}
 @media(max-width:620px){.sk-module-badge{font-size:13px;padding:8px 13px;margin-bottom:11px}}
+
+.sk-admin-backbar{background:rgba(255,255,255,.92);border-bottom:1px solid #e1eee7;padding:8px 0}.sk-admin-backbar a{display:inline-flex;text-decoration:none;border:1px solid #cfe4d9;background:#fff;color:#08744c;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px}.sk-admin-backbar a:hover{background:#e7f8ef}
