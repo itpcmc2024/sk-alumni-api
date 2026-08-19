@@ -1,4 +1,4 @@
-SK Alumni System V2.6.11 – Benefits Login Fix + Payment Workflow Phase 1
+SK Alumni System V2.6.12 – Benefits Login Fix + Payment Workflow Phase 1
 
 แก้ไข:
 - แก้ selectByText is not defined ใน Member Portal
@@ -10,4 +10,4 @@ SK Alumni System V2.6.11 – Benefits Login Fix + Payment Workflow Phase 1
 - ประวัติชำระสมาชิกใน Member Portal ใช้ข้อมูล payments ที่ยืนยันแล้ว/อยู่ในระบบ
 - Slip verification อัตโนมัติยังไม่รวมในเฟสนี้
 
-Version: 2.6.11
+Version: 2.6.12
