@@ -1,4 +1,4 @@
-const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.6.15'};
+const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.6.16'};
 function e(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
 async function api(path,opts={}){const r=await fetch(SK.API+path,{cache:'no-store',...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});let j={};try{j=await r.json()}catch{}if(!r.ok)throw new Error(j.message||j.error||`HTTP ${r.status}`);return j}
 function fmtDate(v){if(!v)return'-';try{return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return String(v)}}
@@ -11,6 +11,7 @@ async function loadPublicSettings(){
     window.SK_SETTINGS=d;
     if(d.APP_NAME){
       document.querySelectorAll('[data-app-name]').forEach(el=>{el.textContent=d.APP_NAME});
+      document.documentElement.dataset.appName=d.APP_NAME;
       const t=document.querySelector('title'); if(t&&t.dataset.appTitle==='1') t.textContent=d.APP_NAME;
     }
     document.dispatchEvent(new CustomEvent('sk:settings',{detail:d}));

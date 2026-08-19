@@ -12,7 +12,7 @@
     return false;
   };
   function header(){return `<header class="sk-module-nav"><div class="sk-nav-wrap">
-    <a class="sk-nav-brand" href="index.html"><img class="sk-nav-logo" src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="sk-nav-title">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a>
+    <a class="sk-nav-brand" href="index.html"><img class="sk-nav-logo" src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name>ระบบสมาชิกสมาคมศิษย์เก่า นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a>
     <nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav>
     <div class="sk-mobile-home"><a href="index.html">🏠 หน้าแรก</a></div>
   </div></header>`}
