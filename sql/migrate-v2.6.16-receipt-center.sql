@@ -1,4 +1,4 @@
--- SK Alumni System V2.6.16 - additive compatibility migration
+-- SK Alumni System V2.6.17 - additive compatibility migration
 -- Safe: no DROP / DELETE. Run once in PostgreSQL if desired; Worker also self-heals these structures.
 ALTER TABLE IF EXISTS public.payment_topics ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE IF EXISTS public.payment_topics ADD COLUMN IF NOT EXISTS amount NUMERIC(12,2);

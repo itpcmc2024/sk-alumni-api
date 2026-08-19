@@ -1,4 +1,4 @@
-SK Alumni System V2.6.16 – Admin Payment & Donation Control Center
+SK Alumni System V2.6.17 – Admin Payment & Donation Control Center
 
 สิ่งที่เพิ่มในเวอร์ชันนี้
 1. Admin Transaction Control Center
@@ -16,8 +16,8 @@ SK Alumni System V2.6.16 – Admin Payment & Donation Control Center
    - ชื่อบัญชี / ธนาคาร / เลขบัญชี / PromptPay / ค่าบำรุงรายปี
    - จัดการหัวข้อชำระและหัวข้อบริจาค เพิ่ม/แก้ไข/ปิดใช้งาน
 5. Version sync
-   - API / Public / Member / Admin sync เป็น V2.6.16
+   - API / Public / Member / Admin sync เป็น V2.6.17
 
 หมายเหตุ
 - ใช้ฐานข้อมูลเดิมแบบ additive ไม่ลบข้อมูลเดิม
-- V2.6.16 ถัดไป: ใบเสร็จ + เลขที่ใบเสร็จ + ระบบบัญชี/พิมพ์เอกสาร
+- V2.6.17 ถัดไป: ใบเสร็จ + เลขที่ใบเสร็จ + ระบบบัญชี/พิมพ์เอกสาร
