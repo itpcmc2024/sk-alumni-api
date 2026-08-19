@@ -102,15 +102,15 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.12",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.13",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.12"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.13"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
-        const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','CONTACT_EMAIL') ORDER BY setting_key`;
+        const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL') ORDER BY setting_key`;
         const data={};for(const r of rows)data[r.setting_key]=r.setting_value;
         return json(request,{success:true,data});
       }
@@ -464,9 +464,12 @@ export default {
       }
 
       if(path==="/api/donations"&&request.method==="POST"){
-        const b=await body(request),amount=Number(b.amount||0);if(amount<=0||!clean(b.donor_name))return json(request,{success:false,message:"ข้อมูลบริจาคไม่ครบ"},400);const donationId=id('DON');
-        await sql`INSERT INTO donations(donation_id,member_code,topic_id,amount,donated_at,slip_url,status,donor_name,phone,email,created_at,updated_at) VALUES(${donationId},${clean(b.member_code)||null},${clean(b.topic_id)||null},${amount},NOW(),${clean(b.slip_url)||null},'รอตรวจสอบ',${clean(b.donor_name)},${clean(b.phone)||null},${clean(b.email)||null},NOW(),NOW())`;
-        return json(request,{success:true,donation_id:donationId},201);
+        const b=await body(request),amount=Number(b.amount||0);
+        if(amount<=0||!clean(b.donor_name))return json(request,{success:false,message:"ข้อมูลบริจาคไม่ครบ"},400);
+        const donationId=id('DON'),slip=clean(b.slip_data)||clean(b.slip_url)||null;
+        await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS slip_data TEXT`;
+        await sql`INSERT INTO donations(donation_id,member_code,topic_id,amount,donated_at,slip_url,status,donor_name,phone,email,created_at,updated_at,slip_data,note) VALUES(${donationId},${clean(b.member_code)||null},${clean(b.topic_id)||null},${amount},${b.donated_at||new Date().toISOString()},${clean(b.slip_url)||null},'รอตรวจสอบ',${clean(b.donor_name)},${clean(b.phone)||null},${clean(b.email)||null},NOW(),NOW(),${slip},${clean(b.note)||null})`;
+        return json(request,{success:true,donation_id:donationId,status:'รอตรวจสอบ'},201);
       }
 
       if(path==="/api/news"&&request.method==="GET"){
@@ -545,6 +548,20 @@ export default {
       if(/^\/api\/admin\/payment-topics\/[^/]+$/.test(path)&&request.method==="DELETE"){
         const denied=requireAdmin(request,env);if(denied)return denied;const tid=decodeURIComponent(path.split('/').pop());await sql`UPDATE payment_topics SET active=FALSE,updated_at=NOW() WHERE topic_id=${tid}`;return json(request,{success:true,message:"ปิดใช้งานหัวข้อแล้ว"});
       }
+
+      if(path==="/api/admin/donation-topics"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        if(request.method==="GET"){const rows=await sql`SELECT topic_id,title,description,active,created_at,updated_at FROM donation_topics ORDER BY created_at,title`;return json(request,{success:true,data:rows})}
+        if(request.method==="POST"){
+          const b=await body(request),title=clean(b.title);if(!title)return json(request,{success:false,message:"กรุณากรอกหัวข้อการบริจาค"},400);
+          const tid=clean(b.topic_id)||id('DTOPIC');
+          await sql`INSERT INTO donation_topics(topic_id,title,description,active,created_at,updated_at) VALUES(${tid},${title},${clean(b.description)||null},${b.active!==false},NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,active=EXCLUDED.active,updated_at=NOW()`;
+          return json(request,{success:true,topic_id:tid,message:"บันทึกหัวข้อบริจาคแล้ว"},201)
+        }
+      }
+      if(/^\/api\/admin\/donation-topics\/[^/]+$/.test(path)&&request.method==="DELETE"){
+        const denied=requireAdmin(request,env);if(denied)return denied;const tid=decodeURIComponent(path.split('/').pop());await sql`UPDATE donation_topics SET active=FALSE,updated_at=NOW() WHERE topic_id=${tid}`;return json(request,{success:true,message:"ปิดใช้งานหัวข้อบริจาคแล้ว"});
+      }
       if(/^\/api\/admin\/payments\/[^/]+\/verify$/.test(path)&&request.method==="PATCH"){
         const denied=requireAdmin(request,env);if(denied)return denied;const paymentId=decodeURIComponent(path.split('/')[4]),b=await body(request),approve=String(b.action||'approve').toLowerCase()==='approve',admin=clean(b.verified_by)||'admin';
         const rows=await sql`SELECT payment_id,member_code,payment_type,amount,status,paid_at FROM payments WHERE payment_id=${paymentId} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการชำระ"},404);const pay=rows[0];
@@ -558,11 +575,50 @@ export default {
         return json(request,{success:true,message:"ยืนยันการชำระแล้ว ต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับเรียบร้อย"});
       }
 
-      if(path==="/api/admin/payments"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;const rows=await sql`SELECT * FROM payments ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows})}
-      if(path==="/api/admin/donations"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;const rows=await sql`SELECT * FROM donations ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows})}
+      if(path==="/api/admin/payments"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS slip_data TEXT`;
+        const rows=await sql`SELECT p.*,m.full_name,m.prefix,m.first_name,m.last_name,m.email AS member_email,m.phone AS member_phone FROM payments p LEFT JOIN members m ON m.member_code=p.member_code ORDER BY p.created_at DESC LIMIT 1000`;
+        return json(request,{success:true,data:rows})
+      }
+      if(path==="/api/admin/donations"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS slip_data TEXT`;
+        const rows=await sql`SELECT d.*,dt.title AS topic_title,m.full_name AS member_full_name FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code ORDER BY d.created_at DESC LIMIT 1000`;
+        return json(request,{success:true,data:rows})
+      }
+      if(/^\/api\/admin\/donations\/[^/]+\/verify$/.test(path)&&request.method==="PATCH"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        const donationId=decodeURIComponent(path.split('/')[4]),b=await body(request),approve=String(b.action||'approve').toLowerCase()==='approve',admin=clean(b.verified_by)||'admin';
+        const rows=await sql`SELECT d.donation_id,d.member_code,d.topic_id,d.amount,d.status,d.donated_at,d.donor_name,dt.title AS topic_title FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id WHERE d.donation_id=${donationId} LIMIT 1`;
+        if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการบริจาค"},404);
+        const don=rows[0],done=["ตรวจสอบแล้ว","อนุมัติ","approved","verified"].includes(String(don.status||"").toLowerCase());
+        if(done)return json(request,{success:true,message:"รายการนี้ตรวจสอบแล้ว"});
+        if(!approve){
+          await sql`UPDATE donations SET status='ไม่อนุมัติ',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE donation_id=${donationId}`;
+          return json(request,{success:true,message:"บันทึกไม่อนุมัติแล้ว"})
+        }
+        await sql.begin(async tx=>{
+          await tx`UPDATE donations SET status='ตรวจสอบแล้ว',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE donation_id=${donationId}`;
+          await tx`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${id('LED')},NOW(),'รายรับ','เงินบริจาค',${don.topic_title||'บริจาค'},${don.amount},'donation',${don.donation_id},${don.member_code||null},${'รับเงินบริจาค '+(don.donor_name||'')},${clean(b.note)||null},${admin},'posted',NOW(),NOW()) ON CONFLICT(reference_type,reference_id,entry_type) DO NOTHING`;
+        });
+        return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย"})
+      }
+      if(path==="/api/admin/ledger"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        const rows=await sql`SELECT * FROM ledger_entries ORDER BY entry_date DESC,created_at DESC LIMIT 1000`;
+        return json(request,{success:true,data:rows})
+      }
       if(path==="/api/admin/news"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),nid=id('NEWS');if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at) VALUES(${nid},${clean(b.category)||'ข่าวสาร'},${clean(b.title)},${clean(b.content)},NOW(),TRUE,NOW(),NOW())`;return json(request,{success:true,news_id:nid},201)}
       if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
-      if(path==="/api/admin/settings"&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request);for(const [k,v] of Object.entries(b)){if(!['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','CONTACT_EMAIL'].includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})}
+      if(path==="/api/admin/settings"&&request.method==="PUT"){
+        const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request);
+        const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL'];
+        for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.13',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
+        return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
+      }
 
       return json(request,{success:false,message:"API endpoint not found"},404);
     }catch(error){console.error("SK Alumni API Error",error);return json(request,{success:false,message:"Internal server error",error:String(error?.message||error),code:error?.code||null},500)}finally{if(sql)await sql.end().catch(()=>{})}

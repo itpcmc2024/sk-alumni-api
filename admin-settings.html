@@ -1,67 +1,34 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Settings</title><link rel="stylesheet" href="assets/site.css"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js"></script>
-
-<style id="v26-global-nav">
-.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
-border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
-box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v26-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
-</style>
-
-<style id="v26-footer-mobile">
-@media(max-width:760px){
-  footer .wrap, .site-footer-in, .footin{
-    text-align:center!important;
-  }
-  .site-footer-in, .footin{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:18px!important;
-  }
-  .site-footer-brand, .footbrand{
-    display:flex!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:14px!important;
-    text-align:left!important;
-    width:auto!important;
-    max-width:94%!important;
-  }
-  .site-footer-brand img, .footbrand img, footer .footer-logo{
-    width:72px!important;
-    height:72px!important;
-    flex:none!important;
-    object-fit:contain!important;
-    background:transparent!important;
-    border:3px solid rgba(50,169,105,.22)!important;
-    box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14)!important;
-    border-radius:50%!important;
-    padding:3px!important;
-  }
-  .site-footer-version, .footcopy{
-    text-align:center!important;
-    width:100%!important;
-    margin-top:0!important;
-  }
-}
-</style>
-
-<link rel="stylesheet" href="assets/module-nav.css">
-</head><body>
-<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
-
-<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ตั้งค่าระบบ</div><div class="brand-sub">Admin · V2.6.12</div></div><nav class="nav"><a href="admin-home.html">Admin Center</a></nav></div></header><main class="wrap"><div class="card" style="margin-top:28px"><form id="f" class="form"><div class="field"><label>Admin API Key *</label><input id="key" class="control" type="password" required></div><div class="field"><label>ชื่อระบบ</label><input id="app" class="control"></div><div class="row2"><div class="field"><label>ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี</label><input id="fee" class="control" type="number"></div><div class="field"><label>PromptPay</label><input id="promptpay" class="control"></div></div><div class="row2"><div class="field"><label>ชื่อบัญชีรับชำระ *</label><input id="bankName" class="control" placeholder="เช่น สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์"></div><div class="field"><label>อีเมลติดต่อ</label><input id="email" class="control" type="email"></div></div><button class="btn">บันทึกการตั้งค่า</button></form></div><div class="card" style="margin-top:20px"><h2 class="section-title">💳 หัวข้อรายการชำระสมาชิก</h2><p class="sub">เพิ่มหัวข้อที่สมาชิกสามารถเลือกในหน้าแจ้งชำระ และกำหนดยอดของแต่ละหัวข้อได้</p><div class="row2"><div class="field"><label>ชื่อหัวข้อ</label><input id="topicTitle" class="control" placeholder="เช่น ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี"></div><div class="field"><label>ยอดเงิน (บาท)</label><input id="topicAmount" class="control" type="number" min="0" step="0.01"></div></div><div class="field"><label>รายละเอียด</label><input id="topicDesc" class="control"></div><button type="button" id="addTopic" class="btn">เพิ่มหัวข้อ</button><div id="topicList" class="list" style="margin-top:15px"></div></div></main><div id="foot"></div><script>
-foot.innerHTML=footer('Admin Settings');
-const auth=()=>({Authorization:'Bearer '+key.value.trim()});
-async function loadSettings(){try{const j=await api('/api/settings/public');const d=j.data||{};app.value=d.APP_NAME||'';fee.value=d.MEMBERSHIP_FEE_YEARLY||'';promptpay.value=d.PROMPTPAY||'';bankName.value=d.BANK_ACCOUNT_NAME||'';email.value=d.CONTACT_EMAIL||''}catch{}}
-async function loadTopics(){if(!key.value.trim()){topicList.innerHTML='<div class="item">กรอก Admin API Key แล้วกด “โหลดหัวข้อ” หรือเพิ่มหัวข้อ</div>';return}try{const j=await api('/api/admin/payment-topics',{headers:auth()});const rows=j.data||[];topicList.innerHTML=rows.length?rows.map(x=>`<div class="item"><b>${e(x.title)}</b> · ${x.amount==null?'ไม่กำหนดยอด':'฿'+e(x.amount)} <span class="badge ${x.active?'active':'pending'}">${x.active?'ใช้งาน':'ปิด'}</span>${x.active?` <button type="button" onclick="disableTopic('${e(x.topic_id)}')" style="margin-left:8px">ปิดใช้งาน</button>`:''}<div class="sub">${e(x.description||'')}</div></div>`).join(''):'<div class="item">ยังไม่มีหัวข้อ</div>'}catch(err){Swal.fire({icon:'error',title:'โหลดหัวข้อไม่สำเร็จ',text:err.message})}}
-async function disableTopic(id){try{await api('/api/admin/payment-topics/'+encodeURIComponent(id),{method:'DELETE',headers:auth()});loadTopics()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}}
-f.onsubmit=async ev=>{ev.preventDefault();try{await api('/api/admin/settings',{method:'PUT',headers:auth(),body:JSON.stringify({APP_NAME:app.value.trim(),MEMBERSHIP_FEE_YEARLY:fee.value,PROMPTPAY:promptpay.value.trim(),BANK_ACCOUNT_NAME:bankName.value.trim(),CONTACT_EMAIL:email.value.trim()})});Swal.fire({icon:'success',title:'บันทึกแล้ว'})}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
-addTopic.onclick=async()=>{if(!key.value.trim()||!topicTitle.value.trim())return Swal.fire({icon:'warning',title:'กรุณากรอก Admin API Key และชื่อหัวข้อ'});try{await api('/api/admin/payment-topics',{method:'POST',headers:auth(),body:JSON.stringify({title:topicTitle.value.trim(),amount:topicAmount.value,description:topicDesc.value.trim(),active:true})});topicTitle.value=topicAmount.value=topicDesc.value='';await loadTopics();Swal.fire({icon:'success',title:'เพิ่มหัวข้อแล้ว'})}catch(err){Swal.fire({icon:'error',title:'เพิ่มหัวข้อไม่สำเร็จ',text:err.message})}};
-key.addEventListener('change',loadTopics);loadSettings();
-</script><script src="assets/module-nav.js"></script>
-</body></html>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Settings</title>
+<link rel="stylesheet" href="assets/site.css"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js"></script>
+<style>
+.settingsgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.topicgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.topicrow{display:grid;grid-template-columns:1fr 140px auto;gap:8px;align-items:end}.topicitem{display:flex;justify-content:space-between;gap:14px;align-items:center}.topicitem .right{display:flex;gap:6px;flex-wrap:wrap}.mini{border:0;border-radius:10px;padding:8px 10px;font-weight:800;cursor:pointer}.edit{background:#e7f3ff;color:#1766a3}.off{background:#ffe9ee;color:#b73555}.on{background:#e1f8ec;color:#08744c}.helper{font-size:12px;color:#78877f;margin-top:4px}@media(max-width:850px){.settingsgrid,.topicgrid{grid-template-columns:1fr}.topicrow{grid-template-columns:1fr}}</style>
+<link rel="stylesheet" href="assets/module-nav.css"></head><body>
+<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ตั้งค่าระบบ</div><div class="brand-sub">Admin · V2.6.13</div></div><nav class="nav"><a href="admin-home.html">Admin Center</a><a href="admin-finance.html">ธุรกรรม</a><a class="active">ตั้งค่า</a><a href="index.html">หน้าบ้าน</a></nav></div></header>
+<main class="wrap">
+<section class="card" style="margin-top:28px"><h2 class="section-title" style="margin-top:0">⚙️ การตั้งค่าการรับเงิน</h2><form id="f" class="form">
+<div class="field"><label>Admin API Key *</label><input id="key" class="control" type="password" required><div class="helper">ใช้ Key เดียวกับ Admin สมาชิก</div></div>
+<div class="settingsgrid"><div class="field"><label>ชื่อระบบ</label><input id="app" class="control"></div><div class="field"><label>อีเมลติดต่อ</label><input id="email" class="control" type="email"></div></div>
+<div class="settingsgrid"><div class="field"><label>ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี</label><input id="fee" class="control" type="number" min="0" step="0.01"></div><div class="field"><label>PromptPay</label><input id="promptpay" class="control" placeholder="เบอร์โทรหรือเลขประจำตัว"></div></div>
+<div class="settingsgrid"><div class="field"><label>ชื่อบัญชีรับชำระ</label><input id="bankName" class="control" placeholder="ชื่อเจ้าของบัญชี"></div><div class="field"><label>ธนาคาร</label><input id="bank" class="control" placeholder="เช่น กรุงไทย"></div></div>
+<div class="settingsgrid"><div class="field"><label>เลขบัญชี</label><input id="bankNo" class="control" placeholder="เลขบัญชี (ถ้ามี)"></div><div class="notice">QR พร้อมเพย์หน้า Payment จะดึงยอดตามหัวข้อที่ Admin กำหนด และแสดงชื่อบัญชีจากช่องนี้</div></div>
+<button class="btn">บันทึกการตั้งค่า</button></form></section>
+<div class="topicgrid">
+<section class="card"><h2 class="section-title" style="margin-top:0">💳 หัวข้อค่าบำรุง / การชำระ</h2><p class="sub">หัวข้อที่สมาชิกเลือกได้ในหน้าแจ้งชำระ พร้อมกำหนดยอดเงิน</p>
+<input id="pTopicId" type="hidden"><div class="field"><label>ชื่อหัวข้อ</label><input id="pTitle" class="control" placeholder="เช่น ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี"></div><div class="field"><label>รายละเอียด</label><input id="pDesc" class="control" placeholder="ข้อความสั้นที่สมาชิกจะเห็น"></div><div class="field"><label>ยอดเงิน (บาท)</label><input id="pAmount" class="control" type="number" min="0" step="0.01"></div><div style="display:flex;gap:8px"><button type="button" id="saveP" class="btn">บันทึกหัวข้อ</button><button type="button" id="cancelP" class="btn alt">ยกเลิกแก้ไข</button></div><div id="pList" class="list" style="margin-top:15px"></div>
+</section>
+<section class="card"><h2 class="section-title" style="margin-top:0">💝 หัวข้อสนับสนุน / บริจาค</h2><p class="sub">หัวข้อสำหรับเงินสนับสนุนสมาคมฯ หรือโครงการต่าง ๆ</p>
+<input id="dTopicId" type="hidden"><div class="field"><label>ชื่อหัวข้อ</label><input id="dTitle" class="control" placeholder="เช่น สมทบกองทุนการศึกษา"></div><div class="field"><label>รายละเอียด</label><input id="dDesc" class="control"></div><div style="display:flex;gap:8px"><button type="button" id="saveD" class="btn">บันทึกหัวข้อ</button><button type="button" id="cancelD" class="btn alt">ยกเลิกแก้ไข</button></div><div id="dList" class="list" style="margin-top:15px"></div>
+</section></div></main><div id="foot"></div>
+<script>
+foot.innerHTML=footer('Admin Settings');const auth=()=>({Authorization:'Bearer '+key.value.trim()});const remembered=()=>localStorage.getItem('sk_alumni_admin_key')||sessionStorage.getItem('sk_alumni_admin_key')||'';
+function keep(){if(key.value.trim())localStorage.setItem('sk_alumni_admin_key',key.value.trim())}
+async function loadSettings(){try{const j=await api('/api/settings/public');const d=j.data||{};app.value=d.APP_NAME||'';fee.value=d.MEMBERSHIP_FEE_YEARLY||'';promptpay.value=d.PROMPTPAY||'';bankName.value=d.BANK_ACCOUNT_NAME||'';bank.value=d.BANK_NAME||'';bankNo.value=d.BANK_ACCOUNT_NO||'';email.value=d.CONTACT_EMAIL||''}catch{}}
+async function loadTopics(){if(!key.value.trim())return;keep();const [p,d]=await Promise.all([api('/api/admin/payment-topics',{headers:auth()}),api('/api/admin/donation-topics',{headers:auth()})]);pList.innerHTML=(p.data||[]).map(x=>`<div class="item topicitem"><div><b>${e(x.title)}</b><div class="sub">${x.amount==null?'ไม่กำหนดยอด':'฿'+e(x.amount)} · ${e(x.description||'')}</div></div><div class="right"><span class="badge ${x.active?'active':'cancel'}">${x.active?'ใช้งาน':'ปิด'}</span><button class="mini edit" onclick='editP(${JSON.stringify(x)})'>แก้ไข</button>${x.active?`<button class="mini off" onclick="offP('${e(x.topic_id)}')">ปิด</button>`:''}</div></div>`).join('')||'<div class="item">ยังไม่มีหัวข้อ</div>';dList.innerHTML=(d.data||[]).map(x=>`<div class="item topicitem"><div><b>${e(x.title)}</b><div class="sub">${e(x.description||'')}</div></div><div class="right"><span class="badge ${x.active?'active':'cancel'}">${x.active?'ใช้งาน':'ปิด'}</span><button class="mini edit" onclick='editD(${JSON.stringify(x)})'>แก้ไข</button>${x.active?`<button class="mini off" onclick="offD('${e(x.topic_id)}')">ปิด</button>`:''}</div></div>`).join('')||'<div class="item">ยังไม่มีหัวข้อ</div>'}
+f.onsubmit=async ev=>{ev.preventDefault();try{keep();await api('/api/admin/settings',{method:'PUT',headers:auth(),body:JSON.stringify({APP_NAME:app.value.trim(),MEMBERSHIP_FEE_YEARLY:fee.value,PROMPTPAY:promptpay.value.trim(),BANK_ACCOUNT_NAME:bankName.value.trim(),BANK_NAME:bank.value.trim(),BANK_ACCOUNT_NO:bankNo.value.trim(),CONTACT_EMAIL:email.value.trim()})});await Swal.fire({icon:'success',title:'บันทึกแล้ว',timer:1000,showConfirmButton:false});loadTopics()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
+window.editP=x=>{pTopicId.value=x.topic_id;pTitle.value=x.title||'';pDesc.value=x.description||'';pAmount.value=x.amount??'';pTitle.focus()};window.editD=x=>{dTopicId.value=x.topic_id;dTitle.value=x.title||'';dDesc.value=x.description||'';dTitle.focus()};
+function clearP(){pTopicId.value=pTitle.value=pDesc.value=pAmount.value=''}function clearD(){dTopicId.value=dTitle.value=dDesc.value=''}cancelP.onclick=clearP;cancelD.onclick=clearD;
+saveP.onclick=async()=>{if(!key.value.trim()||!pTitle.value.trim())return Swal.fire({icon:'warning',title:'กรุณากรอก Admin API Key และชื่อหัวข้อ'});try{keep();await api('/api/admin/payment-topics',{method:'POST',headers:auth(),body:JSON.stringify({topic_id:pTopicId.value||undefined,title:pTitle.value.trim(),description:pDesc.value.trim(),amount:pAmount.value,active:true})});clearP();await loadTopics();Swal.fire({icon:'success',title:'บันทึกหัวข้อแล้ว',timer:900,showConfirmButton:false})}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
+saveD.onclick=async()=>{if(!key.value.trim()||!dTitle.value.trim())return Swal.fire({icon:'warning',title:'กรุณากรอก Admin API Key และชื่อหัวข้อ'});try{keep();await api('/api/admin/donation-topics',{method:'POST',headers:auth(),body:JSON.stringify({topic_id:dTopicId.value||undefined,title:dTitle.value.trim(),description:dDesc.value.trim(),active:true})});clearD();await loadTopics();Swal.fire({icon:'success',title:'บันทึกหัวข้อแล้ว',timer:900,showConfirmButton:false})}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
+window.offP=async id=>{try{await api('/api/admin/payment-topics/'+encodeURIComponent(id),{method:'DELETE',headers:auth()});loadTopics()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};window.offD=async id=>{try{await api('/api/admin/donation-topics/'+encodeURIComponent(id),{method:'DELETE',headers:auth()});loadTopics()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
+key.value=remembered();loadSettings();if(key.value)loadTopics().catch(()=>{});
+</script><script src="assets/module-nav.js"></script></body></html>

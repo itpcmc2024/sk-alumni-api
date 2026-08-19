@@ -1,64 +1,62 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Finance</title><link rel="stylesheet" href="assets/site.css"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js"></script>
-
-<style id="v26-global-nav">
-.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
-border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
-box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v26-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
-</style>
-
-<style id="v26-footer-mobile">
-@media(max-width:760px){
-  footer .wrap, .site-footer-in, .footin{
-    text-align:center!important;
-  }
-  .site-footer-in, .footin{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:18px!important;
-  }
-  .site-footer-brand, .footbrand{
-    display:flex!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:14px!important;
-    text-align:left!important;
-    width:auto!important;
-    max-width:94%!important;
-  }
-  .site-footer-brand img, .footbrand img, footer .footer-logo{
-    width:72px!important;
-    height:72px!important;
-    flex:none!important;
-    object-fit:contain!important;
-    background:transparent!important;
-    border:3px solid rgba(50,169,105,.22)!important;
-    box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14)!important;
-    border-radius:50%!important;
-    padding:3px!important;
-  }
-  .site-footer-version, .footcopy{
-    text-align:center!important;
-    width:100%!important;
-    margin-top:0!important;
-  }
-}
-</style>
-
-<link rel="stylesheet" href="assets/module-nav.css">
-</head><body>
-<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
-
-<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">การเงิน</div><div class="brand-sub">Admin · Pastel Light</div></div><nav class="nav"><a href="admin-home.html">Admin Center</a><a class="active" href="admin-finance.html">การเงิน</a></nav></div></header><main class="wrap"><div class="card" style="margin-top:28px"><div class="row2"><div class="field"><label>Admin API Key</label><input id="key" class="control" type="password"></div><div style="display:flex;align-items:end"><button id="load" class="btn">โหลดรายการ</button></div></div></div><h2 class="section-title">💳 การชำระ</h2><div id="payments" class="list"></div><h2 class="section-title">💝 การบริจาค</h2><div id="donations" class="list"></div></main><div id="foot"></div><script>
-foot.innerHTML=footer('Admin Finance');const auth=()=>({Authorization:'Bearer '+key.value.trim()});
-function pCard(x){const done=x.status==='ชำระแล้ว',pending=x.status==='รอตรวจสอบการชำระ';return `<div class="item"><b>${e(x.payment_id)}</b> · ${e(x.member_code)} · ฿${e(x.amount)} <span class="badge ${done?'active':'pending'}">${e(x.status)}</span><div class="sub">${fmtDate(x.paid_at)} · ${e(x.payment_type||'ชำระค่าสมาชิก')}</div>${x.slip_data?`<div style="margin-top:8px"><img src="${x.slip_data}" style="width:120px;height:150px;object-fit:cover;border-radius:10px;border:1px solid #ddd"></div>`:''}${pending?`<div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="verifyPay('${e(x.payment_id)}','approve')">✓ ยืนยันการชำระ</button><button class="btn" style="background:#fff1f2;color:#be123c" onclick="verifyPay('${e(x.payment_id)}','reject')">✕ ไม่อนุมัติ</button></div>`:''}</div>`}
-async function refresh(){const [p,d]=await Promise.all([api('/api/admin/payments',{headers:auth()}),api('/api/admin/donations',{headers:auth()})]);payments.innerHTML=(p.data||[]).map(pCard).join('')||'<div class="item">ไม่มีรายการ</div>';donations.innerHTML=(d.data||[]).map(x=>`<div class="item"><b>${e(x.donation_id)}</b> · ${e(x.donor_name||'-')} · ฿${e(x.amount)} <span class="badge pending">${e(x.status)}</span></div>`).join('')||'<div class="item">ไม่มีรายการ</div>'}
-load.onclick=async()=>{try{await refresh()}catch(err){Swal.fire({icon:'error',title:'โหลดไม่สำเร็จ',text:err.message})}};
-async function verifyPay(id,action){const ans=await Swal.fire({icon:'question',title:action==='approve'?'ยืนยันการชำระ?':'ไม่อนุมัติรายการ?',text:action==='approve'?'ระบบจะต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับอัตโนมัติ':'รายการจะถูกบันทึกเป็นไม่อนุมัติ',showCancelButton:true,confirmButtonText:'ยืนยัน',cancelButtonText:'ยกเลิก'});if(!ans.isConfirmed)return;try{const j=await api('/api/admin/payments/'+encodeURIComponent(id)+'/verify',{method:'PATCH',headers:auth(),body:JSON.stringify({action,verified_by:'admin'})});await Swal.fire({icon:'success',title:'เรียบร้อย',text:j.message});refresh()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}}
-</script><script src="assets/module-nav.js"></script>
-</body></html>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Transaction Control Center</title>
+<link rel="stylesheet" href="assets/site.css"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js"></script>
+<style>
+.adminbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.adminbar .field{flex:1 1 260px}.muted{color:#778697;font-size:13px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabbtn{border:1px solid #d8e8df;background:#fff;color:#516171;border-radius:999px;padding:10px 15px;font-weight:800;cursor:pointer}.tabbtn.active{background:#e1f8ec;color:#08744c;border-color:#b8e5cf}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.stat{padding:16px;border-radius:18px;border:1px solid #dcebe4;background:#fff}.stat b{display:block;font-size:24px;color:#08744c;margin-top:5px}.tools{display:grid;grid-template-columns:2fr 1fr 1fr 130px;gap:10px;margin:12px 0 16px}.tablewrap{overflow:auto;border:1px solid #e1ebe6;border-radius:18px;background:#fff}.tx{width:100%;border-collapse:collapse;min-width:980px}.tx th,.tx td{padding:13px 12px;border-bottom:1px solid #edf2ef;text-align:left;vertical-align:top}.tx th{background:#f3faf6;color:#526a60;font-size:13px;position:sticky;top:0}.tx tr:last-child td{border-bottom:0}.money{font-weight:900;color:#08744c}.act{display:flex;gap:7px;flex-wrap:wrap}.mini{border:0;border-radius:11px;padding:8px 10px;font-weight:800;cursor:pointer}.view{background:#e7f3ff;color:#1766a3}.ok{background:#e1f8ec;color:#08744c}.no{background:#ffe9ee;color:#b73555}.status-pending{background:#fff3c4;color:#956500}.status-ok{background:#dcfce7;color:#087956}.status-no{background:#ffe4ec;color:#b43c5d}.modalback{position:fixed;inset:0;background:rgba(28,43,38,.48);display:none;align-items:center;justify-content:center;padding:18px;z-index:99}.modalback.show{display:flex}.modal{width:min(860px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:26px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.22)}.modalhead{display:flex;justify-content:space-between;gap:18px;align-items:start;border-bottom:1px solid #e6eee9;padding-bottom:14px}.close{border:0;background:#eef4f0;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer}.detailgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.detail{background:#f7fbf9;border-radius:14px;padding:12px}.detail b{display:block;font-size:12px;color:#74857d;margin-bottom:3px}.wide{grid-column:1/-1}.slipbox{margin-top:14px;border:1px dashed #bcdccf;border-radius:16px;padding:12px;text-align:center}.slipbox img{max-width:100%;max-height:420px;border-radius:12px}.modalactions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap}.pager{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:10px}.pagebuttons{display:flex;gap:8px}.empty{padding:30px;text-align:center;color:#7b8a83}.ledgercard{margin-top:12px}.loginhint{margin-top:8px;padding:10px 12px;border-radius:12px;background:#fff9df;border:1px solid #f4dc91;color:#866315}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.tools{grid-template-columns:1fr 1fr}.detailgrid{grid-template-columns:1fr}.wide{grid-column:auto}}
+@media(max-width:580px){.stats,.tools{grid-template-columns:1fr}.modal{padding:18px}.pager{align-items:flex-start;flex-direction:column}}
+</style><link rel="stylesheet" href="assets/module-nav.css"></head>
+<body>
+<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ธุรกรรม Admin</div><div class="brand-sub">Payment & Donation Control Center · V2.6.13</div></div><nav class="nav"><a href="admin-home.html">Admin Center</a><a class="active" href="admin-finance.html">ธุรกรรม</a><a href="admin-settings.html">ตั้งค่า</a><a href="index.html">หน้าบ้าน</a></nav></div></header>
+<main class="wrap">
+<section class="card" style="margin-top:28px"><div class="adminbar"><div class="field"><label>Admin API Key</label><input id="key" class="control" type="password" placeholder="กรอกครั้งเดียว ระบบจำไว้ในเครื่องนี้"></div><button id="load" class="btn" style="margin-top:0">โหลดข้อมูล</button><button id="forget" class="btn alt" style="margin-top:0">ลืม Key</button></div><div class="loginhint">🔐 ใช้ Key เดียวกับหน้า Admin สมาชิก ระบบจะเก็บไว้เฉพาะใน Browser เครื่องนี้</div></section>
+<div class="stats">
+<div class="stat">รอตรวจสอบทั้งหมด<b id="sPending">0</b></div><div class="stat">อนุมัติแล้ว<b id="sApproved">0</b></div><div class="stat">ไม่อนุมัติ<b id="sRejected">0</b></div><div class="stat">รายรับที่ยืนยัน<b id="sIncome">0 บาท</b></div>
+</div>
+<div class="tabs"><button class="tabbtn active" data-tab="payments">💳 ค่าบำรุงสมาคมฯ</button><button class="tabbtn" data-tab="donations">💝 เงินสนับสนุน/บริจาค</button><button class="tabbtn" data-tab="ledger">💰 บัญชีรายรับที่เกิดจากระบบ</button></div>
+<section id="panel-payments">
+<h2 class="section-title">💳 ตรวจสอบค่าบำรุงสมาคมศิษย์เก่าฯ รายปี</h2>
+<div class="tools"><input id="pSearch" class="control" placeholder="ค้นหาเลขที่ / รหัสสมาชิก / ชื่อ / อีเมล"><select id="pStatus" class="control"><option value="">ทุกสถานะ</option><option>รอตรวจสอบการชำระ</option><option>ชำระแล้ว</option><option>ไม่อนุมัติ</option></select><select id="pSort" class="control"><option value="new">ใหม่ → เก่า</option><option value="old">เก่า → ใหม่</option></select><select id="pSize" class="control"><option>10</option><option>20</option><option>50</option></select></div>
+<div class="tablewrap"><table class="tx"><thead><tr><th>เลขที่</th><th>สมาชิก</th><th>หัวข้อ</th><th>จำนวน</th><th>วันเวลาโอน</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="pRows"></tbody></table><div id="pEmpty" class="empty" hidden>ไม่พบรายการชำระ</div></div><div class="pager"><span id="pCount" class="muted"></span><div class="pagebuttons"><button id="pPrev" class="tabbtn">‹ ก่อนหน้า</button><span id="pPage" class="tabbtn" style="cursor:default"></span><button id="pNext" class="tabbtn">ถัดไป ›</button></div></div>
+</section>
+<section id="panel-donations" hidden>
+<h2 class="section-title">💝 ตรวจสอบเงินสนับสนุน / บริจาค</h2>
+<div class="tools"><input id="dSearch" class="control" placeholder="ค้นหาเลขที่ / ผู้บริจาค / รหัสสมาชิก / อีเมล"><select id="dStatus" class="control"><option value="">ทุกสถานะ</option><option>รอตรวจสอบ</option><option>ตรวจสอบแล้ว</option><option>ไม่อนุมัติ</option></select><select id="dSort" class="control"><option value="new">ใหม่ → เก่า</option><option value="old">เก่า → ใหม่</option></select><select id="dSize" class="control"><option>10</option><option>20</option><option>50</option></select></div>
+<div class="tablewrap"><table class="tx"><thead><tr><th>เลขที่</th><th>ผู้สนับสนุน</th><th>หัวข้อ</th><th>จำนวน</th><th>วันเวลาโอน</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="dRows"></tbody></table><div id="dEmpty" class="empty" hidden>ไม่พบรายการบริจาค</div></div><div class="pager"><span id="dCount" class="muted"></span><div class="pagebuttons"><button id="dPrev" class="tabbtn">‹ ก่อนหน้า</button><span id="dPage" class="tabbtn" style="cursor:default"></span><button id="dNext" class="tabbtn">ถัดไป ›</button></div></div>
+</section>
+<section id="panel-ledger" hidden>
+<h2 class="section-title">💰 รายรับที่ระบบลงบัญชีให้อัตโนมัติ</h2><div class="notice">เมื่อ Admin อนุมัติค่าบำรุงหรือเงินบริจาค ระบบจะสร้างรายรับอัตโนมัติ 1 ครั้งต่อ 1 ธุรกรรม และป้องกันการลงซ้ำ</div>
+<div id="ledger" class="list ledgercard"></div></section>
+</main><div id="foot"></div>
+<div id="modalBack" class="modalback"><div class="modal"><div class="modalhead"><div><div class="muted" id="mType"></div><h2 id="mTitle" style="margin:4px 0;color:#23473d"></h2><div id="mStatus"></div></div><button id="mClose" class="close">×</button></div><div id="mDetail" class="detailgrid"></div><div id="mSlip" class="slipbox"></div><div class="field" style="margin-top:14px"><label>หมายเหตุจากผู้ตรวจสอบ</label><textarea id="mNote" class="control"></textarea></div><div id="mActions" class="modalactions"></div></div></div>
+<script>
+foot.innerHTML=footer('Admin Transactions');
+const S={payments:[],donations:[],ledger:[],tab:'payments',current:null,pPage:1,dPage:1};
+const auth=()=>({Authorization:'Bearer '+key.value.trim()});
+const money=v=>Number(v||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2})+' บาท';
+const okStatus=(type,s)=>type==='payment'?String(s)==='ชำระแล้ว':String(s)==='ตรวจสอบแล้ว';
+const pendingStatus=(type,s)=>type==='payment'?String(s)==='รอตรวจสอบการชำระ':String(s)==='รอตรวจสอบ';
+function badge(type,s){let c=pendingStatus(type,s)?'status-pending':okStatus(type,s)?'status-ok':'status-no';return `<span class="badge ${c}">${e(s||'-')}</span>`}
+function fullName(x){return x.full_name||[x.prefix,x.first_name,x.last_name].filter(Boolean).join(' ')||x.member_full_name||'-'}
+function saveKey(){if(key.value.trim())localStorage.setItem('sk_alumni_admin_key',key.value.trim())}
+function getKey(){return localStorage.getItem('sk_alumni_admin_key')||sessionStorage.getItem('sk_alumni_admin_key')||''}
+async function refresh(){if(!key.value.trim())throw new Error('กรุณากรอก Admin API Key');saveKey();const [p,d,l]=await Promise.all([api('/api/admin/payments',{headers:auth()}),api('/api/admin/donations',{headers:auth()}),api('/api/admin/ledger',{headers:auth()})]);S.payments=p.data||[];S.donations=d.data||[];S.ledger=l.data||[];S.pPage=S.dPage=1;renderAll()}
+function renderStats(){const all=[...S.payments.map(x=>['payment',x]),...S.donations.map(x=>['donation',x])];sPending.textContent=all.filter(([t,x])=>pendingStatus(t,x.status)).length;sApproved.textContent=all.filter(([t,x])=>okStatus(t,x.status)).length;sRejected.textContent=all.filter(([t,x])=>String(x.status)==='ไม่อนุมัติ').length;const income=S.ledger.filter(x=>String(x.entry_type)==='รายรับ'&&String(x.status||'posted')==='posted').reduce((a,x)=>a+Number(x.amount||0),0);sIncome.textContent=money(income)}
+function filterRows(type){const arr=type==='payment'?S.payments:S.donations, q=(type==='payment'?pSearch.value:dSearch.value).trim().toLowerCase(), st=type==='payment'?pStatus.value:dStatus.value, sort=type==='payment'?pSort.value:dSort.value;let out=arr.filter(x=>{const bag=type==='payment'?[x.payment_id,x.member_code,fullName(x),x.member_email,x.member_phone,x.payment_type]:[x.donation_id,x.member_code,x.donor_name,x.email,x.phone,x.topic_title];return (!q||bag.join(' ').toLowerCase().includes(q))&&(!st||String(x.status)===st)});out.sort((a,b)=>{const da=new Date(type==='payment'?(a.paid_at||a.created_at):(a.donated_at||a.created_at)),db=new Date(type==='payment'?(b.paid_at||b.created_at):(b.donated_at||b.created_at));return sort==='old'?da-db:db-da});return out}
+function renderPayments(){const rows=filterRows('payment'),size=Number(pSize.value),pages=Math.max(1,Math.ceil(rows.length/size));S.pPage=Math.min(S.pPage,pages);const view=rows.slice((S.pPage-1)*size,S.pPage*size);pRows.innerHTML=view.map(x=>`<tr><td><b>${e(x.payment_id)}</b><div class="muted">${e(x.member_code)}</div></td><td>${e(fullName(x))}<div class="muted">${e(x.member_email||'')}</div></td><td>${e(x.payment_type||'-')}</td><td class="money">${money(x.amount)}</td><td>${fmtDate(x.paid_at)}</td><td>${badge('payment',x.status)}</td><td><div class="act"><button class="mini view" onclick="openTx('payment','${e(x.payment_id)}')">ดู</button>${pendingStatus('payment',x.status)?`<button class="mini ok" onclick="quickVerify('payment','${e(x.payment_id)}','approve')">อนุมัติ</button><button class="mini no" onclick="quickVerify('payment','${e(x.payment_id)}','reject')">ไม่อนุมัติ</button>`:''}</div></td></tr>`).join('');pEmpty.hidden=!!view.length;pCount.textContent=`แสดง ${view.length} จาก ${rows.length} รายการ`;pPage.textContent=`หน้า ${S.pPage} / ${pages}`;pPrev.disabled=S.pPage<=1;pNext.disabled=S.pPage>=pages}
+function renderDonations(){const rows=filterRows('donation'),size=Number(dSize.value),pages=Math.max(1,Math.ceil(rows.length/size));S.dPage=Math.min(S.dPage,pages);const view=rows.slice((S.dPage-1)*size,S.dPage*size);dRows.innerHTML=view.map(x=>`<tr><td><b>${e(x.donation_id)}</b><div class="muted">${e(x.member_code||'บุคคลทั่วไป')}</div></td><td>${e(x.donor_name||x.member_full_name||'-')}<div class="muted">${e(x.email||'')}</div></td><td>${e(x.topic_title||x.topic_id||'สนับสนุนสมาคมฯ')}</td><td class="money">${money(x.amount)}</td><td>${fmtDate(x.donated_at)}</td><td>${badge('donation',x.status)}</td><td><div class="act"><button class="mini view" onclick="openTx('donation','${e(x.donation_id)}')">ดู</button>${pendingStatus('donation',x.status)?`<button class="mini ok" onclick="quickVerify('donation','${e(x.donation_id)}','approve')">อนุมัติ</button><button class="mini no" onclick="quickVerify('donation','${e(x.donation_id)}','reject')">ไม่อนุมัติ</button>`:''}</div></td></tr>`).join('');dEmpty.hidden=!!view.length;dCount.textContent=`แสดง ${view.length} จาก ${rows.length} รายการ`;dPage.textContent=`หน้า ${S.dPage} / ${pages}`;dPrev.disabled=S.dPage<=1;dNext.disabled=S.dPage>=pages}
+function renderLedger(){ledger.innerHTML=S.ledger.length?S.ledger.map(x=>`<div class="item"><b>${e(x.category||x.description||'รายการ')}</b> <span class="money" style="float:right">${money(x.amount)}</span><div>${e(x.description||'')}</div><div class="muted">${fmtDate(x.entry_date)} · อ้างอิง ${e(x.reference_id||'-')} · โดย ${e(x.created_by||'system')}</div></div>`).join(''):'<div class="item">ยังไม่มีรายรับจากธุรกรรมที่ยืนยัน</div>'}
+function renderAll(){renderStats();renderPayments();renderDonations();renderLedger()}
+function switchTab(tab){S.tab=tab;document.querySelectorAll('.tabbtn[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['payments','donations','ledger'].forEach(x=>document.getElementById('panel-'+x).hidden=x!==tab)}
+document.querySelectorAll('.tabbtn[data-tab]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+[pSearch,pStatus,pSort,pSize].forEach(x=>x.oninput=x.onchange=()=>{S.pPage=1;renderPayments()});[dSearch,dStatus,dSort,dSize].forEach(x=>x.oninput=x.onchange=()=>{S.dPage=1;renderDonations()});
+pPrev.onclick=()=>{if(S.pPage>1){S.pPage--;renderPayments()}};pNext.onclick=()=>{S.pPage++;renderPayments()};dPrev.onclick=()=>{if(S.dPage>1){S.dPage--;renderDonations()}};dNext.onclick=()=>{S.dPage++;renderDonations()};
+function openTx(type,id){const x=(type==='payment'?S.payments:S.donations).find(v=>(type==='payment'?v.payment_id:v.donation_id)===id);if(!x)return;S.current={type,x};mType.textContent=type==='payment'?'PAYMENT TRANSACTION':'DONATION TRANSACTION';mTitle.textContent=id;mStatus.innerHTML=badge(type,x.status);const fields=type==='payment'?[['สมาชิก',fullName(x)],['รหัสสมาชิก',x.member_code],['เบอร์โทร',x.member_phone],['อีเมล',x.member_email],['หัวข้อ',x.payment_type],['จำนวนเงิน',money(x.amount)],['วันเวลาโอน',fmtDate(x.paid_at)],['ตรวจโดย',x.verified_by||'-'],['ตรวจเมื่อ',fmtDate(x.verified_at)],['หมายเหตุเดิม',x.note||'-']]:[['ผู้สนับสนุน',x.donor_name||x.member_full_name||'-'],['รหัสสมาชิก',x.member_code||'บุคคลทั่วไป'],['เบอร์โทร',x.phone||'-'],['อีเมล',x.email||'-'],['หัวข้อ',x.topic_title||x.topic_id||'สนับสนุนสมาคมฯ'],['จำนวนเงิน',money(x.amount)],['วันเวลาโอน',fmtDate(x.donated_at)],['ตรวจโดย',x.verified_by||'-'],['ตรวจเมื่อ',fmtDate(x.verified_at)],['หมายเหตุเดิม',x.note||'-']];mDetail.innerHTML=fields.map(([a,b])=>`<div class="detail"><b>${e(a)}</b>${e(b)}</div>`).join('');const slip=x.slip_data||x.slip_url;mSlip.innerHTML=slip?`<img src="${slip}" alt="หลักฐานการโอน"><div class="muted">คลิกรูปเพื่อเปิดขนาดเต็ม</div>`:'<div class="muted">ไม่มีไฟล์หลักฐาน</div>';if(slip){mSlip.querySelector('img').onclick=()=>window.open(slip,'_blank')}mNote.value='';mActions.innerHTML=pendingStatus(type,x.status)?`<button class="mini ok" onclick="modalVerify('approve')">✓ อนุมัติ</button><button class="mini no" onclick="modalVerify('reject')">✕ ไม่อนุมัติ</button>`:'<span class="muted">รายการนี้ได้รับการตรวจสอบแล้ว</span>';modalBack.classList.add('show')}
+function closeModal(){modalBack.classList.remove('show');S.current=null}mClose.onclick=closeModal;modalBack.onclick=e=>{if(e.target===modalBack)closeModal()};
+async function verify(type,id,action,note=''){const label=action==='approve'?'อนุมัติรายการนี้?':'ไม่อนุมัติรายการนี้?';const ans=await Swal.fire({icon:'question',title:label,text:type==='payment'&&action==='approve'?'ระบบจะต่ออายุสมาชิก 1 ปีและลงรายรับอัตโนมัติ':type==='donation'&&action==='approve'?'ระบบจะลงรายรับเงินบริจาคอัตโนมัติ':'ระบบจะบันทึกสถานะไม่อนุมัติ',showCancelButton:true,confirmButtonText:'ยืนยัน',cancelButtonText:'กลับ'});if(!ans.isConfirmed)return;const path=type==='payment'?`/api/admin/payments/${encodeURIComponent(id)}/verify`:`/api/admin/donations/${encodeURIComponent(id)}/verify`;const j=await api(path,{method:'PATCH',headers:auth(),body:JSON.stringify({action,verified_by:'admin',note})});await Swal.fire({icon:'success',title:'บันทึกแล้ว',text:j.message,timer:1600,showConfirmButton:false});closeModal();await refresh()}
+window.quickVerify=async(type,id,action)=>{try{await verify(type,id,action)}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
+window.modalVerify=async action=>{if(!S.current)return;const id=S.current.type==='payment'?S.current.x.payment_id:S.current.x.donation_id;try{await verify(S.current.type,id,action,mNote.value.trim())}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};
+load.onclick=async()=>{try{await refresh();Swal.fire({icon:'success',title:'โหลดข้อมูลแล้ว',timer:900,showConfirmButton:false})}catch(err){Swal.fire({icon:'error',title:'โหลดไม่สำเร็จ',text:err.message})}};
+forget.onclick=()=>{localStorage.removeItem('sk_alumni_admin_key');sessionStorage.removeItem('sk_alumni_admin_key');key.value='';Swal.fire({icon:'success',title:'ลบ Key ที่จำไว้แล้ว',timer:900,showConfirmButton:false})};
+key.value=getKey();if(key.value)refresh().catch(()=>{});
+</script><script src="assets/module-nav.js"></script></body></html>
