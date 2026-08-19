@@ -1,4 +1,4 @@
-SK Alumni System V2.6.18 – Receipt Center + DB Compatibility + Admin Tabs
+SK Alumni System V2.6.19 – Receipt Center + DB Compatibility + Admin Tabs
 
 สิ่งที่แก้ไข
 1) แก้ Payment Internal server error จากฐานเดิมที่ payment_topics ยังไม่มี amount/updated_at ด้วย Worker self-healing + migration SQL
@@ -12,9 +12,9 @@ SK Alumni System V2.6.18 – Receipt Center + DB Compatibility + Admin Tabs
 - แทนที่ไฟล์ทั้งหมดใน repository
 - Deploy Worker: npx wrangler deploy
 - Push GitHub Pages
-- Worker จะสร้าง/เติมโครงสร้าง V2.6.18 แบบ additive อัตโนมัติ หรือจะรัน sql/migrate-v2.6.18-receipt-center.sql ใน PG Studio ก่อนก็ได้
+- Worker จะสร้าง/เติมโครงสร้าง V2.6.19 แบบ additive อัตโนมัติ หรือจะรัน sql/migrate-v2.6.19-receipt-center.sql ใน PG Studio ก่อนก็ได้
 
 ทดสอบแนะนำ
-A. /api/health ต้องขึ้น version 2.6.18
+A. /api/health ต้องขึ้น version 2.6.19
 B. Admin Settings เปลี่ยนชื่อระบบและค่าบำรุง -> บันทึก -> เปิด payment.html ใหม่
 C. Admin Finance -> ใบเสร็จ -> เลือกหลายรายการ -> พิมพ์ที่เลือก -> ตรวจ Log การพิมพ์
