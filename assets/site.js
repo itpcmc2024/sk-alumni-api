@@ -1,4 +1,4 @@
-const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.6.22'};
+const SK={API:'https://sk-alumni-api.itpcmc2024.workers.dev',VERSION:'V2.6.23'};
 (()=>{const st=document.createElement('style');st.textContent='.sk-app-line{display:block}.brand-title .sk-app-line,.brand [data-app-name] .sk-app-line,[data-app-name].brand .sk-app-line{white-space:nowrap}@media(max-width:900px){.brand-title .sk-app-line,[data-app-name].brand .sk-app-line{white-space:normal}}';document.head.appendChild(st)})();
 function e(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
 async function api(path,opts={}){const r=await fetch(SK.API+path,{cache:'no-store',...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});let j={};try{j=await r.json()}catch{}if(!r.ok)throw new Error(j.message||j.error||`HTTP ${r.status}`);return j}
@@ -18,7 +18,7 @@ function applyPublicSettings(d){
   try{document.dispatchEvent(new CustomEvent('sk:settings',{detail:d}))}catch(_){} return d;
 }
 async function loadPublicSettings(){
-  const CK='sk_public_settings_v2622',TK=CK+'_ts';
+  const CK='sk_public_settings_v2623',TK=CK+'_ts';
   try{const c=localStorage.getItem(CK),ts=Number(localStorage.getItem(TK)||0);if(c&&Date.now()-ts<120000)applyPublicSettings(JSON.parse(c))}catch{}
   try{const j=await api('/api/settings/public');const d=j.data||{};try{localStorage.setItem(CK,JSON.stringify(d));localStorage.setItem(TK,String(Date.now()))}catch{};return applyPublicSettings(d)}catch(_){return window.SK_SETTINGS||{}}
 }

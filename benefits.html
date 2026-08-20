@@ -1,4 +1,4 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>สิทธิประโยชน์</title><link rel="stylesheet" href="assets/site.css?v=2.6.22"><script src="assets/site.js?v=2.6.22"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>สิทธิประโยชน์</title><link rel="stylesheet" href="assets/site.css?v=2.6.23"><script src="assets/site.js?v=2.6.23"></script><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style id="v26-global-nav">
 .v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
@@ -50,14 +50,8 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 }
 </style>
 
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.22">
-
-<style id="v2622-recovery">
-/* V2.6.22 recovery: page content must remain visible even if a shared enhancement fails */
-html,body{visibility:visible!important;opacity:1!important}
-main{visibility:visible!important}
-</style>
-<style id="v2622-critical">html,body{display:block!important;visibility:visible!important;opacity:1!important}body{margin:0;min-height:100vh}header,main,footer{visibility:visible!important;opacity:1!important}main{display:block!important}.wrap{width:min(1180px,94vw);margin-left:auto;margin-right:auto}</style></head><body>
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.23">
+</head><body>
 <header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">สิทธิประโยชน์สมาชิก</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="benefits.html">สิทธิประโยชน์</a><a href="member.html">ข้อมูลสมาชิก</a></nav></div></header><main class="wrap">
   <h1 class="section-title">สิทธิประโยชน์สำหรับสมาชิก</h1>
   <div class="card" style="margin:0 0 18px;padding:18px;border-radius:18px;background:linear-gradient(135deg,#effbf4,#fff9e8)">
@@ -73,24 +67,15 @@ main{visibility:visible!important}
   <div id="list" class="grid"></div>
 </main><div id="foot"></div>
 <script>
-(()=>{
- const API_BASE='https://sk-alumni-api.itpcmc2024.workers.dev';
- const boot=()=>{
-  const footEl=document.getElementById('foot'), codeEl=document.getElementById('bCode'), identityEl=document.getElementById('bIdentity'), loginBtn=document.getElementById('bLogin'), greetingEl=document.getElementById('memberGreeting'), listEl=document.getElementById('list');
-  if(footEl) footEl.innerHTML=footer('Benefits');
-  async function benefitLogin(){
-   if(!codeEl||!identityEl||!loginBtn||!greetingEl) return;
-   const code=codeEl.value.trim().toUpperCase(),identity=identityEl.value.trim(); if(!code||!identity)return Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูลให้ครบ'});
-   loginBtn.disabled=true;
-   try{const r=await fetch(API_BASE+'/api/member/benefits-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:code,identity})});const j=await r.json();if(!r.ok||j.success===false)throw new Error(j.message||'เข้าสู่ระบบไม่สำเร็จ');const m=j.data||{};const name=(m.arabic_name||[m.prefix,m.first_name,m.last_name].filter(Boolean).join(' ')).trim();let actions=`<a href="payment.html?code=${encodeURIComponent(m.member_code||code)}" style="display:inline-flex;margin-top:12px;padding:10px 15px;border-radius:12px;background:#ec4899;color:#fff;font-weight:800;text-decoration:none">💳 ชำระค่าสมาชิก</a>`;if(m.status==='active')actions+=` <a href="member.html?code=${encodeURIComponent(m.member_code||code)}" style="display:inline-flex;margin-top:12px;padding:10px 15px;border-radius:12px;background:#287b5d;color:#fff;font-weight:800;text-decoration:none">🎁 เข้าสู่ข้อมูลและสิทธิประโยชน์ของฉัน</a>`;greetingEl.style.display='block';greetingEl.innerHTML=`<b style="color:#08744c">คุณ ${e(name||'-')} เป็นสมาชิกศิษย์เก่าของสมาคมฯ</b><div style="margin-top:5px">หากต้องการดูรายละเอียด สามารถสนับสนุนค่าบำรุงสมาชิกรายปีได้ที่ปุ่ม “ชำระค่าสมาชิก” ขอบคุณค่ะ</div>${m.status==='renewal'?'<div style="margin-top:7px;color:#a36a00;font-weight:800">สถานะ: รอต่ออายุสมาชิก</div>':''}${actions}`;}catch(err){Swal.fire({icon:'error',title:'เข้าสู่ระบบไม่สำเร็จ',text:err.message})}finally{loginBtn.disabled=false}
-  }
-  if(loginBtn) loginBtn.addEventListener('click',benefitLogin);
-  [codeEl,identityEl].filter(Boolean).forEach(x=>x.addEventListener('keydown',ev=>{if(ev.key==='Enter')benefitLogin()}));
-  if(listEl)(async()=>{try{const j=await api('/api/benefits');const rows=j.data||[];listEl.innerHTML=rows.length?rows.map(x=>`<div class="card module"><div class="icon">🎁</div><h3>${e(x.title)}</h3><p>${e(x.description||'')}</p><div class="sub">${x.end_date?'ถึง '+e(x.end_date):'ไม่มีวันสิ้นสุด'}</div></div>`).join(''):'<div class="card">ยังไม่มีสิทธิประโยชน์ที่เปิดใช้งาน</div>'}catch(err){listEl.innerHTML=`<div class="card">โหลดข้อมูลไม่สำเร็จ: ${e(err.message)}</div>`}})();
- };
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-})();
+foot.innerHTML=footer('Benefits');
+const API_BASE='https://sk-alumni-api.itpcmc2024.workers.dev';
+async function benefitLogin(){
+ const code=bCode.value.trim().toUpperCase(),identity=bIdentity.value.trim(); if(!code||!identity)return Swal.fire({icon:'warning',title:'กรุณากรอกข้อมูลให้ครบ'});
+ bLogin.disabled=true;
+ try{const r=await fetch(API_BASE+'/api/member/benefits-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_code:code,identity})});const j=await r.json();if(!r.ok||j.success===false)throw new Error(j.message||'เข้าสู่ระบบไม่สำเร็จ');const m=j.data||{};const name=(m.arabic_name||[m.prefix,m.first_name,m.last_name].filter(Boolean).join(' ')).trim();let actions=`<a href="payment.html?code=${encodeURIComponent(m.member_code||code)}" style="display:inline-flex;margin-top:12px;padding:10px 15px;border-radius:12px;background:#ec4899;color:#fff;font-weight:800;text-decoration:none">💳 ชำระค่าสมาชิก</a>`;if(m.status==='active')actions+=` <a href="member.html?code=${encodeURIComponent(m.member_code||code)}" style="display:inline-flex;margin-top:12px;padding:10px 15px;border-radius:12px;background:#287b5d;color:#fff;font-weight:800;text-decoration:none">🎁 เข้าสู่ข้อมูลและสิทธิประโยชน์ของฉัน</a>`;memberGreeting.style.display='block';memberGreeting.innerHTML=`<b style="color:#08744c">คุณ ${e(name||'-')} เป็นสมาชิกศิษย์เก่าของสมาคมฯ</b><div style="margin-top:5px">หากต้องการดูรายละเอียด สามารถสนับสนุนค่าบำรุงสมาชิกรายปีได้ที่ปุ่ม “ชำระค่าสมาชิก” ขอบคุณค่ะ</div>${m.status==='renewal'?'<div style="margin-top:7px;color:#a36a00;font-weight:800">สถานะ: รอต่ออายุสมาชิก</div>':''}${actions}`;}catch(err){Swal.fire({icon:'error',title:'เข้าสู่ระบบไม่สำเร็จ',text:err.message})}finally{bLogin.disabled=false}}
+bLogin.onclick=benefitLogin;[bCode,bIdentity].forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter')benefitLogin()}));
+(async()=>{try{const j=await api('/api/benefits');const rows=j.data||[];list.innerHTML=rows.length?rows.map(x=>`<div class="card module"><div class="icon">🎁</div><h3>${e(x.title)}</h3><p>${e(x.description||'')}</p><div class="sub">${x.end_date?'ถึง '+e(x.end_date):'ไม่มีวันสิ้นสุด'}</div></div>`).join(''):'<div class="card">ยังไม่มีสิทธิประโยชน์ที่เปิดใช้งาน</div>'}catch(err){list.innerHTML=`<div class="card">โหลดข้อมูลไม่สำเร็จ: ${e(err.message)}</div>`}})();
 </script>
 <style>@media(max-width:700px){.benefit-login-grid{grid-template-columns:1fr!important}}</style>
-
+<script src="assets/module-nav.js?v=2.6.23"></script>
 </body></html>
