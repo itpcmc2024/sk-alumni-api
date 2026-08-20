@@ -1,4 +1,4 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>บริจาค</title><link rel="stylesheet" href="assets/site.css?v=2.6.21"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js?v=2.6.21"></script>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>บริจาค</title><link rel="stylesheet" href="assets/site.css?v=2.6.22"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js?v=2.6.22"></script>
 
 <style id="v26-global-nav">
 .v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
@@ -50,17 +50,17 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 }
 </style>
 
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.21">
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.22">
 
-<style id="v2621-recovery">
-/* V2.6.21 recovery: page content must remain visible even if a shared enhancement fails */
+<style id="v2622-recovery">
+/* V2.6.22 recovery: page content must remain visible even if a shared enhancement fails */
 html,body{visibility:visible!important;opacity:1!important}
 main{visibility:visible!important}
 </style>
-</head><body>
+<style id="v2622-critical">html,body{display:block!important;visibility:visible!important;opacity:1!important}body{margin:0;min-height:100vh}header,main,footer{visibility:visible!important;opacity:1!important}main{display:block!important}.wrap{width:min(1180px,94vw);margin-left:auto;margin-right:auto}</style></head><body>
 <div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
 <header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ร่วมบริจาค</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="donation.html">บริจาค</a><a href="news.html">ข่าวสาร</a></nav></div></header><main class="wrap"><h1 class="section-title">💝 ร่วมสนับสนุนสมาคม</h1><div class="card"><form id="f" class="form"><div class="row2"><div class="field"><label>หัวข้อบริจาค *</label><select id="topic" class="control" required><option value="general">กิจกรรมสมาคม</option><option value="education">กองทุนการศึกษา</option></select></div><div class="field"><label>จำนวนเงิน *</label><input id="amount" class="control" type="number" min="1" step="0.01" required></div></div><div class="row2"><div class="field"><label>รหัสสมาชิก (ถ้ามี)</label><input id="code" class="control" placeholder="69-SK0001"></div><div class="field"><label>ชื่อผู้บริจาค *</label><input id="donor" class="control" required></div></div><div class="row2"><div class="field"><label>โทรศัพท์</label><input id="phone" class="control" inputmode="numeric"></div><div class="field"><label>Email</label><input id="email" class="control" type="email"></div></div><div class="field"><label>ลิงก์หลักฐานการโอน (ถ้ามี)</label><input id="slipUrl" class="control" type="url"></div><button class="btn" type="submit">ส่งข้อมูลบริจาค</button></form></div></main><div id="foot"></div><script>
 (()=>{const boot=()=>{const footEl=document.getElementById('foot'),form=document.getElementById('f'),codeEl=document.getElementById('code'),topicEl=document.getElementById('topic'),amountEl=document.getElementById('amount'),donorEl=document.getElementById('donor'),phoneEl=document.getElementById('phone'),emailEl=document.getElementById('email'),slipEl=document.getElementById('slipUrl');if(footEl)footEl.innerHTML=footer('Donation');if(!form)return;form.addEventListener('submit',async ev=>{ev.preventDefault();try{const j=await api('/api/donations',{method:'POST',body:JSON.stringify({member_code:codeEl?.value.trim().toUpperCase()||null,topic_id:topicEl?.value||'',amount:Number(amountEl?.value||0),donor_name:donorEl?.value.trim()||'',phone:phoneEl?.value.trim()||'',email:emailEl?.value.trim()||'',slip_url:slipEl?.value.trim()||''})});Swal.fire({icon:'success',title:'ขอบคุณสำหรับการสนับสนุน',text:'เลขรายการ '+(j.donation_id||'')});form.reset()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot()})();
-</script><script src="assets/module-nav.js?v=2.6.21"></script>
+</script>
 </body></html>
