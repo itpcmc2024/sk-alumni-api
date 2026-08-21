@@ -1,1 +1,1 @@
-SK Alumni System V2.6.27 – Standalone Module Stability
+SK Alumni System V2.6.28 – Standalone Module Stability

@@ -5,3 +5,24 @@
 @media(max-width:580px){.grid{grid-template-columns:1fr}.hero{background:linear-gradient(90deg,rgba(255,255,255,.98),rgba(247,255,250,.88)),url('mosque-reference.jpg') center/cover no-repeat}.topin{align-items:flex-start}.logo{width:58px;height:58px}.quote-row{gap:5px}.q{padding:8px 10px;font-size:10.5px}}
 
 .sk-app-line{display:block;white-space:nowrap}.brand .sk-app-line,.sk-nav-title .sk-app-line,.brand-title .sk-app-line{line-height:1.2}@media(max-width:700px){.sk-app-line{white-space:normal}}
+
+
+/* SK Alumni V2.6.28 — Admin Template Foundation */
+.admin-public-footer{margin-top:38px;border-top:1px solid #dcebe4;background:linear-gradient(90deg,#e8fbf0,#f8fff9,#fff9e9);padding:24px 0}
+.admin-public-footer .apf-inner{width:min(1180px,94vw);margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.admin-public-footer .apf-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.admin-public-footer .apf-logo{width:62px;height:62px;object-fit:contain;border-radius:50%;background:transparent;padding:4px;border:3px solid rgba(50,169,105,.22);box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14);flex:none}
+.admin-public-footer .apf-title{font-size:15px;font-weight:900;color:#0d6846;line-height:1.35}
+.admin-public-footer .apf-sub{font-size:12px;color:#77877f;margin-top:3px}
+.admin-public-footer .apf-copy{font-size:13px;color:#64766e;text-align:right;line-height:1.5}
+.admin-home-mobile-actions{display:none}
+.admin-home-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;border:1px solid #cfe4d9;background:#fff;color:#08744c;border-radius:999px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap}
+.admin-home-link:hover{background:#e7f8ef}
+@media(max-width:850px){
+  .admin-home-mobile-actions{display:flex;width:min(1180px,94vw);margin:10px auto 0;gap:8px;flex-wrap:wrap}
+  .admin-home-mobile-actions .admin-home-link{flex:1 1 auto}
+  .admin-public-footer .apf-inner{flex-direction:column;align-items:center;text-align:center;padding:12px 0;gap:18px}
+  .admin-public-footer .apf-brand{justify-content:center;text-align:left;max-width:94%}
+  .admin-public-footer .apf-logo{width:76px;height:76px}
+  .admin-public-footer .apf-copy{text-align:center;width:100%}
+}

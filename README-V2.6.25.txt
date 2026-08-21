@@ -1,4 +1,4 @@
-SK Alumni System V2.6.27 – Core Runtime Load Fix
+SK Alumni System V2.6.28 – Core Runtime Load Fix
 
 แก้สาเหตุหลักของหน้าโมดูลขึ้นหน้าขาว/ข้อความดิบ:
 - assets/site.js เดิมถูกโหลดด้วย defer แต่ inline script ของหลายโมดูลเรียก footer(), api(), e(), fmtDate() ก่อน site.js ทำงาน
@@ -9,5 +9,5 @@ SK Alumni System V2.6.27 – Core Runtime Load Fix
 
 หลังอัปโหลด GitHub Pages:
 1) รอ Actions pages build and deployment เป็นสีเขียว
-2) เปิดด้วย ?v=2.6.27 หรือ hard refresh
+2) เปิดด้วย ?v=2.6.28 หรือ hard refresh
 3) ทดสอบ payment / donation / benefits / news / admin-home
