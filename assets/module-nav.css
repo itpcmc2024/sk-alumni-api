@@ -277,7 +277,7 @@
 }
 
 
-/* V2.6.50 — Admin typography + unified module actions */
+/* V2.6.51 — Admin typography + unified module actions */
 body{font-family:"Noto Sans Thai",sans-serif!important}
 body button,body input,body select,body textarea{font-family:"Noto Sans Thai",sans-serif}
 body h1,body h2,body h3,body .section-title,body .brand,body .sk-nav-title{font-family:"Mitr","Noto Sans Thai",sans-serif}
@@ -294,13 +294,13 @@ body h1,body h2,body h3,body .section-title,body .brand,body .sk-nav-title{font-
   .sk-mobile-home .sk-mobile-admin-logout{border-color:#efd6d9!important;background:#fffafa!important;color:#9a4a51!important;cursor:pointer!important}
 }
 
-/* V2.6.50 unified tactile button feedback for Admin modules */
+/* V2.6.51 unified tactile button feedback for Admin modules */
 button,.btn,.admin-module-btn,.module-admin-link,a[role="button"]{transition:transform .08s ease,filter .12s ease,box-shadow .12s ease}
 button:not(:disabled):active,.btn:active,.admin-module-btn:active,.module-admin-link:active,a[role="button"]:active{transform:translateY(1px) scale(.97);filter:brightness(.96)}
 button:disabled{cursor:not-allowed;opacity:.55}
 
 
-/* V2.6.50 — definitive public/Admin top navigation shell */
+/* V2.6.51 — definitive public/Admin top navigation shell */
 .sk-module-nav{width:100%!important;max-width:100%!important;background:rgba(255,255,255,.98)!important;border-bottom:1px solid #d9eee3!important;position:sticky!important;top:0!important;z-index:999!important;backdrop-filter:blur(12px)!important}
 @media(min-width:901px){
  .sk-module-nav .sk-nav-wrap{width:100%!important;max-width:none!important;min-height:98px!important;margin:0!important;padding:10px 28px!important;display:flex!important;align-items:center!important;gap:18px!important}
@@ -323,4 +323,57 @@ button:disabled{cursor:not-allowed;opacity:.55}
  .sk-module-nav .sk-nav-icons{display:none!important}
  .sk-module-nav .sk-mobile-home{display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;margin-top:14px!important}
  .sk-module-nav .sk-mobile-home>a{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:38px!important;padding:8px 16px!important;border-radius:999px!important;border:1px solid #cce9d9!important;background:#f7fff9!important;color:#08744c!important;text-decoration:none!important;font-size:13px!important;font-weight:800!important;white-space:nowrap!important}
+}
+
+
+/* V2.6.51 — Public page frame + typography standard */
+body.sk-public-page{
+  font-family:"Noto Sans Thai",Arial,sans-serif!important;
+  color:#405166;
+}
+body.sk-public-page h1,
+body.sk-public-page h2,
+body.sk-public-page h3,
+body.sk-public-page h4,
+body.sk-public-page .section-title,
+body.sk-public-page .brand,
+body.sk-public-page .title{
+  font-family:"Mitr","Noto Sans Thai",sans-serif!important;
+  color:#075f43;
+  font-weight:600;
+}
+body.sk-public-page button,
+body.sk-public-page input,
+body.sk-public-page select,
+body.sk-public-page textarea,
+body.sk-public-page a{
+  font-family:"Noto Sans Thai",Arial,sans-serif;
+}
+body.sk-public-page .sk-public-content-frame{
+  width:min(1180px,94vw)!important;
+  margin:34px auto 48px!important;
+  padding:clamp(22px,3.4vw,38px)!important;
+  background:rgba(255,255,255,.95)!important;
+  border:1px solid #dbeee3!important;
+  border-radius:30px!important;
+  box-shadow:0 18px 50px rgba(47,105,80,.08)!important;
+  min-height:0!important;
+}
+body.sk-public-page .sk-public-content-frame > .sk-module-badge:first-child{
+  margin-top:0!important;
+}
+body.sk-public-page .sk-public-content-frame .section-title{
+  margin-top:14px!important;
+}
+@media(max-width:700px){
+  body.sk-public-page .sk-public-content-frame{
+    width:min(94vw,1180px)!important;
+    margin:22px auto 32px!important;
+    padding:20px 16px!important;
+    border-radius:24px!important;
+  }
+  body.sk-public-page .sk-public-content-frame .section-title{
+    font-size:clamp(26px,8vw,34px)!important;
+    line-height:1.25!important;
+  }
 }
