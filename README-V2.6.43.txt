@@ -1,4 +1,4 @@
-SK Alumni System V2.6.44 – Transaction Accounting UX Phase 2
+SK Alumni System V2.6.45 – Transaction Accounting UX Phase 2
 
 - Unified Admin Center + Logout actions on every Admin module, including mobile.
 - Unified Admin typography (Mitr headings / Noto Sans Thai body & controls).
@@ -7,12 +7,12 @@ SK Alumni System V2.6.44 – Transaction Accounting UX Phase 2
 - Automatic payment/donation ledger entries remain locked from manual deletion.
 - New accounting summary with date range, income, expense, net, transaction status and category breakdown.
 - API adds safe additive accounting schema, manual ledger POST and manual-only DELETE.
-- All HTML/cache version markers updated to V2.6.44.
+- All HTML/cache version markers updated to V2.6.45.
 
 Deployment: GitHub Pages + Cloudflare Worker (src/index.js changed).
 
 
-V2.6.44 Transaction Accounting Layout + Audit Polish
+V2.6.45 Transaction Accounting Layout + Audit Polish
 - Ledger optional evidence attachment (image/PDF)
 - Manual ledger view/edit/remove evidence + audit logs
 - Ledger sorting/paging and stable running balance
