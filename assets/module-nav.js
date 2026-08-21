@@ -1,7 +1,7 @@
 (()=>{
   'use strict';
   const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-  const V='2.6.48';
+  const V='2.6.49';
   const items=[['index.html','🕌','หน้าแรก'],['register.html','🧕🏻','ลงทะเบียน'],['status.html','🔎','ตรวจสอบ'],['member.html','🎁','สิทธิประโยชน์'],['donation.html','🤲🏻','บริจาค'],['news.html','📣','ข่าวสาร'],['admin-home.html','🌙','Admin']];
   const isAdmin=path.startsWith('admin');
   const active=(href)=>path===href||(href==='member.html'&&path==='benefits.html')||(href==='admin-home.html'&&isAdmin);
