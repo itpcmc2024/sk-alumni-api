@@ -275,3 +275,21 @@
     overflow-wrap:anywhere!important;
   }
 }
+
+
+/* V2.6.41 — Admin typography + unified module actions */
+body{font-family:"Noto Sans Thai",sans-serif!important}
+body button,body input,body select,body textarea{font-family:"Noto Sans Thai",sans-serif}
+body h1,body h2,body h3,body .section-title,body .brand,body .sk-nav-title{font-family:"Mitr","Noto Sans Thai",sans-serif}
+.sk-admin-action-group{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 0 auto}
+.sk-admin-action-group .sk-admin-back-inline,.sk-admin-logout-inline{height:38px;min-height:38px;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;margin:0!important;padding:0 14px!important;border:1px solid #cfe4d9!important;border-radius:999px!important;background:#fff!important;color:#08744c!important;font-size:13px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important;text-decoration:none!important;box-shadow:0 4px 12px rgba(15,118,80,.04)!important;cursor:pointer!important}
+.sk-admin-action-group .sk-admin-back-inline:hover,.sk-admin-logout-inline:hover{background:#e7f8ef!important}
+.sk-admin-logout-inline{color:#9a4a51!important;border-color:#efd6d9!important;background:#fffafa!important}
+.sk-admin-logout-inline:hover{background:#fff0f2!important}
+.titlebar>.admin-back,.titlebar>.linkbtn[href*="admin-home"],.tabs>#logoutBtn,.tabs>a[href*="admin-home"],.tabs>.sk-admin-back-inline{display:none!important}
+@media(max-width:900px){
+  .sk-admin-action-group{display:none!important}
+  .sk-mobile-home{gap:8px!important}
+  .sk-mobile-home .sk-mobile-admin-back,.sk-mobile-home .sk-mobile-admin-logout{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;padding:7px 12px!important;border-radius:999px!important;border:1px solid #cce9d9!important;background:#f7fff9!important;color:#08744c!important;text-decoration:none!important;font-size:12px!important;font-weight:800!important}
+  .sk-mobile-home .sk-mobile-admin-logout{border-color:#efd6d9!important;background:#fffafa!important;color:#9a4a51!important;cursor:pointer!important}
+}

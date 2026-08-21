@@ -77,6 +77,13 @@ function db(env){
 
   return run;
 }
+
+async function ensureAccountingSchema(sql){
+  await sql`CREATE TABLE IF NOT EXISTS ledger_entries (entry_id TEXT PRIMARY KEY,entry_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),entry_type TEXT NOT NULL,category TEXT,source TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0,reference_type TEXT,reference_id TEXT,member_code TEXT,description TEXT,note TEXT,created_by TEXT,status TEXT NOT NULL DEFAULT 'posted',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_ledger_entries_date ON ledger_entries(entry_date DESC,created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_ledger_entries_reference ON ledger_entries(reference_type,reference_id)`;
+}
+
 async function ensureMemberAdminSchema(sql){
   await sql`CREATE TABLE IF NOT EXISTS member_admin_logs (log_id TEXT PRIMARY KEY,member_code TEXT,action TEXT NOT NULL,detail TEXT,old_data JSONB,new_data JSONB,admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`CREATE INDEX IF NOT EXISTS idx_member_admin_logs_member_code_created ON member_admin_logs(member_code,created_at DESC)`;
@@ -121,11 +128,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.37",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.41",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.37"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.41"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -700,11 +707,12 @@ export default {
         });
         return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย"})
       }
-      if(path==="/api/admin/ledger"&&request.method==="GET"){
-        const denied=requireAdmin(request,env);if(denied)return denied;
-        const rows=await sql`SELECT * FROM ledger_entries ORDER BY entry_date DESC,created_at DESC LIMIT 1000`;
-        return json(request,{success:true,data:rows})
+      if(path==="/api/admin/ledger"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);
+        if(request.method==="GET"){const rows=await sql`SELECT * FROM ledger_entries ORDER BY entry_date DESC,created_at DESC LIMIT 5000`;return json(request,{success:true,data:rows})}
+        if(request.method==="POST"){const b=await body(request),type=clean(b.entry_type),amount=Number(b.amount||0),desc=clean(b.description);if(!['รายรับ','รายจ่าย'].includes(type))return json(request,{success:false,message:'กรุณาเลือกประเภทรายรับหรือรายจ่าย'},400);if(!desc||!Number.isFinite(amount)||amount<=0)return json(request,{success:false,message:'กรุณากรอกรายการและจำนวนเงินให้ถูกต้อง'},400);const eid=id('LED');await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${eid},COALESCE(${b.entry_date||null}::timestamptz,NOW()),${type},${clean(b.category)||'ทั่วไป'},${clean(b.source)||'บันทึกด้วยมือ'},${amount},'manual',${clean(b.reference_id)||eid},${clean(b.member_code)||null},${desc},${clean(b.note)||null},${clean(b.created_by)||'admin'},'posted',NOW(),NOW())`;return json(request,{success:true,entry_id:eid,message:'บันทึกรายการบัญชีแล้ว'},201)}
       }
+      if(/^\/api\/admin\/ledger\/[^/]+$/.test(path)&&request.method==="DELETE"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/').pop());const rows=await sql`SELECT reference_type FROM ledger_entries WHERE entry_id=${eid} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบัญชี'},404);if(String(rows[0].reference_type||'')!=='manual')return json(request,{success:false,message:'รายการอัตโนมัติจากธุรกรรมไม่สามารถลบได้'},409);await sql`DELETE FROM ledger_entries WHERE entry_id=${eid}`;return json(request,{success:true,message:'ลบรายการบัญชีแล้ว'})}
       if(path==="/api/admin/news"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),nid=id('NEWS');if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at) VALUES(${nid},${clean(b.category)||'ข่าวสาร'},${clean(b.title)},${clean(b.content)},NOW(),TRUE,NOW(),NOW())`;return json(request,{success:true,news_id:nid},201)}
       if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
       if(path==="/api/admin/settings"&&request.method==="GET"){
