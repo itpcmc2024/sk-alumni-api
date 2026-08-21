@@ -77,7 +77,13 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 }
 </style>
 
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.29">
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.30">
+
+<style id="v2630-admin-member-mobile-fix">
+html,body{max-width:100%;overflow-x:hidden}
+.main,.panel,.table-wrap{max-width:100%}
+@media(max-width:700px){.main{width:100%;padding-left:14px!important;padding-right:14px!important}.page-title .sk-admin-center-action{display:none}.admin-public-footer{width:100vw!important;max-width:100vw!important;margin-left:calc(50% - 50vw)!important;margin-right:calc(50% - 50vw)!important}}
+</style>
 </head>
 <body>
 <div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
@@ -97,13 +103,13 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
   <div class="topin">
     <img src="assets/association-logo.png" class="logo" alt="โลโก้สมาคม">
     <div class="brand"><h1>SK Alumni Member</h1><p>ระบบจัดการสมาชิก · Admin Console</p></div>
-    <div class="admin-template-links"><a href="index.html">🏠 กลับหน้าบ้าน</a><a href="admin-home.html">🧩 ศูนย์จัดการระบบ</a></div><div class="top-actions"><span class="admin-pill">Admin</span><button class="ghost" id="logoutBtn">ออกจากระบบ</button></div>
+    <div class="admin-template-links"><a href="index.html">🏠 กลับหน้าบ้าน</a></div><div class="top-actions"><span class="admin-pill">Admin</span><button class="ghost" id="logoutBtn">ออกจากระบบ</button></div>
   </div>
-</header><div class="member-module-context"><div><strong>👥 จัดการสมาชิก</strong><span>ค้นหา ตรวจสอบ แก้ไข และเปลี่ยนสถานะสมาชิก</span></div><a href="admin-home.html">🧩 ศูนย์จัดการระบบ</a></div>
+</header>
 <main class="main">
   <div class="page-title">
     <div><h2>จัดการสมาชิก</h2><p>ดูข้อมูล ค้นหา ตรวจสอบ และเปลี่ยนสถานะสมาชิก</p></div>
-    <div class="soft-note">Pastel Light Admin · V2.6.29</div>
+    <a class="sk-admin-center-action" href="admin-home.html?v=2.6.30">🧩 ศูนย์จัดการระบบ</a>
   </div>
   <section class="stats">
     <div class="stat s-total"><div class="label">สมาชิกทั้งหมด</div><div class="num" id="statTotal">0</div></div>
@@ -127,7 +133,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
     <div class="pager"><button id="prevBtn" class="pagebtn">ก่อนหน้า</button><div id="pageInfo" class="pageno">หน้า 1 / 1</div><button id="nextBtn" class="pagebtn">ถัดไป</button></div>
   </section>
 </main>
-<footer class="admin-public-footer"><div class="apf-inner"><div class="apf-brand"><img class="apf-logo" src="assets/association-logo.png" alt="โลโก้สมาคม" width="52" height="52"><div><div class="apf-title">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="apf-sub">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="apf-copy">© 2026 SK Alumni Member System by KimhanIkals<br>Admin Center · V2.6.29</div></div></footer>
+<footer class="admin-public-footer"><div class="apf-inner"><div class="apf-brand"><img class="apf-logo" src="assets/association-logo.png" alt="โลโก้สมาคม" width="52" height="52"><div><div class="apf-title">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="apf-sub">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="apf-copy">© 2026 SK Alumni Member System by KimhanIkals<br>Admin Center · V2.6.30</div></div></footer>
 <div id="modalBack" class="modal-back hidden">
   <div class="modal">
     <div class="modal-head"><div><h3>รายละเอียดสมาชิก</h3><small id="modalCode">-</small></div><button id="closeModal" class="close">×</button></div>
@@ -218,6 +224,6 @@ function logout(clear=true){state.key='';if(clear){KEY_NAMES.forEach(n=>{localSt
 $('loginBtn').onclick=login;$('adminKey').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').onclick=()=>logout(true);$('searchBtn').onclick=()=>{state.page=1;applyFilters()};$('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){state.page=1;applyFilters()}});$('statusFilter').onchange=()=>{state.page=1;applyFilters()};$('sortOrder').onchange=()=>{state.page=1;applyFilters()};$('pageSize').onchange=()=>{state.page=1;applyFilters()};$('refreshBtn').onclick=()=>reload();$('prevBtn').onclick=()=>{if(state.page>1){state.page--;render()}};$('nextBtn').onclick=()=>{const p=Math.ceil(state.filtered.length/state.size);if(state.page<p){state.page++;render()}};$('closeModal').onclick=closeModal;$('closeBtn2').onclick=closeModal;$('modalBack').addEventListener('click',e=>{if(e.target===$('modalBack'))closeModal()});$('saveBtn').onclick=saveMember;$('approveBtn').onclick=()=>changeStatus('active');$('cancelBtn').onclick=()=>changeStatus('cancelled');$('fPhone').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,10));$('fPostal').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,5));
 (async()=>{const k=storedKey();if(k){state.key=k;$('adminKey').value=k;$('rememberKey').checked=!!localStorage.getItem('sk_alumni_admin_key');try{const rows=await loadFromServer();state.all=rows.map(normalizeMember);$('loginBack').classList.add('hidden');applyFilters()}catch{state.key='';$('loginBack').classList.remove('hidden')}}})();
 </script>
-<script defer src="assets/module-nav.js?v=2.6.29"></script>
+<script defer src="assets/module-nav.js?v=2.6.30"></script>
 </body>
 </html>
