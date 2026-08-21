@@ -19,7 +19,7 @@ function adminOK(request,env){
   return !!env.ADMIN_API_KEY && key===env.ADMIN_API_KEY;
 }
 function requireAdmin(request,env){return adminOK(request,env)?null:json(request,{success:false,message:"Unauthorized"},401)}
-function memberStatusText(s){s=String(s||"").toLowerCase();if(["active","ใช้งาน","approved","สมาชิกสมบูรณ์"].includes(s))return"active";if(["cancelled","canceled","rejected","ยกเลิก","ไม่อนุมัติ"].includes(s))return"cancelled";if(["renewal","รอต่ออายุ","รอต่ออายุสมาชิก"].includes(s))return"renewal";return"pending"}
+function memberStatusText(s){s=String(s||'').toLowerCase().trim();if(['active','ใช้งาน','approved','สมาชิกสมบูรณ์'].includes(s))return'active';if(['review','รอตรวจสอบข้อมูล','รอตรวจสอบการชำระ','pending_review'].includes(s))return'review';if(['payment_pending','pending','รอชำระค่าสนับสนุน','รอชำระค่าสมาชิก','รออนุมัติ'].includes(s))return'payment_pending';if(['cancelled','canceled','rejected','ยกเลิก','ไม่อนุมัติ'].includes(s))return'cancelled';if(['renewal','รอต่ออายุ','รอต่ออายุสมาชิก','ต่ออายุสมาชิก'].includes(s))return'renewal';return'payment_pending'}
 function effectiveMemberStatus(m){
   const base=memberStatusText(m?.status);
   if(base==="active" && m?.member_expire){
@@ -116,11 +116,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.20",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.33",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.20"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.33"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -187,12 +187,12 @@ export default {
             VALUES(
               ${code},${prefix},${first},${last},${full},${clean(b.arabic_name)||null},
               ${email||null},${phone},${clean(b.line_id)||null},${clean(b.line_id)||null},
-              ${photo||null},'pending',TRUE,NOW(),NOW(),NOW()
+              ${photo||null},'payment_pending',TRUE,NOW(),NOW(),NOW()
             )
           `;
           await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`;
         });
-        return json(request,{success:true,message:"ลงทะเบียนเรียบร้อยแล้ว",member_code:code,data:{member_code:code,status:"pending"}},201);
+        return json(request,{success:true,message:"ลงทะเบียนเรียบร้อยแล้ว",member_code:code,data:{member_code:code,status:"payment_pending"}},201);
       }
 
       if(/^\/api\/status\//.test(path)&&request.method==="GET"){
@@ -478,8 +478,8 @@ export default {
         if(topicId){const tr=await sql`SELECT title,amount FROM payment_topics WHERE topic_id=${topicId} AND active=TRUE LIMIT 1`;if(!tr.length)return json(request,{success:false,message:"ไม่พบหัวข้อการชำระที่เปิดใช้งาน"},400);paymentType=tr[0].title;if(tr[0].amount!=null&&Math.abs(Number(tr[0].amount)-amount)>0.009)return json(request,{success:false,message:"ยอดชำระไม่ตรงกับยอดที่ Admin กำหนด"},400);}
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS slip_data TEXT`;
         const paymentId=id('PAY');
-        await sql`INSERT INTO payments(payment_id,member_code,topic_id,payment_type,amount,paid_at,status,note,created_at,updated_at,slip_data) VALUES(${paymentId},${code},${topicId},${paymentType},${amount},${b.paid_at||new Date().toISOString()},'รอตรวจสอบการชำระ',${clean(b.note)||null},NOW(),NOW(),${slip})`;
-        return json(request,{success:true,payment_id:paymentId,status:'รอตรวจสอบการชำระ'},201);
+        await sql.begin(async tx=>{await tx`INSERT INTO payments(payment_id,member_code,topic_id,payment_type,amount,paid_at,status,note,created_at,updated_at,slip_data) VALUES(${paymentId},${code},${topicId},${paymentType},${amount},${b.paid_at||new Date().toISOString()},'รอตรวจสอบการชำระ',${clean(b.note)||null},NOW(),NOW(),${slip})`;await tx`UPDATE members SET status='review',updated_at=NOW() WHERE member_code=${code} AND status<>'active'`});
+        return json(request,{success:true,payment_id:paymentId,status:'รอตรวจสอบการชำระ',member_status:'review'},201);
       }
 
       if(path==="/api/donations"&&request.method==="POST"){
@@ -545,6 +545,12 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
         if(request.method==="GET"){
           const rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);return json(request,{success:true,data:{...rows[0],status:memberStatusText(rows[0].status)}});
+        }
+        if(request.method==="DELETE"){
+          const refs=await sql`SELECT (SELECT COUNT(*)::int FROM payments WHERE member_code=${code}) payments,(SELECT COUNT(*)::int FROM donations WHERE member_code=${code}) donations`;
+          const used=Number(refs[0]?.payments||0)+Number(refs[0]?.donations||0);if(used>0)return json(request,{success:false,message:"สมาชิกมีประวัติธุรกรรม จึงไม่สามารถลบได้ กรุณาเปลี่ยนสถานะแทน"},409);
+          try{await sql.begin(async tx=>{await tx`DELETE FROM addresses WHERE member_code=${code}`;await tx`DELETE FROM members WHERE member_code=${code}`})}catch(e){return json(request,{success:false,message:"สมาชิกมีข้อมูลอ้างอิงในระบบ จึงไม่สามารถลบได้ กรุณาเปลี่ยนสถานะแทน"},409)}
+          return json(request,{success:true,message:"ลบสมาชิกแล้ว"});
         }
         if(request.method==="PUT"||request.method==="PATCH"){
           const b=await body(request);const full=[clean(b.first_name),clean(b.last_name)].filter(Boolean).join(' ')||clean(b.full_name);
