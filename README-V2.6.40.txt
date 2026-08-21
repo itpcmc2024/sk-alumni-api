@@ -1,4 +1,4 @@
-SK Alumni Member System V2.6.41 – Transaction Control Center Phase 1
+SK Alumni Member System V2.6.42 – Transaction Control Center Phase 1
 
 ฐาน: V2.6.39 – Admin Center Footer Unified
 
@@ -15,6 +15,6 @@ SK Alumni Member System V2.6.41 – Transaction Control Center Phase 1
 - แสดงบัญชีรายรับอัตโนมัติจากธุรกรรมที่อนุมัติ
 - Export CSV สำหรับค่าบำรุง/บริจาค/บัญชีรายรับ
 - Footer รูปแบบเดียวกับ Admin สมาชิก
-- อัปเดต Version ทุกหน้าเป็น V2.6.41
+- อัปเดต Version ทุกหน้าเป็น V2.6.42
 
 หมายเหตุ: รอบนี้ใช้ API/Logic เดิมของ V2.6.39 ไม่มีการแก้ src/index.js จึงไม่ต้อง Deploy Worker ใหม่

@@ -80,8 +80,13 @@ function db(env){
 
 async function ensureAccountingSchema(sql){
   await sql`CREATE TABLE IF NOT EXISTS ledger_entries (entry_id TEXT PRIMARY KEY,entry_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),entry_type TEXT NOT NULL,category TEXT,source TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0,reference_type TEXT,reference_id TEXT,member_code TEXT,description TEXT,note TEXT,created_by TEXT,status TEXT NOT NULL DEFAULT 'posted',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`ALTER TABLE ledger_entries ADD COLUMN IF NOT EXISTS attachment_data TEXT`;
+  await sql`ALTER TABLE ledger_entries ADD COLUMN IF NOT EXISTS attachment_name TEXT`;
+  await sql`ALTER TABLE ledger_entries ADD COLUMN IF NOT EXISTS attachment_type TEXT`;
   await sql`CREATE INDEX IF NOT EXISTS idx_ledger_entries_date ON ledger_entries(entry_date DESC,created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_ledger_entries_reference ON ledger_entries(reference_type,reference_id)`;
+  await sql`CREATE TABLE IF NOT EXISTS ledger_admin_logs (log_id TEXT PRIMARY KEY,entry_id TEXT,action TEXT NOT NULL,detail TEXT,old_data JSONB,new_data JSONB,admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_ledger_admin_logs_entry_created ON ledger_admin_logs(entry_id,created_at DESC)`;
 }
 
 async function ensureMemberAdminSchema(sql){
@@ -112,6 +117,12 @@ function slipOK(v){
   const t=String(v);
   return /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(t) && t.length<=1400000;
 }
+function ledgerAttachmentOK(v){
+  if(!v)return true;
+  const t=String(v||'');
+  return /^data:(image\/(jpeg|jpg|png|webp)|application\/pdf);base64,/i.test(t) && t.length<=2800000;
+}
+
 async function cardToken(code,env){
   const secret=clean(env?.ADMIN_API_KEY);
   if(!secret)return "";
@@ -128,11 +139,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.41",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.42",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.41"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.42"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -709,10 +720,49 @@ export default {
       }
       if(path==="/api/admin/ledger"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);
-        if(request.method==="GET"){const rows=await sql`SELECT * FROM ledger_entries ORDER BY entry_date DESC,created_at DESC LIMIT 5000`;return json(request,{success:true,data:rows})}
-        if(request.method==="POST"){const b=await body(request),type=clean(b.entry_type),amount=Number(b.amount||0),desc=clean(b.description);if(!['รายรับ','รายจ่าย'].includes(type))return json(request,{success:false,message:'กรุณาเลือกประเภทรายรับหรือรายจ่าย'},400);if(!desc||!Number.isFinite(amount)||amount<=0)return json(request,{success:false,message:'กรุณากรอกรายการและจำนวนเงินให้ถูกต้อง'},400);const eid=id('LED');await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${eid},COALESCE(${b.entry_date||null}::timestamptz,NOW()),${type},${clean(b.category)||'ทั่วไป'},${clean(b.source)||'บันทึกด้วยมือ'},${amount},'manual',${clean(b.reference_id)||eid},${clean(b.member_code)||null},${desc},${clean(b.note)||null},${clean(b.created_by)||'admin'},'posted',NOW(),NOW())`;return json(request,{success:true,entry_id:eid,message:'บันทึกรายการบัญชีแล้ว'},201)}
+        if(request.method==="GET"){const rows=await sql`SELECT entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_name,attachment_type,(attachment_data IS NOT NULL AND attachment_data<>'') AS has_attachment FROM ledger_entries ORDER BY entry_date DESC,created_at DESC LIMIT 5000`;return json(request,{success:true,data:rows})}
+        if(request.method==="POST"){
+          const b=await body(request),type=clean(b.entry_type),amount=Number(b.amount||0),desc=clean(b.description),att=clean(b.attachment_data)||null;
+          if(!['รายรับ','รายจ่าย'].includes(type))return json(request,{success:false,message:'กรุณาเลือกประเภทรายรับหรือรายจ่าย'},400);
+          if(!desc||!Number.isFinite(amount)||amount<=0)return json(request,{success:false,message:'กรุณากรอกรายการและจำนวนเงินให้ถูกต้อง'},400);
+          if(att&&!ledgerAttachmentOK(att))return json(request,{success:false,message:'หลักฐานรองรับ JPG/PNG/WEBP/PDF ขนาดไม่เกินประมาณ 2 MB'},400);
+          const eid=id('LED'),admin=clean(b.created_by)||'admin';
+          const snapshot={entry_id:eid,entry_date:b.entry_date||null,entry_type:type,category:clean(b.category)||'ทั่วไป',source:clean(b.source)||'บันทึกด้วยมือ',amount,reference_id:clean(b.reference_id)||eid,member_code:clean(b.member_code)||null,description:desc,note:clean(b.note)||null,attachment_name:clean(b.attachment_name)||null,attachment_type:clean(b.attachment_type)||null};
+          await sql.begin(async tx=>{
+            await tx`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${eid},COALESCE(${b.entry_date||null}::timestamptz,NOW()),${type},${snapshot.category},${snapshot.source},${amount},'manual',${snapshot.reference_id},${snapshot.member_code},${desc},${snapshot.note},${admin},'posted',NOW(),NOW(),${att},${snapshot.attachment_name},${snapshot.attachment_type})`;
+            await tx`INSERT INTO ledger_admin_logs(log_id,entry_id,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('LLOG')},${eid},'create','เพิ่มรายการบัญชีด้วยมือ',NULL,CAST(${JSON.stringify(snapshot)} AS JSONB),${admin},NOW())`;
+          });
+          return json(request,{success:true,entry_id:eid,message:'บันทึกรายการบัญชีแล้ว'},201)
+        }
       }
-      if(/^\/api\/admin\/ledger\/[^/]+$/.test(path)&&request.method==="DELETE"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/').pop());const rows=await sql`SELECT reference_type FROM ledger_entries WHERE entry_id=${eid} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบัญชี'},404);if(String(rows[0].reference_type||'')!=='manual')return json(request,{success:false,message:'รายการอัตโนมัติจากธุรกรรมไม่สามารถลบได้'},409);await sql`DELETE FROM ledger_entries WHERE entry_id=${eid}`;return json(request,{success:true,message:'ลบรายการบัญชีแล้ว'})}
+      if(/^\/api\/admin\/ledger\/[^/]+$/.test(path)&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/').pop());
+        const rows=await sql`SELECT * FROM ledger_entries WHERE entry_id=${eid} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบัญชี'},404);return json(request,{success:true,data:rows[0]})
+      }
+      if(/^\/api\/admin\/ledger\/[^/]+\/logs$/.test(path)&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/')[4]);
+        const rows=await sql`SELECT log_id,entry_id,action,detail,admin_by,created_at FROM ledger_admin_logs WHERE entry_id=${eid} ORDER BY created_at DESC LIMIT 500`;
+        return json(request,{success:true,data:rows})
+      }
+      if(/^\/api\/admin\/ledger\/[^/]+$/.test(path)&&request.method==="PUT"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/').pop()),b=await body(request);
+        const before=await sql`SELECT * FROM ledger_entries WHERE entry_id=${eid} LIMIT 1`;if(!before.length)return json(request,{success:false,message:'ไม่พบรายการบัญชี'},404);
+        if(String(before[0].reference_type||'')!=='manual')return json(request,{success:false,message:'แก้ไขได้เฉพาะรายการบัญชีที่บันทึกด้วยมือ'},409);
+        const type=clean(b.entry_type),amount=Number(b.amount||0),desc=clean(b.description),hasNew=!!clean(b.attachment_data),remove=!!b.remove_attachment,att=hasNew?clean(b.attachment_data):null;
+        if(!['รายรับ','รายจ่าย'].includes(type)||!desc||!Number.isFinite(amount)||amount<=0)return json(request,{success:false,message:'กรุณากรอกข้อมูลบัญชีให้ถูกต้อง'},400);
+        if(att&&!ledgerAttachmentOK(att))return json(request,{success:false,message:'หลักฐานรองรับ JPG/PNG/WEBP/PDF ขนาดไม่เกินประมาณ 2 MB'},400);
+        const admin=clean(b.updated_by)||'admin',oldLog={...before[0],attachment_data:before[0].attachment_data?'[มีไฟล์หลักฐาน]':null},after={entry_date:b.entry_date||before[0].entry_date,entry_type:type,category:clean(b.category)||'ทั่วไป',source:clean(b.source)||'บันทึกด้วยมือ',amount,reference_id:clean(b.reference_id)||before[0].reference_id,description:desc,note:clean(b.note)||null,attachment_name:hasNew?clean(b.attachment_name)||null:(remove?null:before[0].attachment_name),attachment_type:hasNew?clean(b.attachment_type)||null:(remove?null:before[0].attachment_type)};
+        await sql.begin(async tx=>{
+          await tx`UPDATE ledger_entries SET entry_date=COALESCE(${b.entry_date||null}::timestamptz,entry_date),entry_type=${type},category=${after.category},source=${after.source},amount=${amount},reference_id=${after.reference_id},description=${desc},note=${after.note},attachment_data=CASE WHEN ${hasNew} THEN ${att} WHEN ${remove} THEN NULL ELSE attachment_data END,attachment_name=CASE WHEN ${hasNew} THEN ${after.attachment_name} WHEN ${remove} THEN NULL ELSE attachment_name END,attachment_type=CASE WHEN ${hasNew} THEN ${after.attachment_type} WHEN ${remove} THEN NULL ELSE attachment_type END,updated_at=NOW() WHERE entry_id=${eid}`;
+          await tx`INSERT INTO ledger_admin_logs(log_id,entry_id,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('LLOG')},${eid},'edit',${remove?'แก้ไขรายการบัญชีและลบหลักฐานเดิม':hasNew?'แก้ไขรายการบัญชีและเปลี่ยนหลักฐาน':'แก้ไขรายการบัญชี'},CAST(${JSON.stringify(oldLog)} AS JSONB),CAST(${JSON.stringify(after)} AS JSONB),${admin},NOW())`;
+        });
+        return json(request,{success:true,message:'บันทึกการแก้ไขรายการบัญชีแล้ว'})
+      }
+      if(/^\/api\/admin\/ledger\/[^/]+$/.test(path)&&request.method==="DELETE"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/').pop());const rows=await sql`SELECT * FROM ledger_entries WHERE entry_id=${eid} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบัญชี'},404);if(String(rows[0].reference_type||'')!=='manual')return json(request,{success:false,message:'รายการอัตโนมัติจากธุรกรรมไม่สามารถลบได้'},409);
+        const oldLog={...rows[0],attachment_data:rows[0].attachment_data?'[มีไฟล์หลักฐาน]':null};await sql.begin(async tx=>{await tx`INSERT INTO ledger_admin_logs(log_id,entry_id,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('LLOG')},${eid},'delete','ลบรายการบัญชีที่บันทึกด้วยมือ',CAST(${JSON.stringify(oldLog)} AS JSONB),NULL,'admin',NOW())`;await tx`DELETE FROM ledger_entries WHERE entry_id=${eid}`});
+        return json(request,{success:true,message:'ลบรายการบัญชีแล้ว'})
+      }
       if(path==="/api/admin/news"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),nid=id('NEWS');if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at) VALUES(${nid},${clean(b.category)||'ข่าวสาร'},${clean(b.title)},${clean(b.content)},NOW(),TRUE,NOW(),NOW())`;return json(request,{success:true,news_id:nid},201)}
       if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
       if(path==="/api/admin/settings"&&request.method==="GET"){
@@ -725,7 +775,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.21',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.42',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
