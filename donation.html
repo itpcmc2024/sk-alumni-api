@@ -1,58 +1,12 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>บริจาค</title><link rel="stylesheet" href="assets/site.css?v=2.6.25"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script src="assets/site.js?v=2.6.25"></script>
-
-<style id="v26-global-nav">
-.v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
-.v26-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
-border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
-box-shadow:0 5px 14px rgba(28,111,74,.07)}
-.v26-homebtn:hover{background:#eaf9f1}
-@media(max-width:760px){.v26-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v26-homebtn{font-size:13px}}
-</style>
-
-<style id="v26-footer-mobile">
-@media(max-width:760px){
-  footer .wrap, .site-footer-in, .footin{
-    text-align:center!important;
-  }
-  .site-footer-in, .footin{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:18px!important;
-  }
-  .site-footer-brand, .footbrand{
-    display:flex!important;
-    flex-direction:row!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:14px!important;
-    text-align:left!important;
-    width:auto!important;
-    max-width:94%!important;
-  }
-  .site-footer-brand img, .footbrand img, footer .footer-logo{
-    width:72px!important;
-    height:72px!important;
-    flex:none!important;
-    object-fit:contain!important;
-    background:transparent!important;
-    border:3px solid rgba(50,169,105,.22)!important;
-    box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14)!important;
-    border-radius:50%!important;
-    padding:3px!important;
-  }
-  .site-footer-version, .footcopy{
-    text-align:center!important;
-    width:100%!important;
-    margin-top:0!important;
-  }
-}
-</style>
-
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.25">
-</head><body>
-<div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
-
-<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ร่วมบริจาค</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="donation.html">บริจาค</a><a href="news.html">ข่าวสาร</a></nav></div></header><main class="wrap"><h1 class="section-title">💝 ร่วมสนับสนุนสมาคม</h1><div class="card"><form id="f" class="form"><div class="row2"><div class="field"><label>หัวข้อบริจาค *</label><select id="topic" class="control" required><option value="general">กิจกรรมสมาคม</option><option value="education">กองทุนการศึกษา</option></select></div><div class="field"><label>จำนวนเงิน *</label><input id="amount" class="control" type="number" min="1" step="0.01" required></div></div><div class="row2"><div class="field"><label>รหัสสมาชิก (ถ้ามี)</label><input id="code" class="control" placeholder="69-SK0001"></div><div class="field"><label>ชื่อผู้บริจาค *</label><input id="donor" class="control" required></div></div><div class="row2"><div class="field"><label>โทรศัพท์</label><input id="phone" class="control" inputmode="numeric"></div><div class="field"><label>Email</label><input id="email" class="control" type="email"></div></div><div class="field"><label>ลิงก์หลักฐานการโอน (ถ้ามี)</label><input id="slipUrl" class="control" type="url"></div><button class="btn" type="submit">ส่งข้อมูลบริจาค</button></form></div></main><div id="foot"></div><script>document.getElementById('foot').innerHTML=footer('Donation');document.getElementById('f').onsubmit=async ev=>{ev.preventDefault();try{const j=await api('/api/donations',{method:'POST',body:JSON.stringify({member_code:code.value.trim().toUpperCase()||null,topic_id:topic.value,amount:Number(amount.value),donor_name:donor.value.trim(),phone:phone.value.trim(),email:email.value.trim(),slip_url:slipUrl.value.trim()})});Swal.fire({icon:'success',title:'ขอบคุณสำหรับการสนับสนุน',text:'เลขรายการ '+(j.donation_id||'')});ev.target.reset()}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message})}};</script><script defer src="assets/module-nav.js?v=2.6.25"></script>
-</body></html>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>บริจาค | SK Alumni</title>
+<link rel="stylesheet" href="assets/site.css?v=2.6.26"><style>body{margin:0;font-family:Arial,'Noto Sans Thai',sans-serif;background:#f4fbf7;color:#405166}.wrap{width:min(1180px,94vw);margin:auto}.top{background:#fff;border-bottom:1px solid #dff0e6}.topin{display:flex;align-items:center;gap:16px;padding:12px 0}.logo{width:66px;height:66px;border-radius:50%;object-fit:contain}.brand{font-weight:800;color:#086a4b;font-size:22px}.brand-sub{color:#718096}.nav{margin-left:auto;display:flex;gap:12px}.nav a{text-decoration:none}.section-title{color:#086a4b;margin:30px 0 14px}.card{background:#fff;border:1px solid #dcebe4;border-radius:24px;padding:22px}.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{margin-bottom:14px}.field label{display:block;font-weight:700;margin-bottom:6px}.control{width:100%;height:50px;border:1px solid #cfe1d8;border-radius:14px;padding:0 14px;box-sizing:border-box}.btn{border:0;border-radius:14px;background:#0f9f6e;color:#fff;font-weight:800;padding:13px 18px;cursor:pointer}.footer{margin-top:38px;border-top:1px solid #dcebe4;background:#eefcf4;padding:22px 0}.notice{margin-bottom:16px;padding:12px 14px;border-radius:12px;background:#fff8de;border:1px solid #f3d785;color:#8d6410}@media(max-width:700px){.row2{grid-template-columns:1fr}.nav{display:none}}</style></head><body>
+<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand" id="appName">ระบบสมาชิกสมาคมศิษย์เก่า<br>นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="brand-sub">🌙 Nurul Islam · SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a href="payment.html">สนับสนุนรายปี</a><a href="news.html">ข่าวสาร</a></nav></div></header>
+<main class="wrap"><h1 class="section-title">💝 ร่วมสนับสนุนสมาคม</h1><div id="notice" class="notice" hidden></div><div class="card"><form id="f"><div class="row2"><div class="field"><label>หัวข้อบริจาค *</label><select id="topic" class="control" required><option value="general">กิจกรรมสมาคม</option><option value="education">กองทุนการศึกษา</option></select></div><div class="field"><label>จำนวนเงิน *</label><input id="amount" class="control" type="number" min="1" step="0.01" required></div></div><div class="row2"><div class="field"><label>รหัสสมาชิก (ถ้ามี)</label><input id="code" class="control" placeholder="69-SK0001"></div><div class="field"><label>ชื่อผู้บริจาค *</label><input id="donor" class="control" required></div></div><div class="row2"><div class="field"><label>โทรศัพท์</label><input id="phone" class="control"></div><div class="field"><label>Email</label><input id="email" class="control" type="email"></div></div><div class="field"><label>ลิงก์หลักฐานการโอน (ถ้ามี)</label><input id="slipUrl" class="control" type="url"></div><button class="btn" type="submit">ส่งข้อมูลบริจาค</button></form></div></main>
+<footer class="footer"><div class="wrap">© 2026 SK Alumni Member System by Kimhan · Donation V2.6.26</div></footer>
+<script>
+const API='https://sk-alumni-api.itpcmc2024.workers.dev'; const $=id=>document.getElementById(id);
+async function req(path,opt={}){const r=await fetch(API+path,{cache:'no-store',...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});let j={};try{j=await r.json()}catch{}if(!r.ok||j.success===false)throw new Error(j.message||j.error||`HTTP ${r.status}`);return j}
+async function boot(){try{const j=await req('/api/settings/public');const raw=String(j.data?.APP_NAME||'').trim();if(raw){const ix=raw.indexOf('นูรุ้ลอิสลาม');$('appName').innerHTML=ix>0?raw.slice(0,ix).trim()+'<br>'+raw.slice(ix).trim():raw}}catch(e){$('notice').hidden=false;$('notice').textContent='โหลดการตั้งค่าบางส่วนไม่สำเร็จ แต่แบบฟอร์มยังใช้งานได้: '+e.message}
+$('f').onsubmit=async ev=>{ev.preventDefault();try{const j=await req('/api/donations',{method:'POST',body:JSON.stringify({member_code:$('code').value.trim().toUpperCase()||null,topic_id:$('topic').value,amount:Number($('amount').value),donor_name:$('donor').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim(),slip_url:$('slipUrl').value.trim()})});alert('บันทึกการบริจาคแล้ว เลขรายการ '+(j.donation_id||''));ev.target.reset()}catch(e){alert('บันทึกไม่สำเร็จ: '+e.message)}}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+</script></body></html>
