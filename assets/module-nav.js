@@ -1,7 +1,7 @@
 (()=>{
   'use strict';
   const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-  const V='2.6.46';
+  const V='2.6.47';
   const items=[['index.html','🕌','หน้าแรก'],['register.html','🧕🏻','ลงทะเบียน'],['status.html','🔎','ตรวจสอบ'],['member.html','🎁','สิทธิประโยชน์'],['donation.html','🤲🏻','บริจาค'],['news.html','📣','ข่าวสาร'],['admin-home.html','🌙','Admin']];
   const isAdmin=path.startsWith('admin');
   const active=(href)=>path===href||(href==='member.html'&&path==='benefits.html')||(href==='admin-home.html'&&isAdmin);
@@ -25,6 +25,15 @@
     if(tabs){tabs.appendChild(group);return;}
     const row=document.createElement('div');row.className='sk-admin-action-row';row.style.cssText='display:flex;justify-content:flex-end;align-items:center;margin:12px 0 14px';row.appendChild(group);main.insertAdjacentElement('afterbegin',row);
   }
+
+  function publicModuleName(){const m={'index.html':'Home','register.html':'Register','status.html':'Status','member.html':'Member','benefits.html':'Benefits','payment.html':'Payment','donation.html':'Donation','news.html':'News'};return m[path]||'Web';}
+  function unifyPublicFooter(){
+    if(isAdmin)return;
+    document.querySelectorAll('footer').forEach(x=>x.remove());
+    const f=document.createElement('footer');f.className='sk-public-footer';
+    f.innerHTML=`<div class="spf-inner"><div class="spf-brand"><img class="spf-logo" src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div><div class="spf-name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="spf-values">🌙 ศรัทธา &nbsp; 📖 ความรู้ &nbsp; 💚 สายสัมพันธ์</div></div></div><div class="spf-copy">© 2026 SK Alumni Member System by KimhanIkals · ${publicModuleName()} V${V}</div></div>`;
+    document.body.appendChild(f);
+  }
   function enhance(){
     try{
       document.querySelectorAll('.v26-homebar,.v25-homebar,.homebtn').forEach(x=>x.remove());
@@ -34,6 +43,7 @@
       const headingMap={'register.html':['🧕🏻','ลงทะเบียนศิษย์เก่า'],'status.html':['🔎','ตรวจสอบสถานะ'],'benefits.html':['🎁','สิทธิประโยชน์'],'member.html':['🎁','สิทธิประโยชน์'],'payment.html':['💳','ชำระค่าสมาชิก'],'donation.html':['🤲🏻','บริจาค'],'news.html':['📣','ข่าวสาร']};
       document.querySelectorAll('.eyebrow').forEach(x=>x.classList.add('sk-module-badge'));const info=headingMap[path];if(info&&!document.querySelector('.sk-module-badge')){const h=document.querySelector('main .section-title, main h1');if(h)h.insertAdjacentHTML('beforebegin',`<div class="sk-module-badge">${info[0]} ${info[1]}</div>`)}
       if(typeof window.applyPublicSettings==='function'&&window.SK_SETTINGS)window.applyPublicSettings(window.SK_SETTINGS);
+      unifyPublicFooter();
     }catch(err){console.error('[SK module nav]',err)}
   }
   window.SK_ADMIN_LOGOUT=logout;

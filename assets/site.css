@@ -50,3 +50,25 @@ html,body{max-width:100%;overflow-x:hidden}
  .admin-public-footer .apf-sub{font-size:10px!important;text-align:center!important}
  .admin-public-footer .apf-copy{width:100%!important;text-align:center!important;font-size:10px!important;border-top:1px dashed #d8e9df!important;padding-top:9px!important;margin-top:2px!important}
 }
+
+
+/* V2.6.47 — Public UI standard: typography, buttons, footer, responsive */
+body{font-family:"Noto Sans Thai",sans-serif!important}
+h1,h2,h3,.section-title,.title,.brand,.site-footer-name{font-family:"Mitr","Noto Sans Thai",sans-serif}
+button,.btn,input[type="button"],input[type="submit"],a.btn{transition:transform .08s ease,box-shadow .12s ease,filter .12s ease}
+button:active,.btn:active,input[type="button"]:active,input[type="submit"]:active,a.btn:active{transform:translateY(1px) scale(.98);filter:brightness(.97)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:3px solid rgba(15,159,110,.18);outline-offset:2px}
+.sk-public-footer{margin-top:34px;background:linear-gradient(90deg,#e9f9ef,#f8fff9 58%,#fff9ea);border-top:1px solid #d7edde;width:100%}
+.sk-public-footer .spf-inner{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:18px;color:#64748b;font-size:12px}
+.sk-public-footer .spf-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.sk-public-footer .spf-logo{width:48px;height:48px;flex:0 0 48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}
+.sk-public-footer .spf-name{font-family:"Mitr","Noto Sans Thai",sans-serif;font-weight:600;color:#166749;line-height:1.35}
+.sk-public-footer .spf-values{font-size:11px;color:#27805f;margin-top:2px}
+.sk-public-footer .spf-copy{text-align:right;line-height:1.5}
+@media(max-width:700px){
+ .sk-public-footer .spf-inner{flex-direction:column;text-align:center;padding:17px 14px;gap:9px}
+ .sk-public-footer .spf-brand{flex-direction:column;justify-content:center}
+ .sk-public-footer .spf-copy{text-align:center;font-size:10.5px}
+ .sk-public-footer .spf-name{font-size:12px}.sk-public-footer .spf-values{font-size:10px}
+ main{max-width:100%;overflow-x:hidden}
+}
