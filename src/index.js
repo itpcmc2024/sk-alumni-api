@@ -121,11 +121,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.34",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.37",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.34"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.37"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -555,7 +555,7 @@ export default {
         const donations=await sql`SELECT d.donation_id,d.topic_id,COALESCE(dt.title,d.topic_id) AS topic_title,d.amount,d.status,d.donated_at FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id WHERE d.member_code=${code} ORDER BY d.donated_at DESC,d.created_at DESC LIMIT 500`;
         let usages=[];try{const ex=await sql`SELECT to_regclass('public.benefit_usage') AS t`;if(ex[0]?.t)usages=await sql`SELECT u.usage_id,u.used_at,u.amount,u.note,u.benefit_id,COALESCE(b.title,u.benefit_id) AS title FROM benefit_usage u LEFT JOIN benefits b ON b.benefit_id=u.benefit_id WHERE u.member_code=${code} ORDER BY u.used_at DESC,u.created_at DESC LIMIT 500`}catch(e){}
         const logs=await sql`SELECT log_id,action,detail,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 300`;
-        return json(request,{success:true,data:{member:{...mr[0],status:memberStatusText(mr[0].status)},payments,donations,benefit_usage:usages,logs}});
+        const memberCardToken=await cardToken(code,env);return json(request,{success:true,data:{member:{...mr[0],status:memberStatusText(mr[0].status)},payments,donations,benefit_usage:usages,logs,card_token:memberCardToken}});
       }
       if(/^\/api\/admin\/members\/[^/]+\/logs$/.test(path)&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase();
@@ -568,17 +568,10 @@ export default {
         }
         if(request.method==="DELETE"){
           await ensureMemberAdminSchema(sql);const before=await sql`SELECT member_code,full_name,email,phone,status FROM members WHERE member_code=${code} LIMIT 1`;if(!before.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
-          try{await sql.begin(async tx=>{
-            try{await tx`DELETE FROM receipt_print_logs WHERE payment_id IN (SELECT payment_id FROM payments WHERE member_code=${code})`}catch(e){}
-            try{await tx`DELETE FROM benefit_usage WHERE member_code=${code}`}catch(e){}
-            try{await tx`DELETE FROM member_edit_history WHERE member_code=${code}`}catch(e){}
-            await tx`DELETE FROM payments WHERE member_code=${code}`;
-            await tx`DELETE FROM donations WHERE member_code=${code}`;
-            await tx`DELETE FROM addresses WHERE member_code=${code}`;
-            await tx`DELETE FROM members WHERE member_code=${code}`;
-            await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'delete','ลบสมาชิกและข้อมูลที่เกี่ยวข้องทั้งหมด',CAST(${JSON.stringify(before[0])} AS JSONB),NULL,'admin',NOW())`;
-          })}catch(e){return json(request,{success:false,message:"ลบข้อมูลไม่สำเร็จ: "+String(e?.message||e)},500)}
-          return json(request,{success:true,message:"ลบสมาชิกและข้อมูลที่เกี่ยวข้องทั้งหมดแล้ว"});
+          const pc=await sql`SELECT COUNT(*)::int n FROM payments WHERE member_code=${code}`,dc=await sql`SELECT COUNT(*)::int n FROM donations WHERE member_code=${code}`;let bc=[{n:0}];try{const ex=await sql`SELECT to_regclass('public.benefit_usage') AS t`;if(ex[0]?.t)bc=await sql`SELECT COUNT(*)::int n FROM benefit_usage WHERE member_code=${code}`}catch(e){}
+          const history={payments:Number(pc[0]?.n||0),donations:Number(dc[0]?.n||0),benefits:Number(bc[0]?.n||0)};if(history.payments||history.donations||history.benefits)return json(request,{success:false,code:'MEMBER_HAS_HISTORY',message:'สมาชิกมีประวัติชำระ บริจาค หรือการใช้สิทธิ์ จึงลบไม่ได้ ให้เปลี่ยนสถานะเป็นยกเลิก/ไม่อนุมัติแทน',history},409);
+          try{await sql.begin(async tx=>{try{await tx`DELETE FROM member_edit_history WHERE member_code=${code}`}catch(e){}await tx`DELETE FROM addresses WHERE member_code=${code}`;await tx`DELETE FROM members WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'delete','ลบสมาชิกที่ไม่มีประวัติทางบัญชีหรือการใช้สิทธิ์',CAST(${JSON.stringify(before[0])} AS JSONB),NULL,'admin',NOW())`;})}catch(e){return json(request,{success:false,message:"ลบข้อมูลไม่สำเร็จ: "+String(e?.message||e)},500)}
+          return json(request,{success:true,message:"ลบสมาชิกแล้ว"});
         }
         if(request.method==="PUT"||request.method==="PATCH"){
           await ensureMemberAdminSchema(sql);const b=await body(request),beforeRows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;if(!beforeRows.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
