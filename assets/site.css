@@ -27,7 +27,7 @@
   .admin-public-footer .apf-copy{text-align:center;width:100%}
 }
 
-/* SK Alumni V2.6.31 — Admin template alignment + mobile footer stability */
+/* SK Alumni V2.6.32 — Admin template alignment + mobile footer stability */
 html,body{max-width:100%;overflow-x:hidden}
 .admin-public-footer{width:100%;max-width:100%;margin-top:34px!important;border-top:1px solid #dcebe4!important;background:linear-gradient(90deg,#eafaf1,#f7fff9,#fffaf0)!important;padding:18px 0!important;overflow:hidden!important;position:relative!important;z-index:2}
 .admin-public-footer .apf-inner{width:min(1180px,94vw)!important;max-width:1180px!important;margin:0 auto!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;min-height:64px!important}

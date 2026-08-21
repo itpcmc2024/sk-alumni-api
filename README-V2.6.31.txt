@@ -1,4 +1,4 @@
-SK Alumni System V2.6.31 – Admin Header + Footer Unified
+SK Alumni System V2.6.32 – Admin Header + Footer Unified
 
 ปรับจาก V2.6.30:
 - Footer ของทุกโมดูล Admin ใช้รูปแบบเดียวกับหน้า Admin Center
@@ -6,7 +6,7 @@ SK Alumni System V2.6.31 – Admin Header + Footer Unified
 - หน้าจอใหญ่ Header ของโมดูล Admin จัดชื่อระบบชิดซ้าย และกลุ่มเมนูชิดขวา
 - เหลือปุ่ม “🧩 ศูนย์จัดการระบบ” เพียงตำแหน่งเดียวในส่วนหัวเนื้อหา และจัดชิดขวา
 - หน้าจอเล็กยังคงปุ่ม หน้าแรก + ศูนย์จัดการระบบ ใน Header แบบเดิม
-- เปลี่ยน cache-busting เป็น v=2.6.31
+- เปลี่ยน cache-busting เป็น v=2.6.32
 
 การใช้งาน:
 1) วางไฟล์ทั้งหมดทับ repository เดิม

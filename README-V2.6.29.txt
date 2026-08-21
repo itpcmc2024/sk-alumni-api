@@ -1,9 +1,9 @@
-SK Alumni System V2.6.31 – Admin Footer Fix + Member Template Phase 1
+SK Alumni System V2.6.32 – Admin Footer Fix + Member Template Phase 1
 
 Changes
 - Harden Admin Center footer against cached/missing CSS; logo size fixed by CSS and HTML attributes.
 - Responsive footer now matches public-site style without overflow on small screens.
-- Updated admin pages to V2.6.31 footer.
+- Updated admin pages to V2.6.32 footer.
 - Started Admin Member module template phase: unified navigation/context while keeping current member/API logic unchanged.
 
 Deploy
