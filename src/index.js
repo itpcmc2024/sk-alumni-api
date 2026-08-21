@@ -77,6 +77,11 @@ function db(env){
 
   return run;
 }
+async function ensureMemberAdminSchema(sql){
+  await sql`CREATE TABLE IF NOT EXISTS member_admin_logs (log_id TEXT PRIMARY KEY,member_code TEXT,action TEXT NOT NULL,detail TEXT,old_data JSONB,new_data JSONB,admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_member_admin_logs_member_code_created ON member_admin_logs(member_code,created_at DESC)`;
+}
+
 async function ensureV2616Schema(sql){
   // Additive / self-healing only: never deletes existing data.
   await sql`CREATE TABLE IF NOT EXISTS payment_topics (topic_id VARCHAR(50) PRIMARY KEY,title VARCHAR(200) NOT NULL,description TEXT,amount NUMERIC(12,2),active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)`;
@@ -116,11 +121,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.33",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.34",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.33"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.34"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -541,25 +546,56 @@ export default {
         const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.email,m.phone,m.line_id,m.line_user_id,m.status,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
         return json(request,{success:true,data:rows.map(x=>({...x,status:memberStatusText(x.status)}))});
       }
+      if(/^\/api\/admin\/members\/[^/]+\/overview$/.test(path)&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureMemberAdminSchema(sql);
+        const code=decodeURIComponent(path.split('/')[4]).toUpperCase();
+        const mr=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        if(!mr.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
+        const payments=await sql`SELECT payment_id,payment_type,amount,status,paid_at,verified_at,receipt_no FROM payments WHERE member_code=${code} ORDER BY paid_at DESC,created_at DESC LIMIT 500`;
+        const donations=await sql`SELECT d.donation_id,d.topic_id,COALESCE(dt.title,d.topic_id) AS topic_title,d.amount,d.status,d.donated_at FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id WHERE d.member_code=${code} ORDER BY d.donated_at DESC,d.created_at DESC LIMIT 500`;
+        let usages=[];try{const ex=await sql`SELECT to_regclass('public.benefit_usage') AS t`;if(ex[0]?.t)usages=await sql`SELECT u.usage_id,u.used_at,u.amount,u.note,u.benefit_id,COALESCE(b.title,u.benefit_id) AS title FROM benefit_usage u LEFT JOIN benefits b ON b.benefit_id=u.benefit_id WHERE u.member_code=${code} ORDER BY u.used_at DESC,u.created_at DESC LIMIT 500`}catch(e){}
+        const logs=await sql`SELECT log_id,action,detail,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 300`;
+        return json(request,{success:true,data:{member:{...mr[0],status:memberStatusText(mr[0].status)},payments,donations,benefit_usage:usages,logs}});
+      }
+      if(/^\/api\/admin\/members\/[^/]+\/logs$/.test(path)&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase();
+        const rows=await sql`SELECT log_id,member_code,action,detail,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows});
+      }
       if(/^\/api\/admin\/members\/[^/]+$/.test(path)){
         const denied=requireAdmin(request,env);if(denied)return denied;const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
         if(request.method==="GET"){
           const rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);return json(request,{success:true,data:{...rows[0],status:memberStatusText(rows[0].status)}});
         }
         if(request.method==="DELETE"){
-          const refs=await sql`SELECT (SELECT COUNT(*)::int FROM payments WHERE member_code=${code}) payments,(SELECT COUNT(*)::int FROM donations WHERE member_code=${code}) donations`;
-          const used=Number(refs[0]?.payments||0)+Number(refs[0]?.donations||0);if(used>0)return json(request,{success:false,message:"สมาชิกมีประวัติธุรกรรม จึงไม่สามารถลบได้ กรุณาเปลี่ยนสถานะแทน"},409);
-          try{await sql.begin(async tx=>{await tx`DELETE FROM addresses WHERE member_code=${code}`;await tx`DELETE FROM members WHERE member_code=${code}`})}catch(e){return json(request,{success:false,message:"สมาชิกมีข้อมูลอ้างอิงในระบบ จึงไม่สามารถลบได้ กรุณาเปลี่ยนสถานะแทน"},409)}
-          return json(request,{success:true,message:"ลบสมาชิกแล้ว"});
+          await ensureMemberAdminSchema(sql);const before=await sql`SELECT member_code,full_name,email,phone,status FROM members WHERE member_code=${code} LIMIT 1`;if(!before.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
+          try{await sql.begin(async tx=>{
+            try{await tx`DELETE FROM receipt_print_logs WHERE payment_id IN (SELECT payment_id FROM payments WHERE member_code=${code})`}catch(e){}
+            try{await tx`DELETE FROM benefit_usage WHERE member_code=${code}`}catch(e){}
+            try{await tx`DELETE FROM member_edit_history WHERE member_code=${code}`}catch(e){}
+            await tx`DELETE FROM payments WHERE member_code=${code}`;
+            await tx`DELETE FROM donations WHERE member_code=${code}`;
+            await tx`DELETE FROM addresses WHERE member_code=${code}`;
+            await tx`DELETE FROM members WHERE member_code=${code}`;
+            await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'delete','ลบสมาชิกและข้อมูลที่เกี่ยวข้องทั้งหมด',CAST(${JSON.stringify(before[0])} AS JSONB),NULL,'admin',NOW())`;
+          })}catch(e){return json(request,{success:false,message:"ลบข้อมูลไม่สำเร็จ: "+String(e?.message||e)},500)}
+          return json(request,{success:true,message:"ลบสมาชิกและข้อมูลที่เกี่ยวข้องทั้งหมดแล้ว"});
         }
         if(request.method==="PUT"||request.method==="PATCH"){
-          const b=await body(request);const full=[clean(b.first_name),clean(b.last_name)].filter(Boolean).join(' ')||clean(b.full_name);
-          await sql.begin(async tx=>{await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),first_name=COALESCE(NULLIF(${clean(b.first_name)},''),first_name),last_name=COALESCE(NULLIF(${clean(b.last_name)},''),last_name),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_id=${clean(b.line_id)||null},line_user_id=${clean(b.line_id)||null},photo_data=COALESCE(NULLIF(${clean(b.photo_data)},''),photo_data),status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`});
+          await ensureMemberAdminSchema(sql);const b=await body(request),beforeRows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;if(!beforeRows.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
+          if(Object.prototype.hasOwnProperty.call(b,'photo_data')&&b.photo_data&&!photoOK(b.photo_data))return json(request,{success:false,message:"รูปสมาชิกต้องเป็น JPG/WEBP และขนาดไม่เกินที่ระบบกำหนด"},400);
+          const full=[clean(b.first_name),clean(b.last_name)].filter(Boolean).join(' ')||clean(b.full_name),hasPhoto=Object.prototype.hasOwnProperty.call(b,'photo_data');
+          await sql.begin(async tx=>{
+            await tx`UPDATE members SET prefix=COALESCE(NULLIF(${clean(b.prefix)},''),prefix),first_name=COALESCE(NULLIF(${clean(b.first_name)},''),first_name),last_name=COALESCE(NULLIF(${clean(b.last_name)},''),last_name),full_name=COALESCE(NULLIF(${full},''),full_name),arabic_name=${clean(b.arabic_name)||null},phone=COALESCE(NULLIF(${clean(b.phone)},''),phone),email=${clean(b.email)||null},line_id=${clean(b.line_id)||null},line_user_id=${clean(b.line_id)||null},photo_data=CASE WHEN ${hasPhoto} THEN ${clean(b.photo_data)||null} ELSE photo_data END,status=COALESCE(NULLIF(${clean(b.status)},''),status),updated_at=NOW() WHERE member_code=${code}`;
+            await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`;
+            const after={...b,full_name:full};await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'edit','แก้ไขข้อมูลสมาชิก',CAST(${JSON.stringify(beforeRows[0])} AS JSONB),CAST(${JSON.stringify(after)} AS JSONB),'admin',NOW())`;
+          });
           return json(request,{success:true,message:"บันทึกแล้ว"});
         }
       }
       if(/^\/api\/admin\/members\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){
-        const denied=requireAdmin(request,env);if(denied)return denied;const code=decodeURIComponent(path.split('/')[4]).toUpperCase(),b=await body(request),st=memberStatusText(b.status);await sql`UPDATE members SET status=${st},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;return json(request,{success:true,status:st});
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase(),b=await body(request),st=memberStatusText(b.status),reason=clean(b.reason);const old=await sql`SELECT status FROM members WHERE member_code=${code} LIMIT 1`;if(!old.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
+        const stored=st==='cancelled'&&reason?`ไม่อนุมัติ (${reason})`:st;
+        await sql.begin(async tx=>{await tx`UPDATE members SET status=${stored},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'status',${st==='cancelled'&&reason?'ไม่อนุมัติ: '+reason:'เปลี่ยนสถานะเป็น '+st},CAST(${JSON.stringify(old[0])} AS JSONB),CAST(${JSON.stringify({status:stored,reason})} AS JSONB),'admin',NOW())`});return json(request,{success:true,status:stored});
       }
 
       if(path==="/api/admin/payment-topics"){
