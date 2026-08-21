@@ -78,6 +78,20 @@ function db(env){
   return run;
 }
 
+
+async function ensureNewsSchema(sql){
+  await sql`CREATE TABLE IF NOT EXISTS news (news_id VARCHAR(80) PRIMARY KEY,category VARCHAR(30) NOT NULL DEFAULT 'ข่าวสาร',title VARCHAR(300) NOT NULL,content TEXT NOT NULL,publish_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)`;
+  await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS image_data TEXT`;
+  await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS image_name TEXT`;
+  await sql`ALTER TABLE news ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_news_publish_date ON news(publish_date DESC)`;
+}
+function newsImageOK(v){
+  if(!v)return true;
+  const t=String(v||'');
+  return /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(t) && t.length<=2200000;
+}
+
 async function ensureAccountingSchema(sql){
   await sql`CREATE TABLE IF NOT EXISTS ledger_entries (entry_id TEXT PRIMARY KEY,entry_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),entry_type TEXT NOT NULL,category TEXT,source TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0,reference_type TEXT,reference_id TEXT,member_code TEXT,description TEXT,note TEXT,created_by TEXT,status TEXT NOT NULL DEFAULT 'posted',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`ALTER TABLE ledger_entries ADD COLUMN IF NOT EXISTS attachment_data TEXT`;
@@ -529,7 +543,8 @@ export default {
       }
 
       if(path==="/api/news"&&request.method==="GET"){
-        const rows=await sql`SELECT news_id,category,title,content,publish_date FROM news WHERE active=TRUE ORDER BY publish_date DESC LIMIT 50`;
+        await ensureNewsSchema(sql);
+        const rows=await sql`SELECT news_id,category,title,content,publish_date,image_data,image_name,featured FROM news WHERE active=TRUE ORDER BY featured DESC,publish_date DESC LIMIT 100`;
         return json(request,{success:true,data:rows});
       }
       if(path==="/api/admin/benefit-usage"&&request.method==="POST"){
@@ -788,7 +803,33 @@ export default {
         const oldLog={...rows[0],attachment_data:rows[0].attachment_data?'[มีไฟล์หลักฐาน]':null};await sql.begin(async tx=>{await tx`INSERT INTO ledger_admin_logs(log_id,entry_id,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('LLOG')},${eid},'delete','ลบรายการบัญชีที่บันทึกด้วยมือ',CAST(${JSON.stringify(oldLog)} AS JSONB),NULL,'admin',NOW())`;await tx`DELETE FROM ledger_entries WHERE entry_id=${eid}`});
         return json(request,{success:true,message:'ลบรายการบัญชีแล้ว'})
       }
-      if(path==="/api/admin/news"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),nid=id('NEWS');if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at) VALUES(${nid},${clean(b.category)||'ข่าวสาร'},${clean(b.title)},${clean(b.content)},NOW(),TRUE,NOW(),NOW())`;return json(request,{success:true,news_id:nid},201)}
+      if(path==="/api/admin/news"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureNewsSchema(sql);
+        const rows=await sql`SELECT news_id,category,title,content,publish_date,image_data,image_name,featured,active,created_at,updated_at FROM news ORDER BY publish_date DESC,created_at DESC LIMIT 1000`;
+        return json(request,{success:true,data:rows});
+      }
+      if(path==="/api/admin/news"&&request.method==="POST"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureNewsSchema(sql);const b=await body(request),nid=id('NEWS'),img=clean(b.image_data);
+        if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);
+        if(img&&!newsImageOK(img))return json(request,{success:false,message:"รูปข่าวรองรับ JPG/PNG/WEBP ขนาดไม่เกินประมาณ 1.5 MB"},400);
+        const cat=['ข่าวสาร','ประกาศ','กิจกรรม'].includes(clean(b.category))?clean(b.category):'ข่าวสาร';
+        await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at,image_data,image_name,featured) VALUES(${nid},${cat},${clean(b.title)},${clean(b.content)},COALESCE(${b.publish_date||null}::timestamptz,NOW()),${b.active!==false},NOW(),NOW(),${img||null},${clean(b.image_name)||null},${!!b.featured})`;
+        return json(request,{success:true,news_id:nid},201)
+      }
+      if(/^\/api\/admin\/news\/[^/]+$/.test(path)&&request.method==="PUT"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureNewsSchema(sql);const nid=decodeURIComponent(path.split('/').pop()),b=await body(request),img=clean(b.image_data),remove=!!b.remove_image;
+        const before=await sql`SELECT news_id FROM news WHERE news_id=${nid} LIMIT 1`;if(!before.length)return json(request,{success:false,message:'ไม่พบข่าวสาร'},404);
+        if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:'กรุณากรอกหัวข้อและเนื้อหา'},400);
+        if(img&&!newsImageOK(img))return json(request,{success:false,message:'รูปข่าวรองรับ JPG/PNG/WEBP ขนาดไม่เกินประมาณ 1.5 MB'},400);
+        const cat=['ข่าวสาร','ประกาศ','กิจกรรม'].includes(clean(b.category))?clean(b.category):'ข่าวสาร';
+        await sql`UPDATE news SET category=${cat},title=${clean(b.title)},content=${clean(b.content)},publish_date=COALESCE(${b.publish_date||null}::timestamptz,publish_date),active=${b.active!==false},featured=${!!b.featured},image_data=CASE WHEN ${!!img} THEN ${img||null} WHEN ${remove} THEN NULL ELSE image_data END,image_name=CASE WHEN ${!!img} THEN ${clean(b.image_name)||null} WHEN ${remove} THEN NULL ELSE image_name END,updated_at=NOW() WHERE news_id=${nid}`;
+        return json(request,{success:true,message:'บันทึกการแก้ไขแล้ว'})
+      }
+      if(/^\/api\/admin\/news\/[^/]+$/.test(path)&&request.method==="DELETE"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureNewsSchema(sql);const nid=decodeURIComponent(path.split('/').pop());
+        const rows=await sql`DELETE FROM news WHERE news_id=${nid} RETURNING news_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบข่าวสาร'},404);
+        return json(request,{success:true,message:'ลบข่าวสารแล้ว'})
+      }
       if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
       if(path==="/api/admin/settings"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);
@@ -800,7 +841,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.52',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.53',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }

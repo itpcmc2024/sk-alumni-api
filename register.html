@@ -92,12 +92,12 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 }
 </style>
 
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.52">
-<link rel="stylesheet" href="assets/public-footer.css?v=2.6.52"></head>
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.53">
+<link rel="stylesheet" href="assets/public-footer.css?v=2.6.53"></head>
 <body>
 <div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
-<!-- SK Alumni Register V2.6.52 – Responsive Branding + Smart Address -->
+<!-- SK Alumni Register V2.6.53 – Responsive Branding + Smart Address -->
 <header class="top sticky top-0 z-30">
   <div class="wrap px-4 py-3 flex items-center gap-4">
     <div class="logo-round"><img src="assets/association-logo.png" alt="โลโก้สมาคม"></div>
@@ -178,7 +178,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
   </form>
 </main>
 
-<footer class="sk-public-admin-footer"><div class="sk-public-admin-footer__in"><div class="sk-public-admin-footer__brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div class="sk-public-admin-footer__text"><div class="sk-public-admin-footer__name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-public-admin-footer__values">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="sk-public-admin-footer__copy">© 2026 SK Alumni Member System by KimhanIkals - ลงทะเบียนศิษย์เก่า · V2.6.52</div></div></footer>
+<footer class="sk-public-admin-footer"><div class="sk-public-admin-footer__in"><div class="sk-public-admin-footer__brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div class="sk-public-admin-footer__text"><div class="sk-public-admin-footer__name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-public-admin-footer__values">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="sk-public-admin-footer__copy">© 2026 SK Alumni Member System by KimhanIkals - ลงทะเบียนศิษย์เก่า · V2.6.53</div></div></footer>
 
 <script>
 const API_BASE='https://sk-alumni-api.itpcmc2024.workers.dev';
@@ -261,6 +261,6 @@ $('resetBtn').addEventListener('click',async()=>{const c=await Swal.fire({icon:'
 function resetForm(){$('registerForm').reset();photoData='';$('photoPreview').src='assets/cute-register.jpg';$('photoInfo').textContent='ยังไม่ได้แนบรูปสมาชิก (ไม่บังคับ)';$('prefixOtherBox').classList.add('hidden');$('prefixOther').required=false;postalRows=[];checkEmail(false);if(addressReady){provinces(geo);$('province').disabled=false}resetDistrict();resetSub();$('postalHelp').textContent='❖ พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้';$('submitButton').disabled=true;window.scrollTo({top:0,behavior:'smooth'})}
 loadGeo();
 </script>
-<script defer src="assets/module-nav.js?v=2.6.52"></script>
+<script defer src="assets/module-nav.js?v=2.6.53"></script>
 </body>
 </html>
