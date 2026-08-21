@@ -1,4 +1,4 @@
-SK Alumni System V2.6.30 – Admin Template Alignment
+SK Alumni System V2.6.31 – Admin Template Alignment
 
 การปรับปรุง:
 - แก้ Footer ของ Admin บนจอเล็กให้ไม่แตก ไม่ล้น และไม่ถูกการเลื่อนตารางแนวนอนดึงออกนอกจอ
