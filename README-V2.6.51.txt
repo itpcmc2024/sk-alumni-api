@@ -1,4 +1,4 @@
-SK Alumni System V2.6.51 – Public Frame + Typography + Footer Polish
+SK Alumni System V2.6.52 – Public Frame + Typography + Footer Polish
 
 - Public desktop header standardized to the full icon navigation used by Admin-style shell.
 - Public mobile header standardized to centered logo, system name/subtitle, and Home action.
@@ -8,7 +8,7 @@ SK Alumni System V2.6.51 – Public Frame + Typography + Footer Polish
 - UI-only release; no Worker/API deployment required.
 
 
-V2.6.51 changes:
+V2.6.52 changes:
 - Benefits and News use the same bordered content card language as Status.
 - Public typography standardized: Mitr for headings, Noto Sans Thai for body/forms/buttons.
 - Mobile public footer centers logo, association name, values, and module/version row.

@@ -52,7 +52,7 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 
 
-/* V2.6.51 — Public UI standard: typography, buttons, footer, responsive */
+/* V2.6.52 — Public UI standard: typography, buttons, footer, responsive */
 body{font-family:"Noto Sans Thai",sans-serif!important}
 h1,h2,h3,.section-title,.title,.brand,.site-footer-name{font-family:"Mitr","Noto Sans Thai",sans-serif}
 button,.btn,input[type="button"],input[type="submit"],a.btn{transition:transform .08s ease,box-shadow .12s ease,filter .12s ease}
@@ -73,7 +73,7 @@ button:focus-visible,.btn:focus-visible,a:focus-visible{outline:3px solid rgba(1
  main{max-width:100%;overflow-x:hidden}
 }
 
-/* V2.6.51 — Public footer lock: match Status page across desktop/mobile */
+/* V2.6.52 — Public footer lock: match Status page across desktop/mobile */
 .site-footer.sk-standard-footer{margin-top:30px!important;background:linear-gradient(90deg,#e9f9ef,#f9fff8)!important;border-top:1px solid #d7edde!important;padding:0!important;width:100%!important;overflow:visible!important}
 .site-footer.sk-standard-footer .site-footer-in{width:min(1180px,94vw)!important;margin:0 auto!important;padding:18px 0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;color:#64748b!important;font-size:13px!important;min-height:0!important}
 .site-footer.sk-standard-footer .site-footer-brand{display:flex!important;align-items:center!important;gap:11px!important;max-width:none!important;flex-direction:row!important;text-align:left!important}
