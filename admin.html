@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>SK Alumni - Admin</title>
+<title>SK Alumni - จัดการสมาชิก</title>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Tahoma,"Helvetica Neue",system-ui,-apple-system,"Segoe UI",sans-serif;color:#334155;background:#f7fbf9}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
@@ -22,6 +22,8 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradi
 @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.filters .search-wide{grid-column:1/-1}.searchbtn{width:100%}.grid2{grid-template-columns:1fr}.full{grid-column:auto}.modal-foot{align-items:stretch;flex-direction:column}.leftact,.rightact{width:100%}.leftact .btn,.rightact .btn{flex:1}.topin{padding:12px 14px}.main{padding:18px 14px 35px}}
 @media(max-width:520px){.brand h1{font-size:15px}.brand p{display:none}.logo{width:42px;height:42px}.admin-pill{display:none}.stats{gap:9px}.stat{padding:14px;min-height:96px}.stat .num{font-size:29px}.filters{grid-template-columns:1fr}.filters .search-wide{grid-column:auto}.page-title{align-items:start;flex-direction:column}.soft-note{display:none}}
 .admin-template-links{display:flex;align-items:center;gap:8px}.admin-template-links a{text-decoration:none;border:1px solid #dfe9e4;background:#fff;color:#166749;border-radius:12px;padding:9px 13px;font-weight:700;font-size:13px}.admin-template-links a:hover{background:#f1faf5}@media(max-width:760px){.topin{flex-wrap:wrap}.brand{flex:1}.admin-template-links{order:3;width:100%}.admin-template-links a{flex:1;text-align:center}.top-actions{margin-left:auto}}
+
+.member-module-context{max-width:1380px;margin:14px auto 0;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:10px}.member-module-context>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.member-module-context strong{color:#0d6846;font-size:16px}.member-module-context span{font-size:12px;color:#7b8ba1}.member-module-context a{text-decoration:none;border:1px solid #dce9e2;background:#fff;color:#0d6846;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700}@media(max-width:620px){.member-module-context{padding:0 14px;align-items:flex-start;flex-direction:column}.member-module-context a{width:100%;text-align:center}}
 </style>
 
 
@@ -75,7 +77,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 }
 </style>
 
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.28">
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.29">
 </head>
 <body>
 <div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
@@ -97,11 +99,11 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
     <div class="brand"><h1>SK Alumni Member</h1><p>ระบบจัดการสมาชิก · Admin Console</p></div>
     <div class="admin-template-links"><a href="index.html">🏠 กลับหน้าบ้าน</a><a href="admin-home.html">🧩 ศูนย์จัดการระบบ</a></div><div class="top-actions"><span class="admin-pill">Admin</span><button class="ghost" id="logoutBtn">ออกจากระบบ</button></div>
   </div>
-</header>
+</header><div class="member-module-context"><div><strong>👥 จัดการสมาชิก</strong><span>ค้นหา ตรวจสอบ แก้ไข และเปลี่ยนสถานะสมาชิก</span></div><a href="admin-home.html">🧩 ศูนย์จัดการระบบ</a></div>
 <main class="main">
   <div class="page-title">
     <div><h2>จัดการสมาชิก</h2><p>ดูข้อมูล ค้นหา ตรวจสอบ และเปลี่ยนสถานะสมาชิก</p></div>
-    <div class="soft-note">Pastel Light Admin · V2.6.28</div>
+    <div class="soft-note">Pastel Light Admin · V2.6.29</div>
   </div>
   <section class="stats">
     <div class="stat s-total"><div class="label">สมาชิกทั้งหมด</div><div class="num" id="statTotal">0</div></div>
@@ -125,7 +127,7 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
     <div class="pager"><button id="prevBtn" class="pagebtn">ก่อนหน้า</button><div id="pageInfo" class="pageno">หน้า 1 / 1</div><button id="nextBtn" class="pagebtn">ถัดไป</button></div>
   </section>
 </main>
-<footer class="admin-public-footer"><div class="apf-inner"><div class="apf-brand"><img class="apf-logo" src="assets/association-logo.png" alt="โลโก้สมาคม"><div><div class="apf-title">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="apf-sub">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="apf-copy">© 2026 SK Alumni Member System by KimhanIkals<br>Admin Center · V2.6.28</div></div></footer>
+<footer class="admin-public-footer"><div class="apf-inner"><div class="apf-brand"><img class="apf-logo" src="assets/association-logo.png" alt="โลโก้สมาคม" width="52" height="52"><div><div class="apf-title">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="apf-sub">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="apf-copy">© 2026 SK Alumni Member System by KimhanIkals<br>Admin Center · V2.6.29</div></div></footer>
 <div id="modalBack" class="modal-back hidden">
   <div class="modal">
     <div class="modal-head"><div><h3>รายละเอียดสมาชิก</h3><small id="modalCode">-</small></div><button id="closeModal" class="close">×</button></div>
@@ -216,6 +218,6 @@ function logout(clear=true){state.key='';if(clear){KEY_NAMES.forEach(n=>{localSt
 $('loginBtn').onclick=login;$('adminKey').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('logoutBtn').onclick=()=>logout(true);$('searchBtn').onclick=()=>{state.page=1;applyFilters()};$('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){state.page=1;applyFilters()}});$('statusFilter').onchange=()=>{state.page=1;applyFilters()};$('sortOrder').onchange=()=>{state.page=1;applyFilters()};$('pageSize').onchange=()=>{state.page=1;applyFilters()};$('refreshBtn').onclick=()=>reload();$('prevBtn').onclick=()=>{if(state.page>1){state.page--;render()}};$('nextBtn').onclick=()=>{const p=Math.ceil(state.filtered.length/state.size);if(state.page<p){state.page++;render()}};$('closeModal').onclick=closeModal;$('closeBtn2').onclick=closeModal;$('modalBack').addEventListener('click',e=>{if(e.target===$('modalBack'))closeModal()});$('saveBtn').onclick=saveMember;$('approveBtn').onclick=()=>changeStatus('active');$('cancelBtn').onclick=()=>changeStatus('cancelled');$('fPhone').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,10));$('fPostal').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,5));
 (async()=>{const k=storedKey();if(k){state.key=k;$('adminKey').value=k;$('rememberKey').checked=!!localStorage.getItem('sk_alumni_admin_key');try{const rows=await loadFromServer();state.all=rows.map(normalizeMember);$('loginBack').classList.add('hidden');applyFilters()}catch{state.key='';$('loginBack').classList.remove('hidden')}}})();
 </script>
-<script defer src="assets/module-nav.js?v=2.6.28"></script>
+<script defer src="assets/module-nav.js?v=2.6.29"></script>
 </body>
 </html>
