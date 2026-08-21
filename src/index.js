@@ -139,11 +139,11 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.42",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.43",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.42"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.43"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -735,6 +735,11 @@ export default {
           return json(request,{success:true,entry_id:eid,message:'บันทึกรายการบัญชีแล้ว'},201)
         }
       }
+      if(path==="/api/admin/ledger/logs"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);
+        const rows=await sql`SELECT log_id,entry_id,action,detail,admin_by,created_at FROM ledger_admin_logs ORDER BY created_at DESC LIMIT 1000`;
+        return json(request,{success:true,data:rows})
+      }
       if(/^\/api\/admin\/ledger\/[^/]+$/.test(path)&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);const eid=decodeURIComponent(path.split('/').pop());
         const rows=await sql`SELECT * FROM ledger_entries WHERE entry_id=${eid} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบัญชี'},404);return json(request,{success:true,data:rows[0]})
@@ -775,7 +780,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.42',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.43',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
