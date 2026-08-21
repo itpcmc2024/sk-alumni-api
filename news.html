@@ -1,4 +1,4 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ข่าวสาร</title><link rel="stylesheet" href="assets/site.css?v=2.6.24"><script defer src="assets/site.js?v=2.6.24"></script>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ข่าวสาร</title><link rel="stylesheet" href="assets/site.css?v=2.6.25"><script src="assets/site.js?v=2.6.25"></script>
 
 <style id="v26-global-nav">
 .v26-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
@@ -50,9 +50,9 @@ box-shadow:0 5px 14px rgba(28,111,74,.07)}
 }
 </style>
 
-<link rel="stylesheet" href="assets/module-nav.css?v=2.6.24">
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.25">
 </head><body>
 <div class="v26-homebar"><a class="v26-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
 
-<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ข่าวสารและกิจกรรม</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="news.html">ข่าวสาร</a></nav></div></header><main class="wrap"><h1 class="section-title">📣 ข่าวสารล่าสุด</h1><div id="list" class="list"><div class="card">กำลังโหลด...</div></div></main><div id="foot"></div><script>document.getElementById('foot').innerHTML=footer('News');(async()=>{try{const j=await api('/api/news');const rows=j.data||[];document.getElementById('list').innerHTML=rows.length?rows.map(n=>`<article class="card"><span class="badge active">${e(n.category||'ข่าวสาร')}</span><h2>${e(n.title)}</h2><div style="color:#7a8797;font-size:13px">${fmtDate(n.publish_date)}</div><p style="line-height:1.8">${e(n.content||'')}</p></article>`).join(''):'<div class="card">ยังไม่มีข่าวสาร</div>'}catch(err){document.getElementById('list').innerHTML=`<div class="card">โหลดข่าวไม่สำเร็จ: ${e(err.message)}</div>`}})();</script><script defer src="assets/module-nav.js?v=2.6.24"></script>
+<header class="top"><div class="wrap topin"><img class="logo" src="assets/association-logo.png"><div><div class="brand">ข่าวสารและกิจกรรม</div><div class="brand-sub">SK Alumni Member System</div></div><nav class="nav"><a href="index.html">หน้าแรก</a><a class="active" href="news.html">ข่าวสาร</a></nav></div></header><main class="wrap"><h1 class="section-title">📣 ข่าวสารล่าสุด</h1><div id="list" class="list"><div class="card">กำลังโหลด...</div></div></main><div id="foot"></div><script>document.getElementById('foot').innerHTML=footer('News');(async()=>{try{const j=await api('/api/news');const rows=j.data||[];document.getElementById('list').innerHTML=rows.length?rows.map(n=>`<article class="card"><span class="badge active">${e(n.category||'ข่าวสาร')}</span><h2>${e(n.title)}</h2><div style="color:#7a8797;font-size:13px">${fmtDate(n.publish_date)}</div><p style="line-height:1.8">${e(n.content||'')}</p></article>`).join(''):'<div class="card">ยังไม่มีข่าวสาร</div>'}catch(err){document.getElementById('list').innerHTML=`<div class="card">โหลดข่าวไม่สำเร็จ: ${e(err.message)}</div>`}})();</script><script defer src="assets/module-nav.js?v=2.6.25"></script>
 </body></html>
