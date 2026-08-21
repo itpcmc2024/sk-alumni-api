@@ -7,9 +7,9 @@
   ];
   const active=(href)=> path===href || (href==='member.html'&&path==='benefits.html') || (href==='admin-home.html'&&path.startsWith('admin'));
   const header=()=>`<header class="sk-module-nav" data-sk-nav="v2.6.31"><div class="sk-nav-wrap">
-    <a class="sk-nav-brand" href="index.html?v=2.6.39"><img class="sk-nav-logo" src="assets/association-logo.png?v=2.6.39" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name><span class="sk-app-line">ระบบสมาชิกสมาคมศิษย์เก่า</span><span class="sk-app-line">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a>
-    <nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}?v=2.6.39"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav>
-    <div class="sk-mobile-home"><a href="index.html?v=2.6.39">🏠 หน้าแรก</a>${path.startsWith('admin')&&path!=='admin-home.html'?'<a class="sk-mobile-admin-back" href="admin-home.html">🧩 ศูนย์จัดการระบบ</a>':''}</div>
+    <a class="sk-nav-brand" href="index.html?v=2.6.40"><img class="sk-nav-logo" src="assets/association-logo.png?v=2.6.40" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name><span class="sk-app-line">ระบบสมาชิกสมาคมศิษย์เก่า</span><span class="sk-app-line">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a>
+    <nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}?v=2.6.40"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav>
+    <div class="sk-mobile-home"><a href="index.html?v=2.6.40">🏠 หน้าแรก</a>${path.startsWith('admin')&&path!=='admin-home.html'?'<a class="sk-mobile-admin-back" href="admin-home.html">🧩 ศูนย์จัดการระบบ</a>':''}</div>
   </div></header>`;
 
   function enhance(){
@@ -31,7 +31,7 @@
         if(main){
           const a=document.createElement('a');
           a.className='sk-admin-back-inline';
-          a.href='admin-home.html?v=2.6.39';
+          a.href='admin-home.html?v=2.6.40';
           a.textContent='🧩 ศูนย์จัดการระบบ';
           const title=main.querySelector('.page-title');
           const tabs=main.querySelector('.setting-tabs,.tabs,.subtabs');
