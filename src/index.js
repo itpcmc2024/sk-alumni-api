@@ -149,6 +149,11 @@ async function ensureV2616Schema(sql){
   await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
   await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS verified_by TEXT`;
   await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS address_line TEXT`;
+  await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS subdistrict TEXT`;
+  await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS district TEXT`;
+  await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS province TEXT`;
+  await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS postal_code TEXT`;
   await sql`CREATE TABLE IF NOT EXISTS receipt_print_logs (log_id TEXT PRIMARY KEY,batch_id TEXT,payment_id TEXT,receipt_no TEXT,print_type TEXT NOT NULL DEFAULT 'single',printed_by TEXT,printed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),user_agent TEXT)`;
   await sql`ALTER TABLE receipt_print_logs ADD COLUMN IF NOT EXISTS source_type TEXT NOT NULL DEFAULT 'payment'`;
   await sql`ALTER TABLE receipt_print_logs ADD COLUMN IF NOT EXISTS transaction_id TEXT`;
@@ -186,16 +191,16 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.56",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.57",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.56"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.57"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.57';
         return json(request,{success:true,data});
       }
 
@@ -564,7 +569,7 @@ export default {
         const topicRows=await sql`SELECT topic_id,title FROM donation_topics WHERE topic_id=${topicId} AND active=TRUE LIMIT 1`;if(!topicRows.length)return json(request,{success:false,message:"ไม่พบหัวข้อบริจาคที่เปิดใช้งาน"},400);
         if(memberCode){const mr=await sql`SELECT member_code,prefix,first_name,last_name,full_name,phone,email FROM members WHERE member_code=${memberCode} LIMIT 1`;if(!mr.length)return json(request,{success:false,message:"ไม่พบรหัสสมาชิก"},404);const m=mr[0],mn=[m.prefix,m.first_name,m.last_name].filter(Boolean).join(' ')||m.full_name||'';if(mn)name=mn;}
         const donationId=id('DON');await ensureV2616Schema(sql);await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS slip_data TEXT`;
-        await sql`INSERT INTO donations(donation_id,member_code,topic_id,amount,donated_at,slip_url,status,donor_name,phone,email,created_at,updated_at,slip_data,note) VALUES(${donationId},${memberCode||null},${topicId},${amount},${b.donated_at||new Date().toISOString()},NULL,'รอตรวจสอบ',${name},${phone},${email},NOW(),NOW(),${slip},${clean(b.note)||null})`;
+        await sql`INSERT INTO donations(donation_id,member_code,topic_id,amount,donated_at,slip_url,status,donor_name,phone,email,created_at,updated_at,slip_data,note,address_line,subdistrict,district,province,postal_code) VALUES(${donationId},${memberCode||null},${topicId},${amount},${b.donated_at||new Date().toISOString()},NULL,'รอตรวจสอบ',${name},${phone},${email},NOW(),NOW(),${slip},${clean(b.note)||null},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null})`;
         return json(request,{success:true,donation_id:donationId,status:'รอตรวจสอบ'},201);
       }
 
@@ -786,7 +791,7 @@ export default {
       if(/^\/api\/admin\/donations\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const donationId=decodeURIComponent(path.split('/')[4]);
         await sql`UPDATE donations SET receipt_no=COALESCE(receipt_no,'RCP-'||TO_CHAR(COALESCE(verified_at,donated_at,created_at),'YYYYMMDD')||'-D'||UPPER(SUBSTR(MD5(donation_id),1,5))),receipt_issued_at=COALESCE(receipt_issued_at,verified_at,updated_at,NOW()) WHERE donation_id=${donationId} AND status IN ('ตรวจสอบแล้ว','อนุมัติ','approved','verified')`;
-        const rows=await sql`SELECT d.donation_id,d.member_code,d.amount,d.donated_at,d.status,d.verified_by,d.verified_at,d.receipt_no,d.receipt_issued_at,d.donor_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email,COALESCE(dt.title,d.topic_id,'เงินบริจาค') AS donation_type,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code LEFT JOIN addresses a ON a.member_code=d.member_code WHERE d.donation_id=${donationId} LIMIT 1`;
+        const rows=await sql`SELECT d.donation_id,d.member_code,d.amount,d.donated_at,d.status,d.verified_by,d.verified_at,d.receipt_no,d.receipt_issued_at,d.donor_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email,COALESCE(dt.title,d.topic_id,'เงินบริจาค') AS donation_type,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(a.address_line,d.address_line) AS address_line,COALESCE(a.subdistrict,d.subdistrict) AS subdistrict,COALESCE(a.district,d.district) AS district,COALESCE(a.province,d.province) AS province,COALESCE(a.postal_code,d.postal_code) AS postal_code FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code LEFT JOIN addresses a ON a.member_code=d.member_code WHERE d.donation_id=${donationId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบริจาค'},404);if(!['ตรวจสอบแล้ว','อนุมัติ','approved','verified'].includes(String(rows[0].status||'').toLowerCase())&&!['ตรวจสอบแล้ว','อนุมัติ'].includes(String(rows[0].status||'')))return json(request,{success:false,message:'ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว'},409);
         const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE')`;const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;return json(request,{success:true,data:{...rows[0],source_type:'donation',transaction_id:donationId,settings}})
       }
@@ -896,7 +901,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.56',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.57',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
