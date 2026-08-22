@@ -191,16 +191,16 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.57",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.58",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.57"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.58"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.57';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.58';
         return json(request,{success:true,data});
       }
 
@@ -630,6 +630,11 @@ export default {
         return json(request,{success:true,data:rows});
       }
 
+      if(path==="/api/admin/auth-check"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        return json(request,{success:true,authorized:true,version:"2.6.58"});
+      }
+
       if(path==="/api/admin/members"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
         const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.email,m.phone,m.line_id,m.line_user_id,m.status,m.registered_at,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
@@ -873,9 +878,16 @@ export default {
         return json(request,{success:true,message:'ลบข่าวสารแล้ว'})
       }
       if(path==="/api/admin/media"&&request.method==="GET"){
-        const denied=requireAdmin(request,env);if(denied)return denied;await ensureMediaSchema(sql);
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureMediaSchema(sql);await ensureNewsSchema(sql);
         const rows=await sql`SELECT media_id,file_name,category,mime_type,image_data,size_bytes,created_by,created_at,updated_at FROM media_library ORDER BY created_at DESC LIMIT 500`;
-        return json(request,{success:true,data:rows});
+        const nrows=await sql`SELECT news_id,category,title,image_data,image_name,publish_date,updated_at FROM news WHERE image_data IS NOT NULL AND image_data<>'' ORDER BY publish_date DESC,updated_at DESC LIMIT 500`;
+        const seen=new Set(rows.map(x=>String(x.image_data||'')));
+        const derived=[];
+        for(const n of nrows){
+          const imgs=newsImages(n.image_data);let names=[];try{const t=String(n.image_name||'').trim();names=t.startsWith('[')?JSON.parse(t):[t]}catch{names=[]}
+          imgs.forEach((img,i)=>{if(!img||seen.has(String(img)))return;seen.add(String(img));const comma=String(img).indexOf(','),bytes=comma>=0?Math.floor((String(img).length-comma-1)*0.75):0;derived.push({media_id:`NEWS:${n.news_id}:${i}`,file_name:clean(names[i])||`${clean(n.title)||'news'}-${i+1}.jpg`,category:n.category||'ข่าวสาร',mime_type:(String(img).match(/^data:(image\/[^;]+);base64,/i)||[])[1]||'image/jpeg',image_data:img,size_bytes:bytes,created_by:'news',created_at:n.publish_date||n.updated_at,updated_at:n.updated_at,source_type:'news',source_id:n.news_id,source_title:n.title})})
+        }
+        return json(request,{success:true,data:[...rows.map(x=>({...x,source_type:'library'})),...derived]});
       }
       if(path==="/api/admin/media"&&request.method==="POST"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureMediaSchema(sql);const b=await body(request),img=clean(b.image_data),name=clean(b.file_name)||'image.jpg',cat=clean(b.category)||'ข่าวสาร';
@@ -901,7 +913,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.57',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.58',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
