@@ -118,6 +118,14 @@ function mediaImageOK(v){
   return /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(t) && t.length<=900000;
 }
 
+async function ensureBenefitsSchema(sql){
+  await sql`ALTER TABLE benefits ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE`;
+  await sql`ALTER TABLE benefits ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
+  await sql`CREATE TABLE IF NOT EXISTS benefit_usage(usage_id VARCHAR(80) PRIMARY KEY,member_code VARCHAR(20) NOT NULL REFERENCES members(member_code) ON DELETE RESTRICT,benefit_id VARCHAR(80) NOT NULL REFERENCES benefits(benefit_id) ON DELETE RESTRICT,used_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,recorded_by VARCHAR(100) NOT NULL,note TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK(amount>=0),active BOOLEAN NOT NULL DEFAULT TRUE,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)`;
+  await sql`ALTER TABLE benefit_usage ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT TRUE`;
+  await sql`ALTER TABLE benefit_usage ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
+}
+
 async function ensureAccountingSchema(sql){
   await sql`CREATE TABLE IF NOT EXISTS ledger_entries (entry_id TEXT PRIMARY KEY,entry_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),entry_type TEXT NOT NULL,category TEXT,source TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0,reference_type TEXT,reference_id TEXT,member_code TEXT,description TEXT,note TEXT,created_by TEXT,status TEXT NOT NULL DEFAULT 'posted',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`ALTER TABLE ledger_entries ADD COLUMN IF NOT EXISTS attachment_data TEXT`;
@@ -200,16 +208,16 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.60",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.61",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.60"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.61"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.60';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.61';
         return json(request,{success:true,data});
       }
 
@@ -222,8 +230,7 @@ export default {
           const rows=await sql`SELECT topic_id,title,description,amount FROM payment_topics WHERE active=TRUE ORDER BY title`;
           const mapped=(rows||[]).map(r=>r.topic_id==='membership'?{...r,title:'ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',description:r.description||'สนับสนุนสมาคมฯ รายปี',amount:fee??r.amount}:r);
           mapped.sort((a,b)=>a.topic_id==='membership'?-1:b.topic_id==='membership'?1:String(a.title||'').localeCompare(String(b.title||''),'th'));
-          const seen=new Set(),normalized=[];for(const r of mapped){const k=String(r.title||'').replace(/\s+/g,'').trim();if(seen.has(k))continue;seen.add(k);normalized.push(r)}
-          if(normalized.length)return json(request,{success:true,data:normalized});
+          if(mapped.length)return json(request,{success:true,data:mapped});
         }catch(topicError){
           console.warn('payment-topics public fallback',topicError?.message||topicError);
         }
@@ -599,7 +606,7 @@ export default {
         return json(request,{success:true,data:rows});
       }
       if(path==="/api/admin/benefit-usage"&&request.method==="POST"){
-        const denied=requireAdmin(request,env);if(denied)return denied;
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);
         const b=await body(request),code=clean(b.member_code).toUpperCase(),benefitId=clean(b.benefit_id),amount=Math.max(0,Number(b.amount||0));
         if(!code||!benefitId)return json(request,{success:false,message:"กรุณาระบุสมาชิกและสิทธิประโยชน์"},400);
         const member=await sql`SELECT member_code FROM members WHERE member_code=${code} LIMIT 1`;
@@ -618,7 +625,8 @@ export default {
           )
         `;
         const usageId=id('USE');
-        await sql`INSERT INTO benefit_usage(usage_id,member_code,benefit_id,used_at,recorded_by,note,amount,created_at) VALUES(${usageId},${code},${benefitId},${b.used_at||new Date().toISOString()},${clean(b.recorded_by)||'admin'},${clean(b.note)||null},${amount},NOW())`;
+        await sql`INSERT INTO benefit_usage(usage_id,member_code,benefit_id,used_at,recorded_by,note,amount,active,created_at,updated_at) VALUES(${usageId},${code},${benefitId},${b.used_at||new Date().toISOString()},${clean(b.recorded_by)||'admin'},${clean(b.note)||null},${amount},TRUE,NOW(),NOW())`;
+        if(amount>0){const bn=await sql`SELECT title FROM benefits WHERE benefit_id=${benefitId} LIMIT 1`;await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'expense','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${usageId},${code},${'ค่าใช้สิทธิ์: '+(bn[0]?.title||benefitId)},${clean(b.note)||null},'admin','posted',NOW(),NOW())`;}
         return json(request,{success:true,usage_id:usageId,message:"บันทึกการใช้สิทธิประโยชน์แล้ว"},201);
       }
 
@@ -635,13 +643,14 @@ export default {
       }
 
       if(path==="/api/benefits"&&request.method==="GET"){
+        await ensureBenefitsSchema(sql);
         const rows=await sql`SELECT benefit_id,title,description,start_date,end_date FROM benefits WHERE active=TRUE AND (start_date IS NULL OR start_date<=CURRENT_DATE) AND (end_date IS NULL OR end_date>=CURRENT_DATE) ORDER BY created_at DESC`;
         return json(request,{success:true,data:rows});
       }
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.60"});
+        return json(request,{success:true,authorized:true,version:"2.6.61"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -912,7 +921,14 @@ export default {
         return json(request,{success:true,message:'ลบรูปจากคลังแล้ว'});
       }
 
-      if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
+      if(path==="/api/admin/benefits"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const rows=await sql`SELECT benefit_id,title,description,start_date,end_date,active,created_at,updated_at FROM benefits ORDER BY created_at DESC`;return json(request,{success:true,data:rows})}
+      if(path==="/api/admin/benefits"&&request.method==="POST"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const b=await body(request),bid=id('BEN');if(!clean(b.title))return json(request,{success:false,message:"กรุณากรอกชื่อสิทธิประโยชน์"},400);await sql`INSERT INTO benefits(benefit_id,title,description,start_date,end_date,active,created_at,updated_at) VALUES(${bid},${clean(b.title)},${clean(b.description)||null},${b.start_date||null},${b.end_date||null},TRUE,NOW(),NOW())`;return json(request,{success:true,benefit_id:bid},201)}
+      if(/^\/api\/admin\/benefits\/[^/]+$/.test(path)&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const bid=decodeURIComponent(path.split('/').pop()),b=await body(request);const rows=await sql`UPDATE benefits SET title=${clean(b.title)},description=${clean(b.description)||null},start_date=${b.start_date||null},end_date=${b.end_date||null},updated_at=NOW() WHERE benefit_id=${bid} RETURNING benefit_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบสิทธิประโยชน์'},404);return json(request,{success:true})}
+      if(/^\/api\/admin\/benefits\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const bid=decodeURIComponent(path.split('/')[4]),b=await body(request);await sql`UPDATE benefits SET active=${!!b.active},updated_at=NOW() WHERE benefit_id=${bid}`;return json(request,{success:true})}
+      if(path==="/api/admin/benefit-usage"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const rows=await sql`SELECT u.usage_id,u.member_code,u.benefit_id,u.used_at,u.amount,u.note,u.recorded_by,u.active,u.created_at,u.updated_at,COALESCE(b.title,u.benefit_id) benefit_title,COALESCE(m.full_name,TRIM(CONCAT_WS(' ',m.prefix,m.first_name,m.last_name)),u.member_code) member_name FROM benefit_usage u LEFT JOIN benefits b ON b.benefit_id=u.benefit_id LEFT JOIN members m ON m.member_code=u.member_code WHERE u.active=TRUE ORDER BY u.used_at DESC,u.created_at DESC`;return json(request,{success:true,data:rows})}
+      if(/^\/api\/admin\/benefit-usage\/[^/]+$/.test(path)&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);const uid=decodeURIComponent(path.split('/').pop()),b=await body(request),amount=Math.max(0,Number(b.amount||0));const rows=await sql`UPDATE benefit_usage SET member_code=${clean(b.member_code).toUpperCase()},benefit_id=${clean(b.benefit_id)},used_at=${b.used_at||new Date().toISOString()},amount=${amount},note=${clean(b.note)||null},updated_at=NOW() WHERE usage_id=${uid} AND active=TRUE RETURNING usage_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบบันทึกการใช้สิทธิ์'},404);const ben=await sql`SELECT title FROM benefits WHERE benefit_id=${clean(b.benefit_id)} LIMIT 1`;if(amount>0){const led=await sql`SELECT entry_id FROM ledger_entries WHERE reference_type='benefit_usage' AND reference_id=${uid} ORDER BY created_at LIMIT 1`;if(led.length){await sql`UPDATE ledger_entries SET entry_date=${b.used_at||new Date().toISOString()},amount=${amount},member_code=${clean(b.member_code).toUpperCase()},description=${'ค่าใช้สิทธิ์: '+(ben[0]?.title||clean(b.benefit_id))},note=${clean(b.note)||null},status='posted',updated_at=NOW() WHERE entry_id=${led[0].entry_id}`;}else{await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'expense','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${uid},${clean(b.member_code).toUpperCase()},${'ค่าใช้สิทธิ์: '+(ben[0]?.title||clean(b.benefit_id))},${clean(b.note)||null},'admin','posted',NOW(),NOW())`;}}else{await sql`UPDATE ledger_entries SET status='void',updated_at=NOW() WHERE reference_type='benefit_usage' AND reference_id=${uid}`;}return json(request,{success:true})}
+      if(/^\/api\/admin\/benefit-usage\/[^/]+$/.test(path)&&request.method==="DELETE"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);const uid=decodeURIComponent(path.split('/').pop());await sql`UPDATE benefit_usage SET active=FALSE,updated_at=NOW() WHERE usage_id=${uid}`;await sql`UPDATE ledger_entries SET status='void',updated_at=NOW() WHERE reference_type='benefit_usage' AND reference_id=${uid}`;return json(request,{success:true})}
+
       if(path==="/api/admin/settings"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings ORDER BY setting_key`;
@@ -923,7 +939,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.60',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.61',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
