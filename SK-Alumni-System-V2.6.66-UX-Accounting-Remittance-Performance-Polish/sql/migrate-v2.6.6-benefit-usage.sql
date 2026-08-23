@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS public.benefit_usage (
+  usage_id VARCHAR(80) PRIMARY KEY,
+  member_code VARCHAR(20) NOT NULL REFERENCES public.members(member_code) ON DELETE RESTRICT,
+  benefit_id VARCHAR(80) NOT NULL REFERENCES public.benefits(benefit_id) ON DELETE RESTRICT,
+  used_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  recorded_by VARCHAR(100) NOT NULL,
+  note TEXT,
+  amount NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK(amount >= 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

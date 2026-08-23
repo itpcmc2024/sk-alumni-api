@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="th">
+<head><link rel="preconnect" href="https://sk-alumni-api.itpcmc2024.workers.dev" crossorigin>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ลงทะเบียนศิษย์เก่า</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    *{box-sizing:border-box}
+    :root{--g:#0e9f63;--gd:#06724a;--txt:#334155;--mut:#718096}
+    body{margin:0;font-family:"Noto Sans Thai",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--txt);background:linear-gradient(135deg,#f4fff8,#f7fbff 50%,#fff9fb);font-weight:400}
+    h1,h2,.brand-title,.hero-title{font-family:"Mitr","Noto Sans Thai",sans-serif;letter-spacing:-.015em}
+    .wrap{max-width:1180px;margin:auto}.glass{background:rgba(255,255,255,.96);border:1px solid #d9efe2;box-shadow:0 10px 30px rgba(15,118,80,.07)}
+    .top{background:rgba(255,255,255,.97);border-bottom:1px solid #dff4e7;box-shadow:0 3px 18px rgba(12,108,72,.045)}
+    .logo-round{width:74px;height:74px;border-radius:50%;background:#fff;border:5px solid #dcfce7;display:grid;place-items:center;overflow:hidden;box-shadow:0 8px 20px rgba(16,185,129,.12)}.logo-round img{width:88%;height:88%;object-fit:contain}
+    .hero{position:relative;isolation:isolate;min-height:300px;border-radius:28px;overflow:hidden;background:url('assets/mosque-reference.jpg') 72% center/cover no-repeat;border:1px solid #d8efe1;box-shadow:0 16px 38px rgba(16,185,129,.09)}
+    .hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(249,255,251,.97) 34%,rgba(240,253,244,.78) 58%,rgba(255,255,255,.22) 100%)}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 10% 15%,rgba(187,247,208,.38),transparent 28%),radial-gradient(circle at 52% 85%,rgba(254,240,138,.20),transparent 24%);pointer-events:none}
+    .hero-inner{position:relative}.hero-copy{max-width:650px}.hero-title{text-shadow:0 1px 0 rgba(255,255,255,.8)}
+    .pill{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:999px;background:rgba(220,252,231,.88);border:1px solid #a7f3d0;color:#15803d;font-weight:700;box-shadow:0 5px 14px rgba(22,163,74,.07)}
+    .quote-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%;max-width:760px}.chip{display:flex;align-items:center;justify-content:center;min-width:0;padding:8px 10px;border-radius:16px;font-weight:700;font-size:clamp(9px,1.25vw,13px);line-height:1.2;white-space:nowrap;box-shadow:0 4px 12px rgba(15,23,42,.035);border:1px solid rgba(255,255,255,.8);text-align:center}.pink{background:#fce7f3;color:#be185d}.blue{background:#dbeafe;color:#1d4ed8}.yellow{background:#fef3c7;color:#b45309}.green{background:#dcfce7;color:#15803d}
+    .card{border-radius:28px;padding:22px 24px}.green-card{background:linear-gradient(135deg,#fff,#f6fff4);border:1px solid #dcefd7}.blue-card{background:linear-gradient(135deg,#fff,#f4faff);border:1px solid #d8ecfb}.yellow-card{background:linear-gradient(135deg,#fff,#fffaf0);border:1px solid #f5ead0}.pink-card{background:linear-gradient(135deg,#fff,#fff5f8);border:1px solid #f4dce7}
+    .sec{display:flex;align-items:center;gap:14px;margin-bottom:18px}.sec-icon{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;overflow:hidden;flex:none;box-shadow:0 8px 18px rgba(15,118,80,.08)}.sec-icon img{width:100%;height:100%;object-fit:cover}.emoji{font-size:37px}.circle-blue{background:#e5f4ff;border:4px solid #bde4ff}.circle-yellow{background:#fff4cf;border:4px solid #ffe29a}.circle-pink{background:#fde7f1;border:4px solid #fac7dd}
+    label{display:block;font-weight:600;font-size:14px;margin-bottom:7px;color:#475569}.req{color:#f43f5e}.input{width:100%;height:49px;border:1px solid #ccddd3;border-radius:14px;padding:0 14px;background:#fff;outline:none;transition:.18s;font-family:"Noto Sans Thai",sans-serif;font-weight:400}.input:focus{border-color:#34a56f;box-shadow:0 0 0 4px rgba(52,165,111,.11)}.input:disabled{background:#f1f5f3;color:#94a3b8}.err{border-color:#fb7185!important;background:#fff7f8!important;box-shadow:0 0 0 4px rgba(251,113,133,.10)!important}
+    .status{padding:13px 15px;border-radius:14px;font-size:13px;font-weight:600}.sload{background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d}.sready{background:#effcf4;border:1px solid #bbf7d0;color:#15803d}.serr{background:#fff1f2;border:1px solid #fecdd3;color:#be123c}
+    .consent{background:linear-gradient(120deg,#ecfdf5,#fffaf0);border:1px solid #a7f3d0;border-radius:20px;padding:15px}.btn{height:52px;border-radius:16px;font-family:"Noto Sans Thai",sans-serif;font-weight:700;transition:.2s}.reset{background:#fff;border:1.5px solid #10b981;color:#078153}.submit:not(:disabled){background:linear-gradient(135deg,#10b981,#0e9f63,#14b8a6);color:#fff;box-shadow:0 10px 22px rgba(16,185,129,.22)}.submit:disabled{background:#dce5e1;color:#9aacb7;cursor:not-allowed}.submit:not(:disabled):hover,.reset:hover{transform:translateY(-1px)}
+    footer{background:linear-gradient(90deg,#e9f9ef,#f9fff8);border-top:1px solid #d7edde;margin-top:26px}.footer-logo{width:58px;height:58px;border-radius:50%;object-fit:contain;background:white;border:4px solid #dcfce7}.footer-brand{font-family:"Mitr","Noto Sans Thai",sans-serif;font-weight:600}
+    @media(max-width:720px){.hero{min-height:330px;background-position:63% center}.hero::before{background:linear-gradient(90deg,rgba(255,255,255,.985) 0%,rgba(251,255,252,.96) 54%,rgba(244,255,248,.62) 77%,rgba(255,255,255,.30) 100%)}.hero-inner{padding:22px!important}.hero-copy{max-width:100%}.logo-round{width:66px;height:66px}.sec-icon{width:62px;height:62px}.quote-row{gap:5px}.chip{font-size:clamp(8px,2.2vw,11px);padding:7px 4px;border-radius:14px}}
+    @media(max-width:420px){.quote-row{gap:4px}.chip{font-size:8px;padding:6px 2px;letter-spacing:-.15px}}
+  
+.photo-box{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;margin-top:18px;padding:16px;border:1px dashed #b9dec9;border-radius:18px;background:#fbfffc}
+.photo-preview{width:138px;height:160px;border-radius:16px;object-fit:cover;background:#eef8f2;border:1px solid #dcebe3}
+.photo-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.photo-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 13px;border-radius:12px;border:1px solid #bfe4cf;background:#fff;color:#08744c;font-weight:800;cursor:pointer}
+.photo-note{font-size:12px;color:#7d8a84;line-height:1.55;margin-top:7px}
+@media(max-width:640px){.photo-box{grid-template-columns:1fr;text-align:center}.photo-preview{margin:auto}.photo-actions{justify-content:center}}
+
+</style>
+
+
+<style id="v25-global-nav">
+.v25-homebar{max-width:1220px;margin:14px auto 0;padding:0 18px;display:flex;justify-content:flex-end}
+.v25-homebtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;
+border:1px solid #bfe4cf;background:#f7fff9;color:#08744c;font-weight:800;text-decoration:none;
+box-shadow:0 5px 14px rgba(28,111,74,.07)}
+.v25-homebtn:hover{background:#eaf9f1}
+@media(max-width:760px){.v25-homebar{justify-content:flex-end;margin-top:10px;padding-right:14px}.v25-homebtn{font-size:13px}}
+</style>
+
+<style id="v25-footer-mobile">
+@media(max-width:760px){
+  footer .wrap, .site-footer-in, .footin{
+    text-align:center!important;
+  }
+  .site-footer-in, .footin{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:18px!important;
+  }
+  .site-footer-brand, .footbrand{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:14px!important;
+    text-align:left!important;
+    width:auto!important;
+    max-width:94%!important;
+  }
+  .site-footer-brand img, .footbrand img, footer .footer-logo{
+    width:72px!important;
+    height:72px!important;
+    flex:none!important;
+    object-fit:contain!important;
+    background:transparent!important;
+    border:3px solid rgba(50,169,105,.22)!important;
+    box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14)!important;
+    border-radius:50%!important;
+    padding:3px!important;
+  }
+  .site-footer-version, .footcopy{
+    text-align:center!important;
+    width:100%!important;
+    margin-top:0!important;
+  }
+}
+</style>
+
+<link rel="stylesheet" href="assets/module-nav.css?v=2.6.66">
+<link rel="stylesheet" href="assets/public-footer.css?v=2.6.66"><script defer src="assets/ui-feedback.js?v=2.6.66"></script></head>
+<body>
+<div class="v25-homebar"><a class="v25-homebtn" href="index.html">← กลับหน้าหลัก</a></div>
+
+<!-- SK Alumni Register V2.6.66 – Responsive Branding + Smart Address -->
+<header class="top sticky top-0 z-30">
+  <div class="wrap px-4 py-3 flex items-center gap-4">
+    <div class="logo-round"><img src="assets/association-logo.png" alt="โลโก้สมาคม"></div>
+    <div class="min-w-0">
+      <div class="brand-title text-lg md:text-2xl font-semibold text-emerald-800 leading-tight">ทะเบียนสมาชิกสมาคมศิษย์เก่า</div>
+      <div class="brand-title text-lg md:text-2xl font-semibold text-emerald-800 leading-tight">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div>
+      <div class="text-sm text-slate-500 mt-1"><a href="index.html" class="hover:text-emerald-700">SK Alumni Member System</a></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap px-4 py-5 md:py-7">
+  <section class="hero mb-5">
+    <div class="hero-inner h-full min-h-[280px] flex items-center p-6 md:p-10">
+      <div class="hero-copy">
+        <span class="pill">🌿 ยินดีต้อนรับศิษย์เก่าทุกคน</span>
+        <h1 class="hero-title text-4xl md:text-5xl font-semibold text-emerald-800 mt-5">ลงทะเบียนศิษย์เก่า</h1>
+        <p class="text-lg md:text-xl text-slate-600 mt-4 leading-relaxed">ร่วมเป็นส่วนหนึ่งของครอบครัวศิษย์เก่า เชื่อมโยงความทรงจำ มิตรภาพ และข่าวสารดี ๆ ของสมาคม</p>
+        <div class="quote-row mt-5"><span class="chip pink">💗 ครอบครัวศิษย์เก่า</span><span class="chip blue">🤝 สานสัมพันธ์</span><span class="chip yellow">🌱 ร่วมกันพัฒนา</span><span class="chip green">✨ สู่อนาคตที่ดี</span></div>
+      </div>
+    </div>
+  </section>
+
+  <form id="registerForm" class="space-y-4">
+    <section class="glass card green-card">
+      <div class="sec"><div class="sec-icon"><img src="assets/cute-register.jpg" alt="ข้อมูลศิษย์เก่า"></div><div><h2 class="text-2xl font-semibold text-emerald-800">ข้อมูลศิษย์เก่า</h2><p class="text-slate-400 mt-1">บอกเราเกี่ยวกับคุณสักนิดนะ 😊</p></div></div>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div><label>คำนำหน้า <span class="req">*</span></label><select id="prefixSelect" class="input" required><option value="">-- เลือกคำนำหน้า --</option><option>นาย</option><option>นาง</option><option>นางสาว</option><option>ด.ช.</option><option>ด.ญ.</option><option value="OTHER">อื่นๆ</option></select></div>
+        <div id="prefixOtherBox" class="hidden"><label>ระบุคำนำหน้า <span class="req">*</span></label><input id="prefixOther" class="input" maxlength="50" placeholder="เช่น ว่าที่ ร.ต."></div>
+        <div><label>ชื่อ <span class="req">*</span></label><input id="firstName" class="input" required maxlength="120" placeholder="ชื่อ"></div>
+        <div class="md:col-span-2"><label>นามสกุล <span class="req">*</span></label><input id="lastName" class="input" required maxlength="120" placeholder="นามสกุล"></div>
+        <div><label>ชื่อภาษาอาหรับ</label><input id="arabicName" class="input" maxlength="250" placeholder="ถ้ามี"></div>
+      </div>
+      <div class="photo-box">
+        <img id="photoPreview" class="photo-preview" src="assets/cute-register.jpg" alt="ตัวอย่างรูปสมาชิก">
+        <div>
+          <label>รูปสมาชิก <span class="text-slate-400 font-normal">(ไม่บังคับ)</span></label>
+          <div class="photo-actions">
+            <label class="photo-btn" for="memberPhoto">📷 เลือกรูปสมาชิก</label>
+            <button type="button" id="removePhoto" class="photo-btn">ลบรูป</button>
+          </div>
+          <input id="memberPhoto" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+          <div id="photoInfo" class="photo-note">รองรับ JPG / PNG / WEBP · ไฟล์ต้นฉบับไม่เกิน 5 MB · ระบบจะย่ออัตโนมัติประมาณ 720 px และควบคุมขนาดเพื่อประหยัดพื้นที่</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass card blue-card">
+      <div class="sec"><div class="sec-icon circle-blue"><span class="emoji">💌</span></div><div><h2 class="text-2xl font-semibold text-sky-700">ช่องทางการติดต่อ</h2><p class="text-slate-400 mt-1">ไว้ติดต่อกันและส่งข่าวสารดี ๆ 💌</p></div></div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div><label>เบอร์โทรศัพท์ <span class="req">*</span></label><input id="phone" type="tel" inputmode="numeric" maxlength="10" class="input" required placeholder="08xxxxxxxx"><p class="text-xs text-slate-400 mt-1">❖ ตัวเลขเท่านั้น 9–10 หลัก</p></div>
+        <div><label>Email</label><input id="email" type="email" inputmode="email" class="input" maxlength="180" placeholder="name@example.com"><p id="emailHelp" class="text-xs text-slate-400 mt-1">❖ หากกรอก ต้องเป็นรูปแบบอีเมลที่ถูกต้อง</p></div>
+        <div class="md:col-span-2"><label>LINE ID</label><input id="lineId" class="input" maxlength="100" placeholder="LINE ID"></div>
+      </div>
+    </section>
+
+    <section class="glass card yellow-card">
+      <div class="sec"><div class="sec-icon circle-yellow"><span class="emoji">🏡</span></div><div><h2 class="text-2xl font-semibold text-amber-600">ที่อยู่ปัจจุบัน</h2><p class="text-slate-400 mt-1">Smart Address ช่วยเลือกพื้นที่ให้สะดวกขึ้น 🏡</p></div></div>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="md:col-span-3"><label>บ้านเลขที่ / หมู่ / ซอย / ถนน</label><input id="addressLine" class="input" maxlength="300" placeholder="เช่น 99/9 หมู่ 1 ถนน..."></div>
+        <div><label>รหัสไปรษณีย์</label><input id="postalCode" inputmode="numeric" maxlength="5" class="input" placeholder="11110"><p id="postalHelp" class="text-xs text-slate-400 mt-1">❖ พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้</p></div>
+        <div><label>จังหวัด</label><select id="province" class="input" disabled><option value="">-- เลือกจังหวัด --</option></select></div>
+        <div><label>อำเภอ / เขต</label><select id="district" class="input" disabled><option value="">-- เลือกอำเภอ / เขต --</option></select></div>
+        <div><label>ตำบล / แขวง</label><select id="subdistrict" class="input" disabled><option value="">-- เลือกตำบล / แขวง --</option></select></div>
+        <div class="md:col-span-2 flex items-end"><div id="addressDataStatus" class="status sload w-full">⏳ กำลังเตรียมข้อมูล Smart Address...</div></div>
+      </div>
+    </section>
+
+    <section class="glass card pink-card">
+      <div class="sec"><div class="sec-icon circle-pink"><span class="emoji">💚</span></div><div><h2 class="text-2xl font-semibold text-pink-700">ยืนยันข้อมูล</h2><p class="text-slate-400 mt-1">ตรวจสอบอีกครั้งก่อนส่งข้อมูลนะคะ</p></div></div>
+      <label class="consent flex items-start gap-3 cursor-pointer !mb-0"><input id="consent" type="checkbox" class="mt-1 w-5 h-5 accent-emerald-600"><div><div class="font-semibold text-slate-700">ยืนยันความถูกต้องของข้อมูล <span class="req">*</span></div><p class="text-sm text-slate-500 mt-1 font-normal">ข้าพเจ้ายืนยันว่าข้อมูลที่ให้ไว้เป็นข้อมูลที่ถูกต้อง และยินยอมให้จัดเก็บข้อมูลเพื่อการบริหารจัดการทะเบียนศิษย์เก่า</p></div></label>
+    </section>
+
+    <div class="grid md:grid-cols-2 gap-4 py-1">
+      <button type="button" id="resetBtn" class="btn reset">🗑 ล้างข้อมูล</button>
+      <button type="submit" id="submitButton" class="btn submit" disabled>➤ ส่งข้อมูลลงทะเบียน</button>
+    </div>
+  </form>
+</main>
+
+<footer class="sk-public-admin-footer"><div class="sk-public-admin-footer__in"><div class="sk-public-admin-footer__brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div class="sk-public-admin-footer__text"><div class="sk-public-admin-footer__name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-public-admin-footer__values">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="sk-public-admin-footer__copy">© 2026 SK Alumni Member System by KimhanIkals - ลงทะเบียนศิษย์เก่า · V2.6.66</div></div></footer>
+
+<script>
+const API_BASE='https://sk-alumni-api.itpcmc2024.workers.dev';
+const GEO_URL='https://raw.githubusercontent.com/thailand-geography-data/thailand-geography-json/main/src/geography.json';
+const $=id=>document.getElementById(id); let geo=[], postalRows=[], addressReady=false, photoData='';
+async function apiFetch(path,options={}){
+  const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),20000);
+  try{
+    return await fetch(API_BASE+path,{...options,signal:controller.signal});
+  }catch(e){
+    if(e?.name==='AbortError') throw new Error('API ตอบสนองช้าเกินไป กรุณาลองใหม่');
+    throw new Error('เชื่อมต่อ API ไม่สำเร็จ กรุณาตรวจสอบ Cloudflare Worker / Deployment');
+  }finally{clearTimeout(timer)}
+}
+function fileToImage(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
+async function compressMemberPhoto(file){
+  if(!file)return '';
+  if(file.size>5*1024*1024)throw new Error('ไฟล์รูปต้นฉบับต้องไม่เกิน 5 MB');
+  const im=await fileToImage(file), max=720, scale=Math.min(1,max/Math.max(im.width,im.height));
+  const c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);
+  c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+  let q=.82,data='';
+  for(let i=0;i<6;i++){data=c.toDataURL('image/webp',q);if(data.length<=320000)break;q-=.1}
+  if(data.length>350000)throw new Error('รูปยังมีขนาดใหญ่เกินไป กรุณาเลือกรูปอื่น');
+  return data;
+}
+
+function clean(v){return String(v??'').trim()}
+function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+
+$('prefixSelect').addEventListener('change',()=>{const other=$('prefixSelect').value==='OTHER';$('prefixOtherBox').classList.toggle('hidden',!other);$('prefixOther').required=other;if(!other)$('prefixOther').value='';});
+function prefixValue(){return $('prefixSelect').value==='OTHER'?clean($('prefixOther').value):clean($('prefixSelect').value)}
+
+$('phone').addEventListener('input',()=>{$('phone').value=$('phone').value.replace(/\D/g,'').slice(0,10)});
+$('postalCode').addEventListener('input',()=>{$('postalCode').value=$('postalCode').value.replace(/\D/g,'').slice(0,5);postalSearch()});
+
+function validEmail(v){return !v || /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(v)}
+function checkEmail(alertUser=false){const v=clean($('email').value);const ok=$('email').checkValidity()&&validEmail(v);$('email').classList.toggle('err',!ok);$('emailHelp').textContent=ok?'❖ หากกรอก ต้องเป็นรูปแบบอีเมลที่ถูกต้อง':'❖ รูปแบบอีเมลไม่ถูกต้อง เช่น name@example.com';$('emailHelp').className=ok?'text-xs text-slate-400 mt-1':'text-xs text-rose-500 mt-1 font-bold';if(!ok&&alertUser)Swal.fire({icon:'warning',title:'รูปแบบอีเมลไม่ถูกต้อง',text:'กรุณากรอก เช่น name@example.com'});return ok}
+$('email').addEventListener('blur',()=>checkEmail(true));$('email').addEventListener('input',()=>{if(!$('email').value.trim())checkEmail(false)});
+
+
+$('memberPhoto').addEventListener('change',async e=>{
+  const file=e.target.files?.[0]; if(!file)return;
+  try{
+    $('photoInfo').textContent='⏳ กำลังย่อและปรับรูป...';
+    photoData=await compressMemberPhoto(file);
+    $('photoPreview').src=photoData;
+    const kb=Math.round(photoData.length*0.75/1024);
+    $('photoInfo').textContent=`✓ พร้อมใช้งาน · รูปหลังย่อประมาณ ${kb} KB`;
+  }catch(err){
+    photoData=''; e.target.value=''; $('photoPreview').src='assets/cute-register.jpg';
+    $('photoInfo').textContent=err.message; Swal.fire({icon:'warning',title:'ไม่สามารถใช้รูปนี้ได้',text:err.message});
+  }
+});
+$('removePhoto').addEventListener('click',()=>{photoData='';$('memberPhoto').value='';$('photoPreview').src='assets/cute-register.jpg';$('photoInfo').textContent='ยังไม่ได้แนบรูปสมาชิก (ไม่บังคับ)'});
+
+$('consent').addEventListener('change',()=>{$('submitButton').disabled=!$('consent').checked});
+
+function opts(el,items,ph){el.innerHTML=`<option value="">${ph}</option>`;items.forEach(x=>{const o=document.createElement('option');o.value=x.value;o.textContent=x.name;el.appendChild(o)})}
+function uniq(rows,key,name){const m=new Map();rows.forEach(r=>{const v=String(r[key]??'');if(v&&!m.has(v))m.set(v,{value:v,name:String(r[name]??'')})});return [...m.values()].sort((a,b)=>a.name.localeCompare(b.name,'th'))}
+function resetDistrict(){opts($('district'),[],'-- เลือกอำเภอ / เขต --');$('district').disabled=true}
+function resetSub(){opts($('subdistrict'),[],'-- เลือกตำบล / แขวง --');$('subdistrict').disabled=true}
+function provinces(source){opts($('province'),uniq(source,'provinceCode','provinceNameTh'),'-- เลือกจังหวัด --')}
+function status(type,text){$('addressDataStatus').textContent=text;$('addressDataStatus').className='status w-full '+(type==='ready'?'sready':type==='error'?'serr':'sload')}
+
+async function loadGeo(){try{const r=await fetch(GEO_URL,{cache:'force-cache'});if(!r.ok)throw 0;geo=await r.json();if(!Array.isArray(geo)||!geo.length)throw 0;addressReady=true;provinces(geo);$('province').disabled=false;status('ready','✨ Smart Address พร้อมใช้งานแล้ว — กรอกรหัสไปรษณีย์ หรือเลือกจังหวัดได้เลย')}catch(e){status('error','⚠️ โหลดข้อมูล Smart Address ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บ')}}
+
+function postalSearch(){if(!addressReady)return;const p=$('postalCode').value;if(p.length<5){postalRows=[];provinces(geo);$('province').value='';resetDistrict();resetSub();$('postalHelp').textContent='❖ พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้';return}postalRows=geo.filter(r=>String(r.postalCode)===p);if(!postalRows.length){provinces(geo);$('province').value='';resetDistrict();resetSub();$('postalHelp').textContent='❖ ไม่พบพื้นที่สำหรับรหัสไปรษณีย์นี้';return}provinces(postalRows);$('postalHelp').textContent=`✓ พบ ${postalRows.length} พื้นที่สำหรับรหัส ${p}`;const codes=[...new Set(postalRows.map(r=>String(r.provinceCode)))];if(codes.length===1){$('province').value=codes[0];provinceChanged()}}
+function provinceChanged(){const c=$('province').value;resetDistrict();resetSub();if(!c)return;const src=postalRows.length?postalRows:geo;const rows=src.filter(r=>String(r.provinceCode)===c);const list=uniq(rows,'districtCode','districtNameTh');opts($('district'),list,'-- เลือกอำเภอ / เขต --');$('district').disabled=false;if(list.length===1){$('district').value=list[0].value;districtChanged()}}
+function districtChanged(){const p=$('province').value,d=$('district').value;resetSub();if(!p||!d)return;const src=postalRows.length?postalRows:geo;const rows=src.filter(r=>String(r.provinceCode)===p&&String(r.districtCode)===d);const list=uniq(rows,'subdistrictCode','subdistrictNameTh');opts($('subdistrict'),list,'-- เลือกตำบล / แขวง --');$('subdistrict').disabled=false;if(list.length===1){$('subdistrict').value=list[0].value;subChanged()}}
+function subChanged(){const p=$('province').value,d=$('district').value,s=$('subdistrict').value;const row=geo.find(r=>String(r.provinceCode)===p&&String(r.districtCode)===d&&String(r.subdistrictCode)===s);if(row?.postalCode){$('postalCode').value=String(row.postalCode);$('postalHelp').textContent=`✓ รหัสไปรษณีย์ ${row.postalCode}`}}
+$('province').addEventListener('change',provinceChanged);$('district').addEventListener('change',districtChanged);$('subdistrict').addEventListener('change',subChanged);
+function selectedText(el){return el.value?el.options[el.selectedIndex]?.textContent?.trim()||'':''}
+
+function validate(){if(!prefixValue()){Swal.fire({icon:'warning',title:'กรุณาเลือกคำนำหน้า'});return false}if(!clean($('firstName').value)){Swal.fire({icon:'warning',title:'กรุณากรอกชื่อ'});return false}if(!clean($('lastName').value)){Swal.fire({icon:'warning',title:'กรุณากรอกนามสกุล'});return false}if(!/^[0-9]{9,10}$/.test(clean($('phone').value))){Swal.fire({icon:'warning',title:'เบอร์โทรศัพท์ไม่ถูกต้อง',text:'กรุณากรอกตัวเลข 9–10 หลัก'});return false}if(!checkEmail(false)){Swal.fire({icon:'warning',title:'รูปแบบอีเมลไม่ถูกต้อง',text:'กรุณากรอก เช่น name@example.com'});return false}if(!$('consent').checked){Swal.fire({icon:'warning',title:'กรุณายืนยันความถูกต้องของข้อมูล'});return false}return true}
+
+$('registerForm').addEventListener('submit',async e=>{e.preventDefault();if(!validate())return;const c=await Swal.fire({icon:'question',title:'ยืนยันการลงทะเบียนศิษย์เก่า?',text:'กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนส่ง',showCancelButton:true,confirmButtonText:'ยืนยันลงทะเบียน',cancelButtonText:'กลับไปตรวจสอบ',confirmButtonColor:'#10b981'});if(!c.isConfirmed)return;$('submitButton').disabled=true;Swal.fire({title:'กำลังบันทึกข้อมูล...',text:'รอสักครู่นะคะ 🌿',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});try{const payload={prefix:prefixValue(),first_name:clean($('firstName').value),last_name:clean($('lastName').value),arabic_name:clean($('arabicName').value),phone:clean($('phone').value),email:clean($('email').value),line_id:clean($('lineId').value),address_line:clean($('addressLine').value),subdistrict:selectedText($('subdistrict')),district:selectedText($('district')),province:selectedText($('province')),postal_code:clean($('postalCode').value),photo_data:photoData,consent:true};const r=await apiFetch('/api/members/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok){if(r.status===409&&j.duplicate){await Swal.fire({icon:'warning',title:'พบข้อมูลศิษย์เก่าเดิม',html:`${esc(j.message||'พบข้อมูลเดิมในระบบ')}<div style="font-size:26px;font-weight:800;color:#16a34a;margin-top:12px">${esc(j.member_code||'')}</div>`});return}throw new Error(j.message||'ไม่สามารถบันทึกข้อมูลได้')}const code=j.member_code||j.data?.member_code||'-';const done=await Swal.fire({icon:'success',title:'ลงทะเบียนเรียบร้อยแล้ว 💚',html:`ระบบได้รับข้อมูลของคุณแล้ว<div style="margin-top:12px;color:#64748b">รหัสสมาชิก</div><div style="font-size:30px;font-weight:900;color:#16a34a">${esc(code)}</div><div style="margin-top:10px;color:#64748b">สถานะ: <b style="color:#f59e0b">รออนุมัติ</b></div>`,confirmButtonColor:'#10b981',confirmButtonText:'OK',allowOutsideClick:false});if(done.isConfirmed){window.location.href='index.html'}}catch(err){Swal.fire({icon:'error',title:'บันทึกไม่สำเร็จ',text:err.message||'เกิดข้อผิดพลาด'})}finally{$('submitButton').disabled=!$('consent').checked}});
+
+$('resetBtn').addEventListener('click',async()=>{const c=await Swal.fire({icon:'question',title:'ล้างข้อมูลทั้งหมด?',showCancelButton:true,confirmButtonText:'ล้างข้อมูล',cancelButtonText:'ยกเลิก'});if(c.isConfirmed)resetForm()});
+function resetForm(){$('registerForm').reset();photoData='';$('photoPreview').src='assets/cute-register.jpg';$('photoInfo').textContent='ยังไม่ได้แนบรูปสมาชิก (ไม่บังคับ)';$('prefixOtherBox').classList.add('hidden');$('prefixOther').required=false;postalRows=[];checkEmail(false);if(addressReady){provinces(geo);$('province').disabled=false}resetDistrict();resetSub();$('postalHelp').textContent='❖ พิมพ์ 5 หลัก แล้วระบบจะกรองพื้นที่ให้';$('submitButton').disabled=true;window.scrollTo({top:0,behavior:'smooth'})}
+loadGeo();
+</script>
+<script defer src="assets/module-nav.js?v=2.6.66"></script>
+</body>
+</html>
