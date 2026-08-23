@@ -1,3 +1,1 @@
-SK Alumni System V2.6.62
-Package: Full Package READY
-Frontend + Worker version synchronized to 2.6.62
+2.6.63
