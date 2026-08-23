@@ -28,6 +28,32 @@ function effectiveMemberStatus(m){
   }
   return base;
 }
+function identityMatches(member,identity){
+  const raw=clean(identity);
+  const email=raw.toLowerCase();
+  const digits=raw.replace(/\D/g,"");
+  const memberEmail=clean(member?.email).toLowerCase();
+  const memberPhone=clean(member?.phone).replace(/\D/g,"");
+  if(memberEmail && memberEmail===email) return true;
+  if(memberPhone && digits){
+    if(memberPhone===digits) return true;
+    // รองรับเบอร์ไทยที่ฐานข้อมูลเก็บ +66 / 66 แต่ผู้ใช้กรอก 0xxxxxxxxx และกลับกัน
+    const normThai=v=>v.replace(/^\+?66/,'0').replace(/^66/,'0');
+    if(normThai(memberPhone)===normThai(digits)) return true;
+  }
+  return false;
+}
+async function memberWithAddress(sql,code){
+  try{
+    const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.photo_data,m.member_start,m.member_expire,m.registered_at,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+    return rows;
+  }catch(e){
+    console.error("memberWithAddress fallback",e);
+    // ระบบรุ่นเก่าบางฐานไม่มี addresses/บางคอลัมน์เสริม ต้องไม่ทำให้ Login ล่ม
+    const rows=await sql`SELECT member_code,prefix,first_name,last_name,full_name,arabic_name,status,email,phone,photo_data,member_start,member_expire,registered_at FROM members WHERE member_code=${code} LIMIT 1`;
+    return rows.map(r=>({...r,address_line:null,subdistrict:null,district:null,province:null,postal_code:null}));
+  }
+}
 function id(prefix){return `${prefix}-${Date.now()}-${crypto.randomUUID().slice(0,8)}`}
 async function body(request){try{return await request.json()}catch{return {}}}
 function db(env){
@@ -208,16 +234,16 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.61",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.62",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.61"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.62"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.61';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.62';
         return json(request,{success:true,data});
       }
 
@@ -299,11 +325,10 @@ export default {
 
       if(path==="/api/member/login"&&request.method==="POST"){
         const b=await body(request);const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
-        const rows=await sql`SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,m.email,m.phone,m.photo_data,m.member_start,m.member_expire,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code WHERE m.member_code=${code} LIMIT 1`;
+        const rows=await memberWithAddress(sql,code);
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);const m=rows[0];
         { const eff=effectiveMemberStatus(m); if(eff!=="active")return json(request,{success:false,message:eff==="renewal"?"สมาชิกอยู่ในสถานะรอต่ออายุสมาชิก กรุณาชำระค่าบำรุงสมาชิกรายปี":"สมาชิกยังไม่อยู่ในสถานะใช้งาน",status:eff},403); }
-        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&String(m.phone).replace(/\D/g,'')===identity.replace(/\D/g,''));
-        if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
+        if(!identityMatches(m,identity))return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
         return json(request,{success:true,data:{member_code:m.member_code,prefix:m.prefix,first_name:m.first_name,last_name:m.last_name,full_name:m.full_name,arabic_name:m.arabic_name,status:"active",phone:m.phone,email:m.email,photo_data:m.photo_data,member_start:m.member_start,member_expire:m.member_expire,address:{address_line:m.address_line,subdistrict:m.subdistrict,district:m.district,province:m.province,postal_code:m.postal_code}}});
       }
 
@@ -313,21 +338,11 @@ export default {
         const code=clean(b.member_code).toUpperCase(),identity=clean(b.identity).toLowerCase();
         if(!code||!identity)return json(request,{success:false,message:"กรุณากรอกรหัสสมาชิกและอีเมลหรือเบอร์โทรศัพท์"},400);
 
-        const rows=await sql`
-          SELECT m.member_code,m.prefix,m.first_name,m.last_name,m.full_name,m.arabic_name,m.status,
-                 m.email,m.phone,m.photo_data,m.member_start,m.member_expire,m.registered_at,
-                 a.address_line,a.subdistrict,a.district,a.province,a.postal_code
-          FROM members m
-          LEFT JOIN addresses a ON a.member_code=m.member_code
-          WHERE m.member_code=${code}
-          LIMIT 1
-        `;
+        const rows=await memberWithAddress(sql,code);
         if(!rows.length)return json(request,{success:false,message:"ไม่พบข้อมูลสมาชิก"},404);
         const m=rows[0];
         { const eff=effectiveMemberStatus(m); if(eff!=="active")return json(request,{success:false,message:eff==="renewal"?"สมาชิกอยู่ในสถานะรอต่ออายุสมาชิก กรุณาชำระค่าบำรุงสมาชิกรายปี":"สมาชิกยังไม่อยู่ในสถานะใช้งาน",status:eff},403); }
-        const normPhone=v=>String(v||"").replace(/\D/g,"");
-        const ok=(m.email&&String(m.email).toLowerCase()===identity)||(m.phone&&normPhone(m.phone)===normPhone(identity));
-        if(!ok)return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
+        if(!identityMatches(m,identity))return json(request,{success:false,message:"อีเมลหรือเบอร์โทรไม่ตรงกับข้อมูลสมาชิก"},401);
 
         // Portal V2.6.5: โมดูลประวัติแต่ละส่วนต้องไม่ทำให้ทั้ง Portal ล่ม
         let payments=[],donations=[],usages=[],benefits=[],editHistory=[];
@@ -650,13 +665,21 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.61"});
+        return json(request,{success:true,authorized:true,version:"2.6.62"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
-        await ensureMemberAdminSchema(sql);
-        const rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
+        // Auth สำเร็จต้องเข้าโมดูลได้ แม้ schema เสริมของสมาชิก/ที่อยู่ยังไม่สมบูรณ์
+        try{await ensureMemberAdminSchema(sql)}catch(e){console.error("ensureMemberAdminSchema",e)}
+        let rows=[];
+        try{
+          rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
+        }catch(e){
+          console.error("admin members address fallback",e);
+          rows=await sql`SELECT * FROM members ORDER BY registered_at DESC`;
+          rows=rows.map(r=>({...r,address_line:null,subdistrict:null,district:null,province:null,postal_code:null}));
+        }
         return json(request,{success:true,data:rows.map(x=>({...x,status:memberStatusText(x.status)}))});
       }
       if(/^\/api\/admin\/members\/[^/]+\/overview$/.test(path)&&request.method==="GET"){
@@ -939,7 +962,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.61',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.62',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
