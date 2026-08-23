@@ -1,29 +1,29 @@
 
-/* SK Alumni V2.6.61 unified module navigation */
+/* SK Alumni V2.6.62 unified module navigation */
 .sk-module-nav{background:rgba(255,255,255,.97);border-bottom:1px solid #d9eee3;position:sticky;top:0;z-index:90;backdrop-filter:blur(12px);font-family:"Noto Sans Thai",sans-serif}
 .sk-module-nav *{box-sizing:border-box}.sk-nav-wrap{width:min(1260px,96vw);margin:auto;min-height:96px;display:flex;align-items:center;gap:18px}.sk-nav-brand{display:flex;align-items:center;gap:11px;text-decoration:none;min-width:350px}.sk-nav-logo{width:64px;height:64px;border-radius:50%;object-fit:contain;background:transparent;border:4px solid #dcfce7;box-shadow:0 6px 20px rgba(15,118,80,.10)}.sk-nav-title{font-family:Mitr,"Noto Sans Thai",sans-serif;color:#076846;font-size:18px;font-weight:600;line-height:1.24}.sk-nav-sub{color:#64748b;font-size:12px;margin-top:3px}.sk-nav-icons{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:5px}.sk-nav-icons a{min-width:67px;padding:9px 7px;border-radius:15px;text-align:center;text-decoration:none;color:#52645d;font-weight:700;font-size:11px;line-height:1.25}.sk-nav-icons a .ico{display:block;font-size:21px;line-height:1.15;margin-bottom:3px}.sk-nav-icons a.active,.sk-nav-icons a:hover{background:#eaf9f1;color:#08744c}.sk-mobile-home{display:none}
 @media(max-width:900px){.sk-nav-wrap{min-height:auto;display:block;padding:20px 10px 14px}.sk-nav-brand{min-width:0;flex-direction:column;text-align:center;justify-content:center;gap:9px}.sk-nav-logo{width:78px;height:78px}.sk-nav-title{font-size:clamp(20px,5vw,29px)}.sk-nav-sub{font-size:clamp(13px,3.2vw,17px)}.sk-nav-icons{display:none}.sk-mobile-home{display:flex;justify-content:center;margin-top:10px}.sk-mobile-home a{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;border:1px solid #cce9d9;background:#f7fff9;color:#08744c;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 4px 12px rgba(15,118,80,.05)}}
 
-/* V2.6.61 unified module heading badge */
+/* V2.6.62 unified module heading badge */
 .sk-module-badge{display:inline-flex;align-items:center;gap:8px;background:#dff8e8;color:#08774f;border:1px solid #a7efc5;border-radius:999px;padding:9px 15px;font-weight:800;font-size:14px;line-height:1.2;margin:0 0 14px;box-shadow:0 4px 12px rgba(15,118,80,.04)}
 .eyebrow.sk-module-badge{letter-spacing:0;font-size:14px}
 @media(max-width:620px){.sk-module-badge{font-size:13px;padding:8px 13px;margin-bottom:11px}}
 
 .sk-admin-backbar{background:rgba(255,255,255,.92);border-bottom:1px solid #e1eee7;padding:8px 0}.sk-admin-backbar a{display:inline-flex;text-decoration:none;border:1px solid #cfe4d9;background:#fff;color:#08744c;border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px}.sk-admin-backbar a:hover{background:#e7f8ef}
 
-/* V2.6.61 responsive Admin back + stable two-line system name */
+/* V2.6.62 responsive Admin back + stable two-line system name */
 .sk-app-line{display:block}.sk-nav-title .sk-app-line{white-space:nowrap}
 .sk-tabs-with-back{align-items:center}.sk-admin-back-inline{margin-left:auto;display:inline-flex;align-items:center;text-decoration:none;border:1px solid #cfe4d9;background:#fff;color:#08744c;border-radius:999px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap}.sk-admin-back-inline:hover{background:#e7f8ef}
 .sk-mobile-home{gap:8px;flex-wrap:wrap}.sk-mobile-admin-back{display:none!important}
 @media(max-width:900px){.sk-admin-back-inline{display:none}.sk-mobile-admin-back{display:inline-flex!important}.sk-nav-title .sk-app-line{white-space:normal}.sk-mobile-home{display:flex}}
 
-/* V2.6.61 unified Admin module action */
+/* V2.6.62 unified Admin module action */
 .sk-admin-back-inline{gap:6px!important}
 @media(max-width:900px){
  .sk-mobile-home a.sk-mobile-admin-back{min-width:0!important;flex:0 1 auto!important;padding:7px 12px!important}
 }
 
-/* V2.6.61 — Admin header/footer alignment */
+/* V2.6.62 — Admin header/footer alignment */
 @media(min-width:901px){
   .sk-module-nav .sk-nav-wrap{
     width:100%!important;
@@ -189,7 +189,7 @@
   }
 }
 
-/* V2.6.61 — Admin typography + centered mobile footer standard */
+/* V2.6.62 — Admin typography + centered mobile footer standard */
 /* Primary Admin module titles use the same green Mitr treatment as user modules. */
 .page-title h1,
 .page-title h2,
@@ -200,7 +200,7 @@
   font-weight:600!important;
 }
 .page-title h2{
-  font-size:25px!important; /* preserve V2.6.61 size */
+  font-size:25px!important; /* preserve V2.6.62 size */
   line-height:1.25!important;
 }
 
@@ -277,7 +277,7 @@
 }
 
 
-/* V2.6.61 — Admin typography + unified module actions */
+/* V2.6.62 — Admin typography + unified module actions */
 body{font-family:"Noto Sans Thai",sans-serif!important}
 body button,body input,body select,body textarea{font-family:"Noto Sans Thai",sans-serif}
 body h1,body h2,body h3,body .section-title,body .brand,body .sk-nav-title{font-family:"Mitr","Noto Sans Thai",sans-serif}
@@ -294,13 +294,13 @@ body h1,body h2,body h3,body .section-title,body .brand,body .sk-nav-title{font-
   .sk-mobile-home .sk-mobile-admin-logout{border-color:#efd6d9!important;background:#fffafa!important;color:#9a4a51!important;cursor:pointer!important}
 }
 
-/* V2.6.61 unified tactile button feedback for Admin modules */
+/* V2.6.62 unified tactile button feedback for Admin modules */
 button,.btn,.admin-module-btn,.module-admin-link,a[role="button"]{transition:transform .08s ease,filter .12s ease,box-shadow .12s ease}
 button:not(:disabled):active,.btn:active,.admin-module-btn:active,.module-admin-link:active,a[role="button"]:active{transform:translateY(1px) scale(.97);filter:brightness(.96)}
 button:disabled{cursor:not-allowed;opacity:.55}
 
 
-/* V2.6.61 — definitive public/Admin top navigation shell */
+/* V2.6.62 — definitive public/Admin top navigation shell */
 .sk-module-nav{width:100%!important;max-width:100%!important;background:rgba(255,255,255,.98)!important;border-bottom:1px solid #d9eee3!important;position:sticky!important;top:0!important;z-index:999!important;backdrop-filter:blur(12px)!important}
 @media(min-width:901px){
  .sk-module-nav .sk-nav-wrap{width:100%!important;max-width:none!important;min-height:98px!important;margin:0!important;padding:10px 28px!important;display:flex!important;align-items:center!important;gap:18px!important}
@@ -326,7 +326,7 @@ button:disabled{cursor:not-allowed;opacity:.55}
 }
 
 
-/* V2.6.61 — Public page frame + typography standard */
+/* V2.6.62 — Public page frame + typography standard */
 body.sk-public-page{
   font-family:"Noto Sans Thai",Arial,sans-serif!important;
   color:#405166;
@@ -378,7 +378,7 @@ body.sk-public-page .sk-public-content-frame .section-title{
   }
 }
 
-/* V2.6.61 Admin action sizing standard */
+/* V2.6.62 Admin action sizing standard */
 @media(min-width:901px){
   .head-actions .pill,.sk-admin-action-group .sk-admin-back-inline,.sk-admin-action-group .sk-admin-logout-inline,
   a[href*="admin-home.html"].pill,button[id="logoutBtn"].pill,button[id$="Logout"],a.sk-admin-back-inline{
