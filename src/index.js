@@ -166,6 +166,23 @@ async function ensureAccountingSchema(sql){
   await sql`CREATE INDEX IF NOT EXISTS idx_ledger_admin_logs_entry_created ON ledger_admin_logs(entry_id,created_at DESC)`;
 }
 
+
+async function syncBenefitUsageLedger(sql){
+  await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);
+  // Backfill historical usages and keep the accounting row synchronized.
+  const usages=await sql`SELECT u.usage_id,u.member_code,u.benefit_id,u.used_at,u.amount,u.note,u.active,u.attachment_data,u.attachment_name,u.attachment_type,COALESCE(b.title,u.benefit_id) AS benefit_title FROM benefit_usage u LEFT JOIN benefits b ON b.benefit_id=u.benefit_id`;
+  for(const u of usages){
+    const led=await sql`SELECT entry_id,status FROM ledger_entries WHERE reference_type='benefit_usage' AND reference_id=${u.usage_id} ORDER BY created_at LIMIT 1`;
+    const amount=Math.max(0,Number(u.amount||0));
+    if(!u.active||amount<=0){if(led.length)await sql`UPDATE ledger_entries SET status='void',updated_at=NOW() WHERE entry_id=${led[0].entry_id}`;continue}
+    if(led.length){
+      await sql`UPDATE ledger_entries SET entry_date=${u.used_at},entry_type='รายจ่าย',category='สิทธิประโยชน์สมาชิก',source='benefit_usage',amount=${amount},member_code=${u.member_code},description=${'ค่าใช้สิทธิ์: '+u.benefit_title},note=${u.note||null},attachment_data=${u.attachment_data||null},attachment_name=${u.attachment_name||null},attachment_type=${u.attachment_type||null},status='posted',updated_at=NOW() WHERE entry_id=${led[0].entry_id}`;
+    }else{
+      await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${u.used_at},'รายจ่าย','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${u.usage_id},${u.member_code},${'ค่าใช้สิทธิ์: '+u.benefit_title},${u.note||null},'system','posted',NOW(),NOW(),${u.attachment_data||null},${u.attachment_name||null},${u.attachment_type||null})`;
+    }
+  }
+}
+
 async function ensureMemberAdminSchema(sql){
   // Additive self-healing for installations upgraded from older member schemas.
   // This is intentionally non-destructive and prevents Admin Member login from
@@ -212,6 +229,8 @@ async function ensureReceiptOpsSchema(sql){
   await sql`CREATE TABLE IF NOT EXISTS remittance_items(item_id TEXT PRIMARY KEY,report_id TEXT NOT NULL REFERENCES remittance_reports(report_id) ON DELETE RESTRICT,source_type TEXT NOT NULL,transaction_id TEXT NOT NULL,receipt_no TEXT,amount NUMERIC(12,2) NOT NULL DEFAULT 0,receipt_type TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`ALTER TABLE remittance_items DROP CONSTRAINT IF EXISTS remittance_items_source_type_transaction_id_key`;
   await sql`CREATE INDEX IF NOT EXISTS idx_remittance_items_source_tx ON remittance_items(source_type,transaction_id)`;
+  await sql`CREATE TABLE IF NOT EXISTS remittance_logs(log_id TEXT PRIMARY KEY,report_id TEXT,action TEXT NOT NULL,detail TEXT,admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_remittance_logs_created ON remittance_logs(created_at DESC)`;
 }
 async function allocateReceiptNumber(sql){
   await ensureReceiptOpsSchema(sql);
@@ -265,16 +284,16 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.64",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.65",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.64"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.65"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.64';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.65';
         return json(request,{success:true,data});
       }
 
@@ -286,7 +305,7 @@ export default {
         const fee=Number(feeRows[0]?.setting_value||0)||null;
         try{
           const rows=await sql`SELECT topic_id,title,description,amount FROM payment_topics WHERE active=TRUE ORDER BY title`;
-          const mapped=(rows||[]).map(r=>r.topic_id==='membership'?{...r,title:'ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',description:r.description||'สนับสนุนสมาคมฯ รายปี',amount:fee??r.amount}:r);
+          const mapped=(rows||[]).map(r=>r.topic_id==='membership'?{...r,amount:fee??r.amount}:r);
           mapped.sort((a,b)=>a.topic_id==='membership'?-1:b.topic_id==='membership'?1:String(a.title||'').localeCompare(String(b.title||''),'th'));
           if(mapped.length)return json(request,{success:true,data:mapped});
         }catch(topicError){
@@ -688,7 +707,7 @@ export default {
         `;
         const usageId=id('USE');
         await sql`INSERT INTO benefit_usage(usage_id,member_code,benefit_id,used_at,recorded_by,note,amount,active,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${usageId},${code},${benefitId},${b.used_at||new Date().toISOString()},${clean(b.recorded_by)||'admin'},${clean(b.note)||null},${amount},TRUE,NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;
-        if(amount>0){const bn=await sql`SELECT title FROM benefits WHERE benefit_id=${benefitId} LIMIT 1`;await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'expense','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${usageId},${code},${'ค่าใช้สิทธิ์: '+(bn[0]?.title||benefitId)},${clean(b.note)||null},'admin','posted',NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;}
+        if(amount>0){const bn=await sql`SELECT title FROM benefits WHERE benefit_id=${benefitId} LIMIT 1`;await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'รายจ่าย','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${usageId},${code},${'ค่าใช้สิทธิ์: '+(bn[0]?.title||benefitId)},${clean(b.note)||null},'admin','posted',NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;}
         return json(request,{success:true,usage_id:usageId,message:"บันทึกการใช้สิทธิประโยชน์แล้ว"},201);
       }
 
@@ -712,7 +731,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.64"});
+        return json(request,{success:true,authorized:true,version:"2.6.65"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -823,7 +842,7 @@ export default {
         const paymentId=decodeURIComponent(path.split('/')[4]);
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_no TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
-        /* V2.6.64: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.65: do not fabricate receipt numbers; official numbers come from receipt books. */
         const rows=await sql`SELECT p.payment_id,p.member_code,p.payment_type,p.amount,p.paid_at,p.status,p.verified_by,p.verified_at,p.receipt_no,p.receipt_issued_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM payments p LEFT JOIN members m ON m.member_code=p.member_code LEFT JOIN addresses a ON a.member_code=p.member_code WHERE p.payment_id=${paymentId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการชำระ"},404);
         if(rows[0].status!=="ชำระแล้ว")return json(request,{success:false,message:"ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว"},409);
@@ -837,7 +856,7 @@ export default {
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS slip_data TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_no TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
-        /* V2.6.64: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.65: do not fabricate receipt numbers; official numbers come from receipt books. */
         const rows=await sql`SELECT p.*,m.full_name,m.prefix,m.first_name,m.last_name,m.email AS member_email,m.phone AS member_phone FROM payments p LEFT JOIN members m ON m.member_code=p.member_code ORDER BY p.created_at DESC LIMIT 1000`;
         return json(request,{success:true,data:rows})
       }
@@ -849,8 +868,8 @@ export default {
       }
       if(path==="/api/admin/receipts"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);
-        /* V2.6.64: do not fabricate receipt numbers; official numbers come from receipt books. */
-        /* V2.6.64: official donation receipt numbers come from receipt books. */
+        /* V2.6.65: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.65: official donation receipt numbers come from receipt books. */
         const rows=await sql`SELECT * FROM (SELECT 'payment'::text AS source_type,p.payment_id AS transaction_id,p.receipt_no,p.receipt_issued_at,p.member_code,p.payment_type AS receipt_type,p.amount,p.paid_at AS transferred_at,p.verified_by,p.verified_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email FROM payments p LEFT JOIN members m ON m.member_code=p.member_code WHERE p.status='ชำระแล้ว' UNION ALL SELECT 'donation'::text AS source_type,d.donation_id AS transaction_id,d.receipt_no,d.receipt_issued_at,d.member_code,COALESCE(dt.title,'เงินบริจาค') AS receipt_type,d.amount,d.donated_at AS transferred_at,d.verified_by,d.verified_at,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code WHERE d.status IN ('ตรวจสอบแล้ว','อนุมัติ','approved','verified')) q ORDER BY receipt_issued_at DESC LIMIT 4000`;
         return json(request,{success:true,data:rows});
       }
@@ -868,12 +887,48 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const rows=await sql`SELECT r.*,COUNT(i.item_id)::int item_count,COALESCE(SUM(i.amount),0) total_amount,COALESCE(SUM(i.amount) FILTER(WHERE i.source_type='payment'),0) payment_total,COALESCE(SUM(i.amount) FILTER(WHERE i.source_type='donation'),0) donation_total FROM remittance_reports r LEFT JOIN remittance_items i ON i.report_id=r.report_id GROUP BY r.report_id ORDER BY r.created_at DESC`;return json(request,{success:true,data:rows});
       }
       if(path==="/api/admin/remittance-reports"&&request.method==="POST"){
-        const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const b=await body(request),items=Array.isArray(b.items)?b.items:[];if(!items.length)return json(request,{success:false,message:'กรุณาเลือกใบเสร็จ'},400);const rid=id('RMT'),y=new Date().getFullYear()+543;const c=await sql`SELECT COUNT(*)::int n FROM remittance_reports WHERE EXTRACT(YEAR FROM report_date)=EXTRACT(YEAR FROM NOW())`;const rno=`RMT-${y}-${String(Number(c[0]?.n||0)+1).padStart(4,'0')}`;try{await sql.begin(async tx=>{await tx`INSERT INTO remittance_reports(report_id,report_no,report_date,note,status,created_by,created_at) VALUES(${rid},${rno},NOW(),${clean(b.note)||null},'active','admin',NOW())`;for(const it of items){const st=clean(it.source_type)==='donation'?'donation':'payment',tid=clean(it.transaction_id);let rows=[];if(st==='payment')rows=await tx`SELECT receipt_no,amount,payment_type receipt_type FROM payments WHERE payment_id=${tid} AND status='ชำระแล้ว' LIMIT 1`;else rows=await tx`SELECT d.receipt_no,d.amount,COALESCE(dt.title,'เงินบริจาค') receipt_type FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id WHERE d.donation_id=${tid} AND d.status IN ('ตรวจสอบแล้ว','อนุมัติ','approved','verified') LIMIT 1`;if(!rows.length||!rows[0].receipt_no)throw new Error('พบรายการใบเสร็จไม่พร้อมนำส่ง');const used=await tx`SELECT 1 FROM remittance_items ri JOIN remittance_reports rr ON rr.report_id=ri.report_id WHERE ri.source_type=${st} AND ri.transaction_id=${tid} AND rr.status='active' LIMIT 1`;if(used.length)throw new Error('มีใบเสรจบางรายการถูกนำส่งในรายงานที่ยังใช้งานอยู่แล้ว');await tx`INSERT INTO remittance_items(item_id,report_id,source_type,transaction_id,receipt_no,amount,receipt_type,created_at) VALUES(${id('RMI')},${rid},${st},${tid},${rows[0].receipt_no},${rows[0].amount},${rows[0].receipt_type},NOW())`;}});return json(request,{success:true,report_id:rid,report_no:rno},201)}catch(e){return json(request,{success:false,message:'สร้างรายงานไม่ได้: '+String(e?.message||e)},409)}
+        const denied=requireAdmin(request,env);if(denied)return denied;
+        await ensureReceiptOpsSchema(sql);
+        const b=await body(request),items=Array.isArray(b.items)?b.items:[];
+        if(!items.length)return json(request,{success:false,message:'กรุณาเลือกใบเสร็จ'},400);
+        const rid=id('RMT'),y=new Date().getFullYear()+543;
+        const c=await sql`SELECT COUNT(*)::int n FROM remittance_reports WHERE EXTRACT(YEAR FROM report_date)=EXTRACT(YEAR FROM NOW())`;
+        const rno=`RMT-${y}-${String(Number(c[0]?.n||0)+1).padStart(4,'0')}`;
+        try{
+          await sql.begin(async tx=>{
+            await tx`INSERT INTO remittance_reports(report_id,report_no,report_date,note,status,created_by,created_at) VALUES(${rid},${rno},NOW(),${clean(b.note)||null},'active','admin',NOW())`;
+            for(const it of items){
+              const st=clean(it.source_type)==='donation'?'donation':'payment',tid=clean(it.transaction_id);
+              let rows=[];
+              if(st==='payment') rows=await tx`SELECT receipt_no,amount,payment_type receipt_type FROM payments WHERE payment_id=${tid} AND status='ชำระแล้ว' LIMIT 1`;
+              else rows=await tx`SELECT d.receipt_no,d.amount,COALESCE(dt.title,'เงินบริจาค') receipt_type FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id WHERE d.donation_id=${tid} AND d.status IN ('ตรวจสอบแล้ว','อนุมัติ','approved','verified') LIMIT 1`;
+              if(!rows.length||!rows[0].receipt_no)throw new Error('พบรายการใบเสร็จไม่พร้อมนำส่ง');
+              const used=await tx`SELECT 1 FROM remittance_items ri JOIN remittance_reports rr ON rr.report_id=ri.report_id WHERE ri.source_type=${st} AND ri.transaction_id=${tid} AND rr.status='active' LIMIT 1`;
+              if(used.length)throw new Error('มีใบเสร็จบางรายการถูกนำส่งในรายงานที่ยังใช้งานอยู่แล้ว');
+              await tx`INSERT INTO remittance_items(item_id,report_id,source_type,transaction_id,receipt_no,amount,receipt_type,created_at) VALUES(${id('RMI')},${rid},${st},${tid},${rows[0].receipt_no},${rows[0].amount},${rows[0].receipt_type},NOW())`;
+            }
+            await tx`INSERT INTO remittance_logs(log_id,report_id,action,detail,admin_by,created_at) VALUES(${id('RLOG')},${rid},'create',${'สร้างรายงาน '+rno+' จำนวน '+items.length+' ใบ'},'admin',NOW())`;
+          });
+          return json(request,{success:true,report_id:rid,report_no:rno},201)
+        }catch(e){return json(request,{success:false,message:'สร้างรายงานไม่ได้: '+String(e?.message||e)},409)}
       }
       if(/^\/api\/admin\/remittance-reports\/[^/]+\/cancel$/.test(path)&&request.method==="PATCH"){
-        const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const rid=decodeURIComponent(path.split('/')[4]);await sql`UPDATE remittance_reports SET status='cancelled',cancelled_at=NOW(),cancelled_by='admin' WHERE report_id=${rid} AND status='active'`;return json(request,{success:true});
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const rid=decodeURIComponent(path.split('/')[4]);await sql`UPDATE remittance_reports SET status='cancelled',cancelled_at=NOW(),cancelled_by='admin' WHERE report_id=${rid} AND status='active'`;await sql`INSERT INTO remittance_logs(log_id,report_id,action,detail,admin_by,created_at) VALUES(${id('RLOG')},${rid},'cancel','ยกเลิกรายงานนำส่งเงิน','admin',NOW())`;return json(request,{success:true});
       }
 
+      if(/^\/api\/admin\/remittance-reports\/[^/]+$/.test(path)&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const rid=decodeURIComponent(path.split('/').pop());
+        const rr=await sql`SELECT * FROM remittance_reports WHERE report_id=${rid} LIMIT 1`;if(!rr.length)return json(request,{success:false,message:'ไม่พบรายงานนำส่งเงิน'},404);
+        const items=await sql`SELECT i.*,COALESCE(m.full_name,TRIM(CONCAT_WS(' ',m.prefix,m.first_name,m.last_name)),d.donor_name,'-') AS payer_name FROM remittance_items i LEFT JOIN payments p ON i.source_type='payment' AND p.payment_id=i.transaction_id LEFT JOIN donations d ON i.source_type='donation' AND d.donation_id=i.transaction_id LEFT JOIN members m ON m.member_code=COALESCE(p.member_code,d.member_code) WHERE i.report_id=${rid} ORDER BY i.receipt_no,i.created_at`;
+        const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','ASSOCIATION_ADDRESS','CONTACT_EMAIL')`;const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;
+        return json(request,{success:true,data:{report:rr[0],items,settings}});
+      }
+      if(path==="/api/admin/remittance-logs"&&request.method==="GET"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const rows=await sql`SELECT l.*,r.report_no FROM remittance_logs l LEFT JOIN remittance_reports r ON r.report_id=l.report_id ORDER BY l.created_at DESC LIMIT 2000`;return json(request,{success:true,data:rows});
+      }
+      if(/^\/api\/admin\/remittance-reports\/[^/]+\/print-log$/.test(path)&&request.method==="POST"){
+        const denied=requireAdmin(request,env);if(denied)return denied;await ensureReceiptOpsSchema(sql);const rid=decodeURIComponent(path.split('/')[4]);const rr=await sql`SELECT report_no FROM remittance_reports WHERE report_id=${rid} LIMIT 1`;if(!rr.length)return json(request,{success:false,message:'ไม่พบรายงานนำส่งเงิน'},404);await sql`INSERT INTO remittance_logs(log_id,report_id,action,detail,admin_by,created_at) VALUES(${id('RLOG')},${rid},'print',${'พิมพ์รายงาน '+rr[0].report_no},'admin',NOW())`;return json(request,{success:true});
+      }
       if(path==="/api/admin/receipt-print-logs"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);
         const rows=await sql`SELECT * FROM receipt_print_logs ORDER BY printed_at DESC LIMIT 5000`;
@@ -908,14 +963,14 @@ export default {
       }
       if(/^\/api\/admin\/donations\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const donationId=decodeURIComponent(path.split('/')[4]);
-        /* V2.6.64: official donation receipt numbers come from receipt books. */
+        /* V2.6.65: official donation receipt numbers come from receipt books. */
         const rows=await sql`SELECT d.donation_id,d.member_code,d.amount,d.donated_at,d.status,d.verified_by,d.verified_at,d.receipt_no,d.receipt_issued_at,d.donor_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email,COALESCE(dt.title,d.topic_id,'เงินบริจาค') AS donation_type,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(a.address_line,d.address_line) AS address_line,COALESCE(a.subdistrict,d.subdistrict) AS subdistrict,COALESCE(a.district,d.district) AS district,COALESCE(a.province,d.province) AS province,COALESCE(a.postal_code,d.postal_code) AS postal_code FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code LEFT JOIN addresses a ON a.member_code=d.member_code WHERE d.donation_id=${donationId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบริจาค'},404);if(!['ตรวจสอบแล้ว','อนุมัติ','approved','verified'].includes(String(rows[0].status||'').toLowerCase())&&!['ตรวจสอบแล้ว','อนุมัติ'].includes(String(rows[0].status||'')))return json(request,{success:false,message:'ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว'},409);
         const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE')`;const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;return json(request,{success:true,data:{...rows[0],source_type:'donation',transaction_id:donationId,settings}})
       }
       if(path==="/api/admin/ledger"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureAccountingSchema(sql);
-        if(request.method==="GET"){const rows=await sql`SELECT le.entry_id,le.entry_date,le.entry_type,le.category,le.source,le.amount,le.reference_type,le.reference_id,le.member_code,le.description,le.note,le.created_by,le.status,le.created_at,le.updated_at,COALESCE(le.attachment_name,CASE WHEN p.slip_data IS NOT NULL THEN 'หลักฐานการโอน '||p.payment_id WHEN d.slip_data IS NOT NULL THEN 'หลักฐานการโอน '||d.donation_id END) AS attachment_name,COALESCE(le.attachment_type,CASE WHEN p.slip_data LIKE 'data:application/pdf%' OR d.slip_data LIKE 'data:application/pdf%' THEN 'application/pdf' WHEN p.slip_data IS NOT NULL OR d.slip_data IS NOT NULL THEN 'image/*' END) AS attachment_type,(COALESCE(le.attachment_data,p.slip_data,d.slip_data) IS NOT NULL AND COALESCE(le.attachment_data,p.slip_data,d.slip_data)<>'') AS has_attachment FROM ledger_entries le LEFT JOIN payments p ON le.reference_type='payment' AND p.payment_id=le.reference_id LEFT JOIN donations d ON le.reference_type='donation' AND d.donation_id=le.reference_id ORDER BY le.entry_date DESC,le.created_at DESC LIMIT 5000`;return json(request,{success:true,data:rows})}
+        if(request.method==="GET"){await syncBenefitUsageLedger(sql);const rows=await sql`SELECT le.entry_id,le.entry_date,le.entry_type,le.category,le.source,le.amount,le.reference_type,le.reference_id,le.member_code,le.description,le.note,le.created_by,le.status,le.created_at,le.updated_at,COALESCE(le.attachment_name,CASE WHEN p.slip_data IS NOT NULL THEN 'หลักฐานการโอน '||p.payment_id WHEN d.slip_data IS NOT NULL THEN 'หลักฐานการโอน '||d.donation_id END) AS attachment_name,COALESCE(le.attachment_type,CASE WHEN p.slip_data LIKE 'data:application/pdf%' OR d.slip_data LIKE 'data:application/pdf%' THEN 'application/pdf' WHEN p.slip_data IS NOT NULL OR d.slip_data IS NOT NULL THEN 'image/*' END) AS attachment_type,(COALESCE(le.attachment_data,p.slip_data,d.slip_data) IS NOT NULL AND COALESCE(le.attachment_data,p.slip_data,d.slip_data)<>'') AS has_attachment FROM ledger_entries le LEFT JOIN payments p ON le.reference_type='payment' AND p.payment_id=le.reference_id LEFT JOIN donations d ON le.reference_type='donation' AND d.donation_id=le.reference_id ORDER BY le.entry_date DESC,le.created_at DESC LIMIT 5000`;return json(request,{success:true,data:rows})}
         if(request.method==="POST"){
           const b=await body(request),type=clean(b.entry_type),amount=Number(b.amount||0),desc=clean(b.description),att=clean(b.attachment_data)||null;
           if(!['รายรับ','รายจ่าย'].includes(type))return json(request,{success:false,message:'กรุณาเลือกประเภทรายรับหรือรายจ่าย'},400);
@@ -1028,7 +1083,7 @@ export default {
       if(/^\/api\/admin\/benefits\/[^/]+$/.test(path)&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const bid=decodeURIComponent(path.split('/').pop()),b=await body(request);const rows=await sql`UPDATE benefits SET title=${clean(b.title)},description=${clean(b.description)||null},start_date=${b.start_date||null},end_date=${b.end_date||null},updated_at=NOW() WHERE benefit_id=${bid} RETURNING benefit_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบสิทธิประโยชน์'},404);return json(request,{success:true})}
       if(/^\/api\/admin\/benefits\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const bid=decodeURIComponent(path.split('/')[4]),b=await body(request);await sql`UPDATE benefits SET active=${!!b.active},updated_at=NOW() WHERE benefit_id=${bid}`;return json(request,{success:true})}
       if(path==="/api/admin/benefit-usage"&&request.method==="GET"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);const rows=await sql`SELECT u.usage_id,u.member_code,u.benefit_id,u.used_at,u.amount,u.note,u.recorded_by,u.active,u.created_at,u.updated_at,COALESCE(b.title,u.benefit_id) benefit_title,COALESCE(m.full_name,TRIM(CONCAT_WS(' ',m.prefix,m.first_name,m.last_name)),u.member_code) member_name,(u.attachment_data IS NOT NULL AND u.attachment_data<>'') AS has_attachment,u.attachment_name,u.attachment_type FROM benefit_usage u LEFT JOIN benefits b ON b.benefit_id=u.benefit_id LEFT JOIN members m ON m.member_code=u.member_code WHERE u.active=TRUE ORDER BY u.used_at DESC,u.created_at DESC`;return json(request,{success:true,data:rows})}
-      if(/^\/api\/admin\/benefit-usage\/[^/]+$/.test(path)&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);const uid=decodeURIComponent(path.split('/').pop()),b=await body(request),amount=Math.max(0,Number(b.amount||0)),att=clean(b.attachment_data)||null,hasAtt=Object.prototype.hasOwnProperty.call(b,'attachment_data');if(att&&!ledgerAttachmentOK(att))return json(request,{success:false,message:'หลักฐานรองรับ JPG/PNG/WEBP/PDF ขนาดไม่เกินประมาณ 2 MB'},400);const rows=await sql`UPDATE benefit_usage SET member_code=${clean(b.member_code).toUpperCase()},benefit_id=${clean(b.benefit_id)},used_at=${b.used_at||new Date().toISOString()},amount=${amount},note=${clean(b.note)||null},attachment_data=CASE WHEN ${hasAtt} THEN ${att} ELSE attachment_data END,attachment_name=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_name)||null} ELSE attachment_name END,attachment_type=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_type)||null} ELSE attachment_type END,updated_at=NOW() WHERE usage_id=${uid} AND active=TRUE RETURNING usage_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบบันทึกการใช้สิทธิ์'},404);const ben=await sql`SELECT title FROM benefits WHERE benefit_id=${clean(b.benefit_id)} LIMIT 1`;if(amount>0){const led=await sql`SELECT entry_id FROM ledger_entries WHERE reference_type='benefit_usage' AND reference_id=${uid} ORDER BY created_at LIMIT 1`;if(led.length){await sql`UPDATE ledger_entries SET entry_date=${b.used_at||new Date().toISOString()},amount=${amount},member_code=${clean(b.member_code).toUpperCase()},description=${'ค่าใช้สิทธิ์: '+(ben[0]?.title||clean(b.benefit_id))},note=${clean(b.note)||null},attachment_data=CASE WHEN ${hasAtt} THEN ${att} ELSE attachment_data END,attachment_name=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_name)||null} ELSE attachment_name END,attachment_type=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_type)||null} ELSE attachment_type END,status='posted',updated_at=NOW() WHERE entry_id=${led[0].entry_id}`;}else{await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'expense','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${uid},${clean(b.member_code).toUpperCase()},${'ค่าใช้สิทธิ์: '+(ben[0]?.title||clean(b.benefit_id))},${clean(b.note)||null},'admin','posted',NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;}}else{await sql`UPDATE ledger_entries SET status='void',updated_at=NOW() WHERE reference_type='benefit_usage' AND reference_id=${uid}`;}return json(request,{success:true})}
+      if(/^\/api\/admin\/benefit-usage\/[^/]+$/.test(path)&&request.method==="PUT"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);const uid=decodeURIComponent(path.split('/').pop()),b=await body(request),amount=Math.max(0,Number(b.amount||0)),att=clean(b.attachment_data)||null,hasAtt=Object.prototype.hasOwnProperty.call(b,'attachment_data');if(att&&!ledgerAttachmentOK(att))return json(request,{success:false,message:'หลักฐานรองรับ JPG/PNG/WEBP/PDF ขนาดไม่เกินประมาณ 2 MB'},400);const rows=await sql`UPDATE benefit_usage SET member_code=${clean(b.member_code).toUpperCase()},benefit_id=${clean(b.benefit_id)},used_at=${b.used_at||new Date().toISOString()},amount=${amount},note=${clean(b.note)||null},attachment_data=CASE WHEN ${hasAtt} THEN ${att} ELSE attachment_data END,attachment_name=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_name)||null} ELSE attachment_name END,attachment_type=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_type)||null} ELSE attachment_type END,updated_at=NOW() WHERE usage_id=${uid} AND active=TRUE RETURNING usage_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบบันทึกการใช้สิทธิ์'},404);const ben=await sql`SELECT title FROM benefits WHERE benefit_id=${clean(b.benefit_id)} LIMIT 1`;if(amount>0){const led=await sql`SELECT entry_id FROM ledger_entries WHERE reference_type='benefit_usage' AND reference_id=${uid} ORDER BY created_at LIMIT 1`;if(led.length){await sql`UPDATE ledger_entries SET entry_date=${b.used_at||new Date().toISOString()},amount=${amount},member_code=${clean(b.member_code).toUpperCase()},description=${'ค่าใช้สิทธิ์: '+(ben[0]?.title||clean(b.benefit_id))},note=${clean(b.note)||null},attachment_data=CASE WHEN ${hasAtt} THEN ${att} ELSE attachment_data END,attachment_name=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_name)||null} ELSE attachment_name END,attachment_type=CASE WHEN ${hasAtt} THEN ${clean(b.attachment_type)||null} ELSE attachment_type END,status='posted',updated_at=NOW() WHERE entry_id=${led[0].entry_id}`;}else{await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'รายจ่าย','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${uid},${clean(b.member_code).toUpperCase()},${'ค่าใช้สิทธิ์: '+(ben[0]?.title||clean(b.benefit_id))},${clean(b.note)||null},'admin','posted',NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;}}else{await sql`UPDATE ledger_entries SET status='void',updated_at=NOW() WHERE reference_type='benefit_usage' AND reference_id=${uid}`;}return json(request,{success:true})}
       if(/^\/api\/admin\/benefit-usage\/[^/]+$/.test(path)&&request.method==="DELETE"){const denied=requireAdmin(request,env);if(denied)return denied;await ensureBenefitsSchema(sql);await ensureAccountingSchema(sql);const uid=decodeURIComponent(path.split('/').pop());await sql`UPDATE benefit_usage SET active=FALSE,updated_at=NOW() WHERE usage_id=${uid}`;await sql`UPDATE ledger_entries SET status='void',updated_at=NOW() WHERE reference_type='benefit_usage' AND reference_id=${uid}`;return json(request,{success:true})}
 
 
@@ -1049,8 +1104,8 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.64',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
-        if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.65',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
 

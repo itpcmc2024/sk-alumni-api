@@ -1,5 +1,5 @@
-SK Alumni System V2.6.64
-1. แทนไฟล์หน้าเว็บทั้งหมดด้วยชุด V2.6.64
+SK Alumni System V2.6.65
+1. แทนไฟล์หน้าเว็บทั้งหมดด้วยชุด V2.6.65
 2. Terminal ในโฟลเดอร์โปรเจกต์: npx wrangler deploy
 3. Git commit/push ให้ GitHub Pages อัปเดต
 4. Hard Refresh browser

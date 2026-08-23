@@ -1,4 +1,4 @@
-/* V2.6.64 — Public footer locked to Admin footer visual language */
+/* V2.6.65 — Public footer locked to Admin footer visual language */
 .sk-public-admin-footer{margin:28px 0 0!important;padding:0!important;width:100%!important;max-width:100%!important;background:#eaf8ef!important;border-top:1px solid #cfe7d9!important;overflow:hidden!important;clear:both!important;font-family:"Noto Sans Thai",Arial,sans-serif!important;box-sizing:border-box!important}
 .sk-public-admin-footer,.sk-public-admin-footer *{box-sizing:border-box!important}
 .sk-public-admin-footer__in{width:100%!important;max-width:none!important;margin:0!important;padding:16px 30px!important;min-height:84px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:24px!important}
@@ -20,7 +20,7 @@
 }
 
 
-/* V2.6.64 — Mobile footer: every row centered */
+/* V2.6.65 — Mobile footer: every row centered */
 @media(max-width:700px){
  .sk-public-admin-footer{
    margin-top:22px!important;
@@ -83,7 +83,7 @@
  }
 }
 
-/* V2.6.64 — Compact mobile footer: logo and association text stay on one row */
+/* V2.6.65 — Compact mobile footer: logo and association text stay on one row */
 @media(max-width:700px){
  .sk-public-admin-footer__in{
    padding:12px 14px 11px!important;
