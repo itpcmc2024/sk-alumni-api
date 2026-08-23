@@ -1,0 +1,6 @@
+SK Alumni System V2.6.64
+1. แทนไฟล์หน้าเว็บทั้งหมดด้วยชุด V2.6.64
+2. Terminal ในโฟลเดอร์โปรเจกต์: npx wrangler deploy
+3. Git commit/push ให้ GitHub Pages อัปเดต
+4. Hard Refresh browser
+5. ก่อนอนุมัติรายการรับเงินใหม่ ให้สร้าง “เล่มใบเสร็จ” ปีปัจจุบันใน Admin Receipts ก่อน

@@ -1,18 +1,18 @@
 (()=>{
   'use strict';
   const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-  const V='2.6.63';
+  const V='2.6.64';
   try{const u=new URL(location.href);if(u.searchParams.get('v')!==V){u.searchParams.set('v',V);history.replaceState(null,'',u.pathname+u.search+u.hash)}}catch{}
   const items=[['index.html','🕌','หน้าแรก'],['register.html','🧕🏻','ลงทะเบียน'],['status.html','🔎','ตรวจสอบ'],['benefits.html','🎁','สิทธิประโยชน์'],['donation.html','🤲🏻','บริจาค'],['news.html','📣','ข่าวสาร'],['admin-home.html','🌙','Admin']];
   const isAdmin=path.startsWith('admin');
   const publicPages=new Set(['index.html','register.html','status.html','benefits.html','member.html','payment.html','donation.html','news.html']);
   const active=(href)=>path===href||(href==='benefits.html'&&path==='member.html')||(href==='admin-home.html'&&isAdmin);
   function adminKey(){for(const k of ['sk_alumni_admin_key','SK_ALUMNI_ADMIN_KEY','adminKey']){const v=localStorage.getItem(k)||sessionStorage.getItem(k);if(v){try{['sk_alumni_admin_key','SK_ALUMNI_ADMIN_KEY','adminKey'].forEach(n=>localStorage.setItem(n,v))}catch{}return v}}return''}function clearAdminKey(){['sk_alumni_admin_key','SK_ALUMNI_ADMIN_KEY','adminKey'].forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)});}
-  function logout(){clearAdminKey(); try{document.getElementById('logoutBtn')?.click()}catch{}; location.href='admin-home.html?v='+V;}
+  function logout(){clearAdminKey(); try{document.getElementById('logoutBtn')?.click()}catch{}; location.href='admin.html?v='+V;}
   const mobileAdmin=isAdmin&&path!=='admin-home.html'?`<a class="sk-mobile-admin-back" href="admin-home.html?v=${V}">🧩 ศูนย์จัดการระบบ</a><button type="button" class="sk-mobile-admin-logout">ออกจากระบบ</button>`:'';
-  const header=()=>`<header class="sk-module-nav" data-sk-nav="v2.6.63"><div class="sk-nav-wrap"><a class="sk-nav-brand" href="index.html?v=${V}"><img class="sk-nav-logo" src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name><span class="sk-app-line">ระบบสมาชิกสมาคมศิษย์เก่า</span><span class="sk-app-line">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a><nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}?v=${V}"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav><div class="sk-mobile-home"><a href="index.html?v=${V}">🏠 หน้าแรก</a>${mobileAdmin}</div></div></header>`;
+  const header=()=>`<header class="sk-module-nav" data-sk-nav="v2.6.64"><div class="sk-nav-wrap"><a class="sk-nav-brand" href="index.html?v=${V}"><img class="sk-nav-logo" src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name><span class="sk-app-line">ระบบสมาชิกสมาคมศิษย์เก่า</span><span class="sk-app-line">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a><nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}?v=${V}"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav><div class="sk-mobile-home"><a href="index.html?v=${V}">🏠 หน้าแรก</a>${mobileAdmin}</div></div></header>`;
   function ensureHeader(){
-    if(document.querySelector('[data-sk-nav="v2.6.63"]')) return;
+    if(document.querySelector('[data-sk-nav="v2.6.64"]')) return;
     const holder=document.createElement('div'); holder.innerHTML=header(); const fresh=holder.firstElementChild;
     if(!fresh)return;
     const old=document.querySelector('body > header.site-header, body > header.top, body > header, .site-header, header.top');
@@ -22,7 +22,7 @@
     if(!isAdmin||path==='admin-home.html')return;
     // Pages such as Benefits/Finance/Settings already provide their own desktop actions.
     // Do not inject a second pair into the form/card area.
-    if(document.querySelector('.head-actions,[data-admin-actions="owned"]')) return;
+    if(document.querySelector('.head-actions,.settings-actions,[data-admin-actions="owned"]')) return;
     document.querySelectorAll('.sk-admin-action-group').forEach(x=>x.remove());
     const group=document.createElement('div');group.className='sk-admin-action-group';
     const back=document.createElement('a');back.className='sk-admin-back-inline';back.href='admin-home.html?v='+V;back.textContent='🧩 ศูนย์จัดการระบบ';
@@ -36,15 +36,15 @@
   }
   function publicModuleName(){const m={'index.html':'หน้าหลัก','register.html':'ลงทะเบียนศิษย์เก่า','status.html':'ตรวจสอบสถานะ','member.html':'ข้อมูลสมาชิก','benefits.html':'สิทธิประโยชน์','payment.html':'ชำระค่าสมาชิก','donation.html':'บริจาค','news.html':'ข่าวสาร'};return m[path]||'หน้าเว็บ';}
   function unifyPublicFooter(){
-    if(isAdmin||!publicPages.has(path))return;
+    if(!publicPages.has(path) && !isAdmin)return;
     document.querySelectorAll('footer,.sk-public-footer,.site-footer').forEach(x=>x.remove());
     const f=document.createElement('footer');f.className='sk-public-admin-footer';
-    f.innerHTML=`<div class="sk-public-admin-footer__in"><div class="sk-public-admin-footer__brand"><img src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div class="sk-public-admin-footer__text"><div class="sk-public-admin-footer__name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-public-admin-footer__values">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="sk-public-admin-footer__copy">© 2026 SK Alumni Member System by KimhanIkals - ${publicModuleName()} · V${V}</div></div>`;
+    f.innerHTML=`<div class="sk-public-admin-footer__in"><div class="sk-public-admin-footer__brand"><img src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div class="sk-public-admin-footer__text"><div class="sk-public-admin-footer__name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-public-admin-footer__values">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="sk-public-admin-footer__copy">© 2026 SK Alumni Member System by KimhanIkals - ${isAdmin?'Admin Center':publicModuleName()} · V${V}</div></div>`;
     document.body.appendChild(f);
   }
   function enhance(){
     try{
-      if(isAdmin&&path!=='admin.html'&&path!=='admin-home.html'&&!adminKey()){location.replace('admin.html?v='+V);return;}
+      if(isAdmin&&path!=='admin.html'&&!adminKey()){location.replace('admin.html?v='+V);return;}
       if(isAdmin)adminKey();
       if(publicPages.has(path)){document.body.classList.add('sk-public-page'); if(['benefits.html','news.html'].includes(path)){document.querySelector('main')?.classList.add('sk-public-content-frame')}}
       document.querySelectorAll('.v26-homebar,.v25-homebar,.homebtn').forEach(x=>x.remove());
