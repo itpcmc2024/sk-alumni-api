@@ -1,4 +1,4 @@
-SK Alumni System V2.6.65 – Portal + Receipt + Accounting + Remittance Fix
+SK Alumni System V2.6.66 – Portal + Receipt + Accounting + Remittance Fix
 
 แก้ไขหลัก:
 - Member portal: แก้โค้ด JavaScript หลุดออกมาเป็นข้อความ และรองรับ status token เข้าโปรไฟล์โดยตรง
@@ -11,4 +11,4 @@ SK Alumni System V2.6.65 – Portal + Receipt + Accounting + Remittance Fix
 - Media library: เพิ่มตัวกรองรูปสมาชิก/หลักฐานค่าสมาชิก/หลักฐานบริจาค/หลักฐานใช้สิทธิ์
 - Benefits Admin: ปุ่มบันทึก/ยกเลิกแก้ไขอยู่บรรทัดเดียวกัน
 - Payment topics: หน้าผู้ใช้แสดงชื่อหัวข้อจากการตั้งค่า Admin จริง ไม่ถูก hard-code ทับ
-- ปรับเวอร์ชันทุกจุดเป็น V2.6.65
+- ปรับเวอร์ชันทุกจุดเป็น V2.6.66

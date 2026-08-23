@@ -1,8 +1,8 @@
-SK Alumni System V2.6.65 – System Completion + Admin Standardization
+SK Alumni System V2.6.66 – System Completion + Admin Standardization
 
 สรุปการปรับปรุงหลัก
 - Admin SSO: เข้าสู่ระบบครั้งเดียว ใช้งานต่อเนื่องทุกโมดูล และ Logout กลับหน้า Admin Login
-- Footer ฝั่ง Admin ปรับแนวทางเดียวกับหน้าบ้าน พร้อมเลขเวอร์ชัน V2.6.65
+- Footer ฝั่ง Admin ปรับแนวทางเดียวกับหน้าบ้าน พร้อมเลขเวอร์ชัน V2.6.66
 - ปุ่ม Admin / Refresh / CSV / Navigator และ Typography ปรับมาตรฐานร่วมกัน
 - หน้า Status: สมาชิกใช้งานแล้วเข้าสู่ “ข้อมูลสมาชิก” ได้โดยตรงด้วย short-lived signed access token
 - Benefits: แนบหลักฐาน JPG/PNG/WEBP/PDF ได้ (ไม่บังคับ), ลงบัญชีรายจ่ายอัตโนมัติ, ค้นหา/เรียง/แบ่งหน้า/CSV, แก้ไข/ลบตามเงื่อนไข
