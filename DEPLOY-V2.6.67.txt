@@ -1,15 +1,15 @@
-SK Alumni System V2.6.67 – Deploy
+SK Alumni System V2.6.68 – Deploy
 
 1) แตกไฟล์แล้วนำไฟล์ทั้งหมดแทนที่ในโฟลเดอร์ sk-alumni-api
 2) ที่ VS Code Terminal รัน:
    npm install
    git add -A
-   git commit -m "SK Alumni System V2.6.67 Member Portal Remittance Media UX Fix"
+   git commit -m "SK Alumni System V2.6.68 Member Portal Remittance Media UX Fix"
    git push origin main
 3) Deploy Worker:
    npx wrangler deploy
 4) รอ GitHub Pages deploy เสร็จ แล้ว Hard Reload (Mac: Command + Shift + R)
-5) ทดสอบ URL ด้วย ?v=2.6.67
+5) ทดสอบ URL ด้วย ?v=2.6.68
 
 จุดทดสอบสำคัญ:
 - benefits.html -> login -> member.html -> ออกจากข้อมูลของฉัน ต้องกลับ benefits.html

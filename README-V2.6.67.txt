@@ -1,4 +1,4 @@
-SK Alumni System V2.6.67 – Member Portal + Remittance + Media UX Fix
+SK Alumni System V2.6.68 – Member Portal + Remittance + Media UX Fix
 
 แก้ไขหลัก:
 - member.html ไม่แสดงหน้าล็อกอินเก่าอีก: หากออกจากระบบหรือไม่มี session จะกลับไป benefits.html
@@ -6,4 +6,4 @@ SK Alumni System V2.6.67 – Member Portal + Remittance + Media UX Fix
 - แบบสรุปนำส่งเงิน: หัวข้อรายงานชิดซ้ายเหนือกรอบข้อมูล, วันที่มีวันในสัปดาห์, footer แบบเดียวกับเอกสารระบบ
 - จัดการรูปในระบบ: thumbnail เล็กลงและแสดงรายละเอียดเมื่อกดดู
 - สิทธิประโยชน์ทั้งหมด: การ์ด compact และจำกัดความกว้างเพื่ออ่านง่าย
-- อัปเดตเลขเวอร์ชันอ้างอิงเป็น V2.6.67
+- อัปเดตเลขเวอร์ชันอ้างอิงเป็น V2.6.68

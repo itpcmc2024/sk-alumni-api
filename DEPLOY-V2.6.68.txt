@@ -1,0 +1,8 @@
+SK Alumni System V2.6.68 Deployment
+1) แทนที่ไฟล์จาก package นี้ใน GitHub repository
+2) git add -A
+3) git commit -m "SK Alumni System V2.6.68"
+4) git push origin main
+5) npm install
+6) npx wrangler deploy
+7) ทดสอบด้วย ?v=2.6.68 และ Hard Refresh
