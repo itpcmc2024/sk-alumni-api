@@ -284,16 +284,16 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.67",status:"online"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.70",status:"online"});
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.67"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.70"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.69';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.70';
         return json(request,{success:true,data});
       }
 
@@ -731,7 +731,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.67"});
+        return json(request,{success:true,authorized:true,version:"2.6.70"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -842,13 +842,13 @@ export default {
         const paymentId=decodeURIComponent(path.split('/')[4]);
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_no TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
-        /* V2.6.69: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.70: do not fabricate receipt numbers; official numbers come from receipt books. */
         const rows=await sql`SELECT p.payment_id,p.member_code,p.payment_type,p.amount,p.paid_at,p.status,p.verified_by,p.verified_at,p.receipt_no,p.receipt_issued_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM payments p LEFT JOIN members m ON m.member_code=p.member_code LEFT JOIN addresses a ON a.member_code=p.member_code WHERE p.payment_id=${paymentId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการชำระ"},404);
         if(rows[0].status!=="ชำระแล้ว")return json(request,{success:false,message:"ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว"},409);
         const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE')`;
         const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;
-        return json(request,{success:true,data:{...rows[0],settings}})
+        return json(request,{success:true,data:{...rows[0],source_type:'payment',transaction_id:paymentId,settings}})
       }
 
       if(path==="/api/admin/payments"&&request.method==="GET"){
@@ -856,7 +856,7 @@ export default {
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS slip_data TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_no TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
-        /* V2.6.69: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.70: do not fabricate receipt numbers; official numbers come from receipt books. */
         const rows=await sql`SELECT p.*,m.full_name,m.prefix,m.first_name,m.last_name,m.email AS member_email,m.phone AS member_phone FROM payments p LEFT JOIN members m ON m.member_code=p.member_code ORDER BY p.created_at DESC LIMIT 1000`;
         return json(request,{success:true,data:rows})
       }
@@ -868,8 +868,8 @@ export default {
       }
       if(path==="/api/admin/receipts"&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);
-        /* V2.6.69: do not fabricate receipt numbers; official numbers come from receipt books. */
-        /* V2.6.69: official donation receipt numbers come from receipt books. */
+        /* V2.6.70: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.70: official donation receipt numbers come from receipt books. */
         const rows=await sql`SELECT * FROM (SELECT 'payment'::text AS source_type,p.payment_id AS transaction_id,p.receipt_no,p.receipt_issued_at,p.member_code,p.payment_type AS receipt_type,p.amount,p.paid_at AS transferred_at,p.verified_by,p.verified_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email FROM payments p LEFT JOIN members m ON m.member_code=p.member_code WHERE p.status='ชำระแล้ว' UNION ALL SELECT 'donation'::text AS source_type,d.donation_id AS transaction_id,d.receipt_no,d.receipt_issued_at,d.member_code,COALESCE(dt.title,'เงินบริจาค') AS receipt_type,d.amount,d.donated_at AS transferred_at,d.verified_by,d.verified_at,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code WHERE d.status IN ('ตรวจสอบแล้ว','อนุมัติ','approved','verified')) q ORDER BY receipt_issued_at DESC LIMIT 4000`;
         return json(request,{success:true,data:rows});
       }
@@ -963,7 +963,7 @@ export default {
       }
       if(/^\/api\/admin\/donations\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const donationId=decodeURIComponent(path.split('/')[4]);
-        /* V2.6.69: official donation receipt numbers come from receipt books. */
+        /* V2.6.70: official donation receipt numbers come from receipt books. */
         const rows=await sql`SELECT d.donation_id,d.member_code,d.amount,d.donated_at,d.status,d.verified_by,d.verified_at,d.receipt_no,d.receipt_issued_at,d.donor_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email,COALESCE(dt.title,d.topic_id,'เงินบริจาค') AS donation_type,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(a.address_line,d.address_line) AS address_line,COALESCE(a.subdistrict,d.subdistrict) AS subdistrict,COALESCE(a.district,d.district) AS district,COALESCE(a.province,d.province) AS province,COALESCE(a.postal_code,d.postal_code) AS postal_code FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code LEFT JOIN addresses a ON a.member_code=d.member_code WHERE d.donation_id=${donationId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบริจาค'},404);if(!['ตรวจสอบแล้ว','อนุมัติ','approved','verified'].includes(String(rows[0].status||'').toLowerCase())&&!['ตรวจสอบแล้ว','อนุมัติ'].includes(String(rows[0].status||'')))return json(request,{success:false,message:'ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว'},409);
         const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE')`;const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;return json(request,{success:true,data:{...rows[0],source_type:'donation',transaction_id:donationId,settings}})
@@ -1104,7 +1104,7 @@ export default {
         const denied=requireAdmin(request,env);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.69',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.70',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:"บันทึกการตั้งค่าแล้ว"})
       }
