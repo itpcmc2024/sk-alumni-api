@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+:root{--g:#0f9f6e;--gd:#086a4b;--mint:#ecfdf5;--blue:#eaf4ff;--pink:#fff0f6;--yellow:#fff8df;--ink:#405166;--line:#dcebe4}
+*{box-sizing:border-box}body{margin:0;font-family:'Noto Sans Thai',sans-serif;color:var(--ink);background:linear-gradient(135deg,#effcf4,#f8fbff 55%,#fff9e8);min-height:100vh}a{color:inherit}.wrap{width:min(1180px,94vw);margin:auto}.top{background:rgba(255,255,255,.95);border-bottom:1px solid #dff0e6;position:sticky;top:0;z-index:20;backdrop-filter:blur(10px)}.topin{display:flex;align-items:center;gap:16px;padding:12px 0}.logo{width:66px;height:66px;border-radius:50%;object-fit:contain;border:5px solid #dcfce7;background:#fff}.brand{font-family:'Mitr',sans-serif;color:var(--gd);font-size:clamp(18px,2.7vw,25px);font-weight:600;line-height:1.2}.brand-sub{font-size:13px;color:#718096}.nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav a{text-decoration:none;padding:9px 12px;border-radius:999px;font-size:13px;font-weight:700;color:#526173}.nav a:hover,.nav a.active{background:#dff8e8;color:#08774f}.hero{margin:28px 0 18px;min-height:310px;border:1px solid #dcebe4;border-radius:30px;background:linear-gradient(90deg,rgba(255,255,255,.98),rgba(247,255,250,.9),rgba(255,255,255,.2)),url('mosque-reference.jpg') right center/52% 100% no-repeat;box-shadow:0 16px 45px rgba(50,100,80,.08);display:flex;align-items:center;padding:clamp(24px,5vw,48px)}.hero h1{font-family:'Mitr',sans-serif;color:#086a4b;font-size:clamp(34px,5vw,58px);line-height:1.1;margin:14px 0}.hero p{max-width:680px;font-size:clamp(15px,2vw,19px);line-height:1.75}.pill{display:inline-flex;padding:9px 14px;border-radius:999px;background:#dcfce7;color:#08774f;font-weight:700}.quote-row{display:flex;flex-wrap:nowrap;gap:8px;margin-top:18px;overflow-x:auto;scrollbar-width:none}.quote-row::-webkit-scrollbar{display:none}.q{white-space:nowrap;border-radius:999px;padding:9px 13px;font-weight:700;font-size:clamp(11px,1.4vw,14px)}.q.p{background:#ffe4f1;color:#bf2b6e}.q.b{background:#dfeeff;color:#2667c8}.q.y{background:#fff0bf;color:#ad6500}.q.g{background:#dcfce7;color:#087956}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:18px 0 34px}.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:0 10px 30px rgba(50,90,70,.055)}.card h2,.card h3{font-family:'Mitr',sans-serif;color:#31564b}.module{display:flex;flex-direction:column;min-height:230px}.module .icon{font-size:42px}.module p{color:#758396;line-height:1.7}.btn{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:15px;padding:12px 17px;background:linear-gradient(135deg,#11b981,#0f9f6e);color:#fff;font-weight:700;cursor:pointer}.btn.alt{background:#fff;color:#087956;border:1px solid #b7dfca}.section-title{font-family:'Mitr',sans-serif;color:#086a4b;margin:30px 0 14px}.form{display:grid;gap:14px}.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field label{display:block;font-weight:700;margin-bottom:6px}.control{width:100%;height:50px;border:1px solid #cfe1d8;border-radius:14px;background:#fff;padding:0 14px;font:inherit;outline:none}.control:focus{border-color:#43ba88;box-shadow:0 0 0 4px rgba(67,186,136,.12)}textarea.control{height:auto;min-height:110px;padding:12px}.notice{padding:12px 14px;border-radius:14px;background:#fff7dc;border:1px solid #f3d785;color:#8d6410}.list{display:grid;gap:12px}.item{padding:16px;border:1px solid #e1ebe6;border-radius:17px;background:#fbfdfc}.badge{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}.pending{background:#fff3c4;color:#9a6700}.active{background:#dcfce7;color:#087956}.cancel{background:#ffe4ec;color:#b43c5d}.footer{margin-top:38px;border-top:1px solid #dcebe4;background:linear-gradient(90deg,#eefcf4,#f6fff9);padding:22px 0}.footin{display:flex;align-items:center;gap:12px;justify-content:space-between}.footbrand{display:flex;align-items:center;gap:12px}.footbrand img{width:48px;height:48px;border-radius:50%;object-fit:contain}.footcopy{font-size:13px;color:#65748a;text-align:right}.hidden{display:none!important}
+@media(max-width:850px){.nav{display:none}.grid{grid-template-columns:1fr 1fr}.hero{background-size:70% 100%;background-position:140% center}.row2{grid-template-columns:1fr}.footin{align-items:flex-start;flex-direction:column}.footcopy{text-align:left}}
+@media(max-width:580px){.grid{grid-template-columns:1fr}.hero{background:linear-gradient(90deg,rgba(255,255,255,.98),rgba(247,255,250,.88)),url('mosque-reference.jpg') center/cover no-repeat}.topin{align-items:flex-start}.logo{width:58px;height:58px}.quote-row{gap:5px}.q{padding:8px 10px;font-size:10.5px}}
+
+.sk-app-line{display:block;white-space:nowrap}.brand .sk-app-line,.sk-nav-title .sk-app-line,.brand-title .sk-app-line{line-height:1.2}@media(max-width:700px){.sk-app-line{white-space:normal}}
+
+
+/* SK Alumni V2.6.69 — Admin Template Foundation */
+.admin-public-footer{margin-top:38px;border-top:1px solid #dcebe4;background:linear-gradient(90deg,#e8fbf0,#f8fff9,#fff9e9);padding:24px 0}
+.admin-public-footer .apf-inner{width:min(1180px,94vw);margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.admin-public-footer .apf-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.admin-public-footer .apf-logo{width:62px;height:62px;object-fit:contain;border-radius:50%;background:transparent;padding:4px;border:3px solid rgba(50,169,105,.22);box-shadow:0 0 0 7px rgba(224,249,234,.65),0 8px 18px rgba(27,118,76,.14);flex:none}
+.admin-public-footer .apf-title{font-size:15px;font-weight:900;color:#0d6846;line-height:1.35}
+.admin-public-footer .apf-sub{font-size:12px;color:#77877f;margin-top:3px}
+.admin-public-footer .apf-copy{font-size:13px;color:#64766e;text-align:right;line-height:1.5}
+.admin-home-mobile-actions{display:none}
+.admin-home-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;border:1px solid #cfe4d9;background:#fff;color:#08744c;border-radius:999px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap}
+.admin-home-link:hover{background:#e7f8ef}
+@media(max-width:850px){
+  .admin-home-mobile-actions{display:flex;width:min(1180px,94vw);margin:10px auto 0;gap:8px;flex-wrap:wrap}
+  .admin-home-mobile-actions .admin-home-link{flex:1 1 auto}
+  .admin-public-footer .apf-inner{flex-direction:column;align-items:center;text-align:center;padding:12px 0;gap:18px}
+  .admin-public-footer .apf-brand{justify-content:center;text-align:left;max-width:94%}
+  .admin-public-footer .apf-logo{width:76px;height:76px}
+  .admin-public-footer .apf-copy{text-align:center;width:100%}
+}
+
+/* SK Alumni V2.6.69 — Admin template alignment + mobile footer stability */
+html,body{max-width:100%;overflow-x:hidden}
+.admin-public-footer{width:100%;max-width:100%;margin-top:34px!important;border-top:1px solid #dcebe4!important;background:linear-gradient(90deg,#eafaf1,#f7fff9,#fffaf0)!important;padding:18px 0!important;overflow:hidden!important;position:relative!important;z-index:2}
+.admin-public-footer .apf-inner{width:min(1180px,94vw)!important;max-width:1180px!important;margin:0 auto!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;min-height:64px!important}
+.admin-public-footer .apf-brand{display:flex!important;align-items:center!important;gap:12px!important;min-width:0!important;max-width:72%!important}
+.admin-public-footer img.apf-logo{display:block!important;width:56px!important;height:56px!important;min-width:56px!important;max-width:56px!important;min-height:56px!important;max-height:56px!important;object-fit:contain!important;border-radius:50%!important;padding:3px!important;border:2px solid #d5efe1!important;background:#fff!important;box-shadow:none!important;flex:0 0 56px!important}
+.admin-public-footer .apf-brand>div{min-width:0!important}
+.admin-public-footer .apf-title{font-size:14px!important;font-weight:900!important;color:#0d6846!important;line-height:1.38!important;overflow-wrap:anywhere!important}
+.admin-public-footer .apf-sub{font-size:11px!important;color:#718178!important;margin-top:3px!important;line-height:1.4!important}
+.admin-public-footer .apf-copy{font-size:11px!important;color:#66766f!important;text-align:right!important;line-height:1.5!important;white-space:normal!important;flex:0 1 auto!important}
+.table-wrap,.tablewrap{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+.sk-admin-center-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;border:1px solid #cfe4d9;background:#fff;color:#08744c;border-radius:999px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap;box-shadow:0 4px 12px rgba(15,118,80,.04)}
+.sk-admin-center-action:hover{background:#e7f8ef}
+@media(max-width:700px){
+ body{width:100%;min-width:0}
+ .admin-public-footer{margin-top:24px!important;padding:18px 0 16px!important}
+ .admin-public-footer .apf-inner{width:100%!important;max-width:100%!important;margin:0!important;padding:0 18px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;text-align:center!important}
+ .admin-public-footer .apf-brand{width:100%!important;max-width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important;text-align:center!important}
+ .admin-public-footer img.apf-logo{width:54px!important;height:54px!important;min-width:54px!important;max-width:54px!important;min-height:54px!important;max-height:54px!important;flex-basis:54px!important}
+ .admin-public-footer .apf-title{font-size:12px!important;line-height:1.4!important;text-align:center!important;max-width:92vw!important}
+ .admin-public-footer .apf-sub{font-size:10px!important;text-align:center!important}
+ .admin-public-footer .apf-copy{width:100%!important;text-align:center!important;font-size:10px!important;border-top:1px dashed #d8e9df!important;padding-top:9px!important;margin-top:2px!important}
+}
+
+
+/* V2.6.69 — Public UI standard: typography, buttons, footer, responsive */
+body{font-family:"Noto Sans Thai",sans-serif!important}
+h1,h2,h3,.section-title,.title,.brand,.site-footer-name{font-family:"Mitr","Noto Sans Thai",sans-serif}
+button,.btn,input[type="button"],input[type="submit"],a.btn{transition:transform .08s ease,box-shadow .12s ease,filter .12s ease}
+button:active,.btn:active,input[type="button"]:active,input[type="submit"]:active,a.btn:active{transform:translateY(1px) scale(.98);filter:brightness(.97)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:3px solid rgba(15,159,110,.18);outline-offset:2px}
+.sk-public-footer{margin-top:34px;background:linear-gradient(90deg,#e9f9ef,#f8fff9 58%,#fff9ea);border-top:1px solid #d7edde;width:100%}
+.sk-public-footer .spf-inner{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:18px;color:#64748b;font-size:12px}
+.sk-public-footer .spf-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.sk-public-footer .spf-logo{width:48px;height:48px;flex:0 0 48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}
+.sk-public-footer .spf-name{font-family:"Mitr","Noto Sans Thai",sans-serif;font-weight:600;color:#166749;line-height:1.35}
+.sk-public-footer .spf-values{font-size:11px;color:#27805f;margin-top:2px}
+.sk-public-footer .spf-copy{text-align:right;line-height:1.5}
+@media(max-width:700px){
+ .sk-public-footer .spf-inner{flex-direction:column;text-align:center;padding:17px 14px;gap:9px}
+ .sk-public-footer .spf-brand{flex-direction:column;justify-content:center}
+ .sk-public-footer .spf-copy{text-align:center;font-size:10.5px}
+ .sk-public-footer .spf-name{font-size:12px}.sk-public-footer .spf-values{font-size:10px}
+ main{max-width:100%;overflow-x:hidden}
+}
+
+/* V2.6.69 — Public footer lock: match Status page across desktop/mobile */
+.site-footer.sk-standard-footer{margin-top:30px!important;background:linear-gradient(90deg,#e9f9ef,#f9fff8)!important;border-top:1px solid #d7edde!important;padding:0!important;width:100%!important;overflow:visible!important}
+.site-footer.sk-standard-footer .site-footer-in{width:min(1180px,94vw)!important;margin:0 auto!important;padding:18px 0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;color:#64748b!important;font-size:13px!important;min-height:0!important}
+.site-footer.sk-standard-footer .site-footer-brand{display:flex!important;align-items:center!important;gap:11px!important;max-width:none!important;flex-direction:row!important;text-align:left!important}
+.site-footer.sk-standard-footer .site-footer-brand img{display:block!important;width:48px!important;height:48px!important;min-width:48px!important;max-width:48px!important;min-height:48px!important;max-height:48px!important;flex:0 0 48px!important;border-radius:50%!important;object-fit:contain!important;background:#fff!important;border:3px solid #dcfce7!important;padding:0!important;box-shadow:none!important}
+.site-footer.sk-standard-footer .site-footer-name{font-family:'Noto Sans Thai',sans-serif!important;font-size:13px!important;font-weight:700!important;color:#166749!important;line-height:1.4!important}
+.site-footer.sk-standard-footer .site-footer-values{font-size:12px!important;color:#27805f!important;margin-top:2px!important;line-height:1.4!important}
+.site-footer.sk-standard-footer .site-footer-version{font-size:13px!important;text-align:right!important;line-height:1.45!important;color:#64748b!important;white-space:normal!important}
+@media(max-width:680px){.site-footer.sk-standard-footer .site-footer-in{width:min(94vw,1180px)!important;padding:18px 0!important;flex-direction:column!important;text-align:center!important;gap:10px!important}.site-footer.sk-standard-footer .site-footer-brand{flex-direction:row!important;justify-content:center!important;text-align:left!important;width:auto!important;max-width:100%!important}.site-footer.sk-standard-footer .site-footer-brand img{width:48px!important;height:48px!important;min-width:48px!important;max-width:48px!important;min-height:48px!important;max-height:48px!important;flex-basis:48px!important}.site-footer.sk-standard-footer .site-footer-name{font-size:13px!important;text-align:left!important}.site-footer.sk-standard-footer .site-footer-values{font-size:12px!important;text-align:left!important}.site-footer.sk-standard-footer .site-footer-version{text-align:center!important;font-size:12px!important;width:100%!important;border:0!important;padding:0!important;margin:0!important}}
