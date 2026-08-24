@@ -1,9 +1,9 @@
-SK Alumni System V2.6.75 – Version Sync + Settings + Member History Polish
+SK Alumni System V2.6.76 – Version Sync + Settings + Member History Polish
 
 ปรับปรุงจาก V2.6.74 โดยตรง
 
 1) Version Sync
-- อัปเดต runtime version ทั้งหน้าเว็บ, query string, footer/header, module-nav และ Worker API เป็น V2.6.75
+- อัปเดต runtime version ทั้งหน้าเว็บ, query string, footer/header, module-nav และ Worker API เป็น V2.6.76
 - แก้ค่าที่ค้างเป็น V2.6.73 ใน assets/module-nav.js และ src/index.js
 
 2) Admin Settings
