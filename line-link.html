@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เชื่อมบัญชี LINE · SK Alumni</title>
+<link rel="stylesheet" href="assets/site.css?v=2.6.79">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+body{background:#f4fbf7}.wrap{max-width:620px;margin:0 auto;padding:28px 16px 50px}.card{background:#fff;border:1px solid #dcebe3;border-radius:22px;padding:24px;box-shadow:0 12px 34px rgba(30,85,61,.08)}.logo{width:76px;height:76px;object-fit:contain;display:block;margin:0 auto 10px}.title{text-align:center;margin:0;color:#205b45}.sub{text-align:center;color:#64756e;margin:8px 0 22px}.field{margin:14px 0}.field label{display:block;font-weight:700;margin-bottom:7px;color:#31594a}.field input{width:100%;height:46px;border:1px solid #cddfd6;border-radius:12px;padding:0 13px;font:inherit}.btn{width:100%;height:48px;border:0;border-radius:12px;background:#1f8f5f;color:#fff;font:inherit;font-weight:700;cursor:pointer}.note{font-size:13px;color:#718079;background:#f6faf8;border-radius:12px;padding:12px;margin-top:16px}.done{text-align:center;padding:18px 4px}.done h2{color:#18794e}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<img class="logo" src="assets/association-logo.png" alt="logo">
+<h1 class="title">เชื่อมบัญชีสมาชิกกับ LINE</h1>
+<p class="sub">ยืนยันเพียงครั้งแรก หลังจากนั้นสามารถเปิดข้อมูลสมาชิกจาก LINE ได้สะดวกขึ้น</p>
+<form id="form">
+<div class="field"><label>รหัสสมาชิก</label><input id="code" autocomplete="off" placeholder="เช่น 69-SK0001" required></div>
+<div class="field"><label>อีเมล หรือ เบอร์โทรศัพท์ที่ใช้สมัคร</label><input id="identity" autocomplete="off" placeholder="ใช้ข้อมูลเดียวกับระบบสมาชิก" required></div>
+<button class="btn" id="submit" type="submit">เชื่อมบัญชี LINE</button>
+<div class="note">เพื่อความปลอดภัย ลิงก์นี้ใช้ได้ 15 นาทีและใช้ได้เพียงครั้งเดียว ระบบจะไม่ขอ Channel Token หรือข้อมูล LINE Secret จากสมาชิก</div>
+</form>
+<div id="done" class="done hidden"><h2>✓ เชื่อมบัญชีสำเร็จ</h2><p id="doneText"></p><p>กลับไปที่ LINE แล้วพิมพ์ <strong>ข้อมูลของฉัน</strong> ได้เลยค่ะ</p></div>
+</div></div>
+<script>
+const API='https://sk-alumni-api.itpcmc2024.workers.dev';
+const token=new URLSearchParams(location.search).get('token')||'';
+const $=id=>document.getElementById(id);
+if(!token){$('form').classList.add('hidden');Swal.fire({icon:'warning',title:'ลิงก์ไม่ถูกต้อง',text:'กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'})}
+$('form').addEventListener('submit',async e=>{
+ e.preventDefault();const code=$('code').value.trim().toUpperCase(),identity=$('identity').value.trim(),btn=$('submit');
+ if(!code||!identity)return;
+ btn.disabled=true;btn.textContent='กำลังเชื่อมบัญชี...';
+ try{
+  const r=await fetch(API+'/api/line/link-account',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,member_code:code,identity})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||j.success===false)throw new Error(j.message||'เชื่อมบัญชีไม่สำเร็จ');
+  $('form').classList.add('hidden');$('done').classList.remove('hidden');$('doneText').textContent=(j.data?.member_code||code)+' '+(j.data?.member_name||'');
+ }catch(err){Swal.fire({icon:'error',title:'เชื่อมบัญชีไม่สำเร็จ',text:err.message})}
+ finally{btn.disabled=false;btn.textContent='เชื่อมบัญชี LINE'}
+});
+</script>
+</body></html>

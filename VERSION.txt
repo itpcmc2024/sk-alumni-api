@@ -1,1 +1,1 @@
-SK Alumni System V2.6.78.1 – LINE Command Routing Fix
+SK Alumni System V2.6.79 – LINE Member Account Linking

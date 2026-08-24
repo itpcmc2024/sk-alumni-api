@@ -1,4 +1,4 @@
-SK Alumni System V2.6.78.1 – LINE Integration Phase 1
+SK Alumni System V2.6.79 – LINE Integration Phase 1
 
 เพิ่ม:
 - LINE Messaging API Webhook: POST /api/line/webhook
@@ -8,7 +8,7 @@ SK Alumni System V2.6.78.1 – LINE Integration Phase 1
 - รองรับ follow / unfollow / text message เบื้องต้น
 - คำสั่ง: เมนู, ลงทะเบียน, สมาชิก/ข้อมูลสมาชิก/สิทธิประโยชน์, ติดต่อแอดมิน
 - ตอบกลับด้วย Messaging API reply endpoint
-- Sync version เป็น V2.6.78.1 ทั้ง Worker และหน้าเว็บ
+- Sync version เป็น V2.6.79 ทั้ง Worker และหน้าเว็บ
 
 Webhook URL:
 https://sk-alumni-api.itpcmc2024.workers.dev/api/line/webhook
