@@ -1,4 +1,4 @@
-SK Alumni System V2.6.73 – Admin Auto Logout + Receipt + Log Polish
+SK Alumni System V2.6.74 – Admin Auto Logout + Receipt + Log Polish
 
 แก้ไขจาก V2.6.72 โดยคงไฟล์ระบบเดิมครบถ้วน
 - ขยายปุ่ม Log ในสมุดบัญชีให้อ่านได้เต็มคำ
@@ -7,4 +7,4 @@ SK Alumni System V2.6.73 – Admin Auto Logout + Receipt + Log Polish
 - การใช้งานเมาส์/คีย์บอร์ด/ฟอร์ม/เลื่อนหน้าจะต่ออายุ session
 - เพิ่ม X-Admin-Key ในการโหลดใบเสร็จ และแสดงข้อความผิดพลาดแทนหน้าขาวเมื่อ session ไม่พร้อม
 
-หมายเหตุ: หลังอัปเดต V2.6.73 ครั้งแรก Admin จะต้อง Login ใหม่ 1 ครั้ง เนื่องจากระบบเลิกจำรหัส Admin แบบ localStorage เพื่อให้ปิดหน้าจอแล้วออกจากระบบจริง
+หมายเหตุ: หลังอัปเดต V2.6.74 ครั้งแรก Admin จะต้อง Login ใหม่ 1 ครั้ง เนื่องจากระบบเลิกจำรหัส Admin แบบ localStorage เพื่อให้ปิดหน้าจอแล้วออกจากระบบจริง
