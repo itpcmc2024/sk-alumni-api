@@ -1,4 +1,4 @@
-SK Alumni System V2.6.79 – LINE Command Routing Fix
+SK Alumni System V2.6.79.1.1 – LINE Command Routing Fix
 
 แก้ไข:
 - เมนู: เรียกเมนูหลักได้ทุกครั้ง และรองรับช่องว่าง/เครื่องหมายรอบคำสั่ง
@@ -6,4 +6,4 @@ SK Alumni System V2.6.79 – LINE Command Routing Fix
 - สิทธิประโยชน์: แยกไป benefits.html
 - follow event: แสดงข้อความต้อนรับพร้อมเมนู
 - ติดต่อแอดมิน: คงช่องทางสนทนาและแนะนำให้พิมพ์รายละเอียด
-- Sync version เป็น V2.6.79
+- Sync version เป็น V2.6.79.1.1

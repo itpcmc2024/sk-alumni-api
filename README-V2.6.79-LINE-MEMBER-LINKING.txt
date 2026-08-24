@@ -1,4 +1,4 @@
-SK Alumni System V2.6.79 – LINE Member Account Linking
+SK Alumni System V2.6.79.1.1 – LINE Member Account Linking
 
 เพิ่มจาก V2.6.78.1:
 1) เมนู LINE เปลี่ยน “สมาชิก” เป็น “ตรวจสอบสถานะ” และลิงก์ไป status.html
