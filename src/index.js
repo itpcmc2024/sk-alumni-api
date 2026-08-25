@@ -406,7 +406,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.84'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.85'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -451,27 +451,44 @@ async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in
 }
 
 async function recoverLineAdminMessages(sql){
-  // Recover inbound Admin messages from the general LINE event log. This also repairs
-  // messages from earlier builds where the dedicated inbox insert failed after replying.
+  // V2.6.85: recover member-to-Admin text from the general LINE event log.
+  // Earlier versions only recovered messages beginning with "แอดมิน".  Since ordinary
+  // free-form text is now a valid Admin conversation, old free-form test messages are
+  // recoverable too, while known system commands are excluded.
   await ensureLineSchema(sql);
   await sql`INSERT INTO line_admin_messages(message_id,line_user_id,member_code,direction,message_text,status,created_at)
     SELECT 'LCM-REC-'||lel.log_id,lel.line_user_id,lu.member_code,'in',
-           REGEXP_REPLACE(lel.message_text,'^(แอดมิน|admin)\s+','','i'),'received',lel.created_at
+           CASE WHEN lel.message_text ~* '^(แอดมิน|admin)\s+'
+                THEN REGEXP_REPLACE(lel.message_text,'^(แอดมิน|admin)\s+','','i')
+                ELSE lel.message_text END,
+           'received',lel.created_at
     FROM line_event_logs lel
     LEFT JOIN line_users lu ON lu.line_user_id=lel.line_user_id
     WHERE lel.event_type='message' AND lel.message_type='text' AND lel.line_user_id IS NOT NULL
-      AND lel.message_text ~* '^(แอดมิน|admin)\s+'
+      AND COALESCE(NULLIF(TRIM(lel.message_text),''),'')<>''
+      AND LOWER(TRIM(lel.message_text)) NOT IN (
+        'เมนู','menu','help','ช่วยเหลือ','คำสั่ง','ลงทะเบียน','ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก',
+        'สิทธิประโยชน์','สิทธิ','ติดต่อแอดมิน','ติดต่อ admin','contact admin','เชื่อมบัญชี','ผูกบัญชี','เชื่อมสมาชิก',
+        'ข้อมูลของฉัน','ข้อมูลสมาชิก','บัญชีสมาชิก','แก้ไขข้อมูล','แก้ไขข้อมูลส่วนตัว','ข้อมูลส่วนตัว','บัตรสมาชิก','บัตรสมาชิกดิจิทัล','บัตรของฉัน',
+        'ประวัติชำระ','ประวัติชำระสมาชิก','ประวัติการชำระ','ชำระสมาชิก','ประวัติบริจาค','ประวัติการบริจาค','บริจาคของฉัน',
+        'ประวัติสิทธิ์','ประวัติสิทธิประโยชน์','ประวัติการใช้สิทธิ','สิทธิ์ของฉัน'
+      )
       AND NOT EXISTS(
         SELECT 1 FROM line_admin_messages lam
         WHERE lam.line_user_id=lel.line_user_id
           AND lam.direction='in'
-          AND lam.created_at BETWEEN lel.created_at-INTERVAL '3 seconds' AND lel.created_at+INTERVAL '3 seconds'
-          AND lam.message_text=REGEXP_REPLACE(lel.message_text,'^(แอดมิน|admin)\s+','','i')
+          AND lam.created_at BETWEEN lel.created_at-INTERVAL '5 seconds' AND lel.created_at+INTERVAL '5 seconds'
+          AND lam.message_text=(CASE WHEN lel.message_text ~* '^(แอดมิน|admin)\s+' THEN REGEXP_REPLACE(lel.message_text,'^(แอดมิน|admin)\s+','','i') ELSE lel.message_text END)
       )
     ON CONFLICT(message_id) DO NOTHING`;
 }
+function lineBackground(ctx,promise){
+  const task=Promise.resolve(promise).catch(err=>console.error('LINE background task failed',err));
+  if(ctx&&typeof ctx.waitUntil==='function'){ctx.waitUntil(task);return;}
+  return task;
+}
 
-async function handleLineEvent(event,env,sql){
+async function handleLineEvent(event,env,sql,ctx){
   const userId=clean(event?.source?.userId);
   const eventType=clean(event?.type);
   const msgType=clean(event?.message?.type);
@@ -481,12 +498,12 @@ async function handleLineEvent(event,env,sql){
   // Reply to follow/basic commands FIRST. No DB query/schema creation may delay replyToken.
   if(eventType==='follow'&&event.replyToken){
     await lineReply(env,event.replyToken,{type:'text',text:lineWelcomeText()+'\n\n'+lineMenuText(false)});
-    await saveLineEventNonCritical(event,sql);
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
 
   if(eventType!=='message'||msgType!=='text'||!event.replyToken){
-    await saveLineEventNonCritical(event,sql);
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
 
@@ -494,27 +511,27 @@ async function handleLineEvent(event,env,sql){
 
   if(['เมนู','menu','help','ช่วยเหลือ','คำสั่ง'].includes(t)){
     await lineReply(env,event.replyToken,{type:'text',text:lineMenuText(false)});
-    await saveLineEventNonCritical(event,sql);
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.84\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
-    await saveLineEventNonCritical(event,sql);
+    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.85\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.84'});
-    await saveLineEventNonCritical(event,sql);
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.85'});
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.84'});
-    await saveLineEventNonCritical(event,sql);
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.85'});
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(t==='ติดต่อแอดมิน'||t==='ติดต่อ admin'||t==='contact admin'){
-    await lineReply(env,event.replyToken,{type:'text',text:'ติดต่อ Admin ได้เลยค่ะ 💬\n\nพิมพ์คำว่า “แอดมิน” เว้นวรรค แล้วตามด้วยข้อความ เช่น\nแอดมิน ขอสอบถามเรื่องใบเสร็จรับเงิน\n\nระบบจะส่งข้อความให้ Admin และ Admin สามารถตอบกลับมาที่ LINE นี้ได้ค่ะ'});
-    await saveLineEventNonCritical(event,sql);
+    await lineReply(env,event.replyToken,{type:'text',text:'ติดต่อ Admin ได้เลยค่ะ 💬\n\nพิมพ์ข้อความที่ต้องการส่งได้ทันที หรือพิมพ์ “แอดมิน” เว้นวรรคแล้วตามด้วยข้อความก็ได้ค่ะ\n\nระบบจะบันทึกเข้ากล่อง LINE สมาชิก และเมื่อ Admin ตอบ ระบบจะส่งกลับมาที่ LINE นี้โดยอัตโนมัติ'});
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(t.startsWith('แอดมิน ')||t.startsWith('admin ')){
@@ -525,8 +542,8 @@ async function handleLineEvent(event,env,sql){
     }
     // Reply first, then save to PostgreSQL so a slow DB never consumes the LINE reply token.
     await lineReply(env,event.replyToken,{type:'text',text:'✅ ส่งข้อความถึง Admin แล้วค่ะ\n\n“'+detail.slice(0,1200)+'”\n\nเมื่อ Admin ตอบ ระบบจะส่งกลับมาที่ LINE นี้โดยอัตโนมัติ'});
-    await saveLineAdminMessageNonCritical(sql,userId,detail,'in',null);
-    await saveLineEventNonCritical(event,sql);
+    lineBackground(ctx,saveLineAdminMessageNonCritical(sql,userId,detail,'in',null));
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
 
@@ -539,12 +556,12 @@ async function handleLineEvent(event,env,sql){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.84\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
+      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.85\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
     }
-    await saveLineEventNonCritical(event,sql);
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
 
@@ -552,31 +569,40 @@ async function handleLineEvent(event,env,sql){
   // Member linking/status is resolved only after the signed URL is opened.
   if(['ข้อมูลของฉัน','ข้อมูลสมาชิก','บัญชีสมาชิก'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'เปิดข้อมูลสมาชิกของฉันได้ที่');
-    await saveLineEventNonCritical(event,sql);return;
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
   if(['แก้ไขข้อมูล','แก้ไขข้อมูลส่วนตัว','ข้อมูลส่วนตัว'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'แก้ไขข้อมูลส่วนตัวได้ที่',{tab:'profile',action:'edit'});
-    await saveLineEventNonCritical(event,sql);return;
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
   if(['บัตรสมาชิก','บัตรสมาชิกดิจิทัล','บัตรของฉัน'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'เปิดบัตรสมาชิกดิจิทัลได้ที่',{tab:'profile',action:'card'});
-    await saveLineEventNonCritical(event,sql);return;
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
   if(['ประวัติชำระ','ประวัติชำระสมาชิก','ประวัติการชำระ','ชำระสมาชิก'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'ดูประวัติชำระสมาชิกได้ที่',{tab:'payments'});
-    await saveLineEventNonCritical(event,sql);return;
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
   if(['ประวัติบริจาค','ประวัติการบริจาค','บริจาคของฉัน'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'ดูประวัติการบริจาคได้ที่',{tab:'donations'});
-    await saveLineEventNonCritical(event,sql);return;
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
   if(['ประวัติสิทธิ์','ประวัติสิทธิประโยชน์','ประวัติการใช้สิทธิ','สิทธิ์ของฉัน'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'ดูประวัติการใช้สิทธิประโยชน์ได้ที่',{tab:'benefits'});
-    await saveLineEventNonCritical(event,sql);return;
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
 
-  await lineReply(env,event.replyToken,{type:'text',text:'รับข้อความแล้วค่ะ 😊\nหากต้องการใช้งานระบบ พิมพ์ “เมนู” เพื่อดูคำสั่ง'});
-  await saveLineEventNonCritical(event,sql);
+  // V2.6.85: free-form text is a member-to-Admin conversation message.
+  // Known system commands have already returned above, so ordinary chat must not be lost.
+  const freeText=clean(msgText);
+  if(freeText){
+    await lineReply(env,event.replyToken,{type:'text',text:'✅ ส่งข้อความถึง Admin แล้วค่ะ\n\n“'+freeText.slice(0,1200)+'”\n\nเมื่อ Admin ตอบ ระบบจะส่งกลับมาที่ LINE นี้โดยอัตโนมัติ\nพิมพ์ “เมนู” เมื่อต้องการใช้คำสั่งระบบ'});
+    lineBackground(ctx,saveLineAdminMessageNonCritical(sql,userId,freeText,'in',null));
+    lineBackground(ctx,saveLineEventNonCritical(event,sql));
+    return;
+  }
+  await lineReply(env,event.replyToken,{type:'text',text:'พิมพ์ “เมนู” เพื่อดูคำสั่งระบบได้ค่ะ'});
+  lineBackground(ctx,saveLineEventNonCritical(event,sql));
 }
 
 async function ensureReceiptOpsSchema(sql){
@@ -635,14 +661,14 @@ async function cardToken(code,env){
 function safeEqual(a,b){a=String(a||"");b=String(b||"");if(a.length!==b.length)return false;let x=0;for(let i=0;i<a.length;i++)x|=a.charCodeAt(i)^b.charCodeAt(i);return x===0}
 
 export default {
-  async fetch(request,env){
+  async fetch(request,env,ctx){
     if(request.method==="OPTIONS") return new Response(null,{status:204,headers:cors(request)});
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.84",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.85",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.84",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.6.85",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -653,7 +679,7 @@ export default {
         const events=Array.isArray(payload.events)?payload.events:[];
         if(!events.length) return json(request,{success:true,verified:true,events:0});
         sql=db(env);
-        for(const event of events){try{await handleLineEvent(event,env,sql)}catch(e){console.error('LINE event failed',e)}}
+        for(const event of events){try{await handleLineEvent(event,env,sql,ctx)}catch(e){console.error('LINE event failed',e)}}
         return json(request,{success:true,verified:true,events:events.length});
       }
       sql=db(env);
@@ -681,12 +707,12 @@ export default {
       }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.84"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.85"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.84';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.85';
         return json(request,{success:true,data});
       }
 
@@ -1164,7 +1190,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.84"});
+        return json(request,{success:true,authorized:true,version:"2.6.85"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1540,7 +1566,7 @@ export default {
         if(newAdminKey){if(newAdminKey.length<8)return json(request,{success:false,message:'Admin API Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(newAdminKey);await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('ADMIN_API_KEY_HASH',${h},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;}
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.84',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.85',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }
