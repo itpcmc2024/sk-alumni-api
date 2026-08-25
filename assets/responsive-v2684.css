@@ -1,0 +1,84 @@
+/* SK Alumni System V2.6.84 — global responsive safety layer */
+html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:border-box}img,svg,video,canvas,iframe{max-width:100%;height:auto}input,select,textarea,button{max-width:100%;min-width:0}textarea{resize:vertical}p,li,td,th,label,.card,.panel,.box,.note,.detail,.message,.modal,.modal-content{overflow-wrap:anywhere;word-break:break-word}.wrap,.container,.content,.main,.page,.section{max-width:100%}.table-wrap,.table-responsive,.table-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}table{max-width:100%}.modal,.modal-card,.modal-content,.swal2-popup{max-width:calc(100vw - 24px)!important}.toolbar,.actions,.filters,.nav,.topin,.head,.footerin,.apf-inner,.sk-public-admin-footer__in{flex-wrap:wrap;min-width:0}.grid>*{min-width:0}
+@media(max-width:900px){.wrap,.container{width:min(100% - 24px,1180px)!important}.toolbar,.filters,.actions{gap:8px}.toolbar>* ,.filters>*{min-width:0;flex:1 1 180px}.nav{width:100%}.nav a,.nav button{white-space:normal}.module-grid,.cards,.grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))!important}}
+@media(max-width:640px){body{font-size:14px}.wrap,.container{width:calc(100% - 20px)!important}.topin,.head,.footerin,.apf-inner,.sk-public-admin-footer__in{align-items:flex-start!important}.toolbar,.filters,.actions,.form-actions{display:flex;flex-direction:column;align-items:stretch}.toolbar>* ,.filters>* ,.actions>* ,.form-actions>*{width:100%!important;flex:1 1 auto!important}.grid,.cards,.login-grid,.form-grid,.member,.addr-two{grid-template-columns:1fr!important}.card,.panel,.box,.portal{max-width:100%;padding-left:min(18px,4vw)!important;padding-right:min(18px,4vw)!important}.table-wrap,.table-responsive,.table-scroll{margin-left:0;margin-right:0}table{font-size:12px}th,td{padding:7px 6px!important;white-space:normal!important}.site-footer-in,.footerin,.apf-inner,.sk-public-admin-footer__in{flex-direction:column!important;text-align:center!important;justify-content:center!important}.footer-brand,.apf-brand,.sk-public-admin-footer__brand{max-width:100%;justify-content:center}.footer-copy,.apf-copy,.sk-public-admin-footer__copy{text-align:center!important;width:100%}.swal2-popup{width:calc(100vw - 20px)!important;padding:1em!important}}
+@media(max-width:390px){.wrap,.container{width:calc(100% - 14px)!important}.card,.panel,.box,.portal{border-radius:14px!important}.brand,.section-title,h1{overflow-wrap:anywhere}.btn,button,a.button{white-space:normal}}
+
+
+/* V2.6.84 — mobile polish: centered compact footer + scrollable tab/navigation rows */
+@media(max-width:700px){
+  .sk-public-admin-footer__in{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;padding:12px 12px 11px!important;gap:6px!important}
+  .sk-public-admin-footer__brand{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:100%!important;gap:4px!important;text-align:center!important}
+  .sk-public-admin-footer__brand img{width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;min-height:32px!important;max-height:32px!important;flex:0 0 32px!important;margin:0 auto!important}
+  .sk-public-admin-footer__text,.sk-public-admin-footer__name,.sk-public-admin-footer__values{width:100%!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+  .sk-public-admin-footer__name{font-size:10.5px!important;line-height:1.35!important}
+  .sk-public-admin-footer__values{font-size:9.25px!important;line-height:1.35!important}
+  .sk-public-admin-footer__copy{width:100%!important;max-width:100%!important;text-align:center!important;margin:3px 0 0!important;padding-top:7px!important;font-size:9.25px!important}
+}
+
+/* Horizontal menu/tabs must scroll instead of squeezing labels together. */
+.tabs,.tabbar,.tab-bar,.subtabs,.sub-tabs,.pill-tabs,.admin-tabs{
+  display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin;max-width:100%!important;gap:8px!important;
+  padding-bottom:4px!important;overscroll-behavior-inline:contain;
+}
+.tabs>*,.tabbar>*,.tab-bar>*,.subtabs>*,.sub-tabs>*,.pill-tabs>*,.admin-tabs>*{
+  flex:0 0 auto!important;min-width:max-content!important;white-space:nowrap!important;
+}
+@media(max-width:640px){
+  .tabs{margin-left:-2px;margin-right:-2px;padding-left:2px;padding-right:10px}
+  .tabs button{font-size:14px!important;padding:11px 10px!important}
+  .portal,.card,.panel,.box{overflow:visible!important}
+  .portal .tabs{overflow-x:auto!important}
+  .form-grid label,.form-grid input,.form-grid select,.form-grid textarea{min-width:0!important;max-width:100%!important}
+  .wide{min-width:0!important;max-width:100%!important}
+}
+
+@media(max-width:700px){
+ .admin-public-footer .apf-inner{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:6px!important;padding:12px!important}
+ .admin-public-footer .apf-brand{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;width:100%!important;gap:4px!important}
+ .admin-public-footer .apf-logo{width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;min-height:32px!important;max-height:32px!important;margin:0 auto!important}
+ .admin-public-footer .apf-brand>div,.admin-public-footer .apf-title,.admin-public-footer .apf-sub,.admin-public-footer .apf-copy{width:100%!important;max-width:100%!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+}
+
+
+/* V2.6.84 — mobile admin action placement, finance tools, footer badge and media gallery */
+@media(max-width:760px){
+  /* Admin pages already provide the Home / Admin Center / Logout controls in the mobile masthead. */
+  .settings-title-row .settings-actions{display:none!important}
+
+  /* In finance, action controls belong below the panel title on small screens. */
+  #panel-payments .panelhead,#panel-donations .panelhead,#panel-ledger .panelhead,#panel-summary .panelhead{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;
+  }
+  #panel-payments .panelhead-right,#panel-donations .panelhead-right,#panel-ledger .panelhead-right,#panel-summary .panelhead-right{
+    width:100%!important;display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;
+    overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:2px 0 6px!important;gap:8px!important;
+  }
+  #panel-payments .panelhead-right>*,#panel-donations .panelhead-right>*,#panel-ledger .panelhead-right>*,#panel-summary .panelhead-right>*{
+    flex:0 0 auto!important;width:auto!important;min-width:auto!important;white-space:nowrap!important;
+  }
+  #panel-payments .panelhead-right .pagebtn,#panel-donations .panelhead-right .pagebtn,#panel-ledger .panelhead-right .pagebtn{
+    width:38px!important;min-width:38px!important;max-width:38px!important;height:38px!important;padding:0!important;
+  }
+  #panel-payments .panelhead-right .pagechip,#panel-donations .panelhead-right .pagechip,#panel-ledger .panelhead-right .pagechip{min-width:max-content!important}
+
+  /* Compact centered footer: logo stays in front of the association name. */
+  .admin-public-footer .apf-brand,.sk-public-admin-footer__brand{
+    flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:7px!important;width:auto!important;max-width:100%!important;
+  }
+  .admin-public-footer .apf-logo,.sk-public-admin-footer__brand img{
+    width:24px!important;height:24px!important;min-width:24px!important;max-width:24px!important;min-height:24px!important;max-height:24px!important;
+    flex:0 0 24px!important;margin:0!important;padding:2px!important;border:1px solid #9bd5b8!important;border-radius:50%!important;background:#fff!important;
+    box-shadow:0 0 0 3px rgba(13,148,94,.08)!important;object-fit:contain!important;
+  }
+  .admin-public-footer .apf-brand>div,.sk-public-admin-footer__text{width:auto!important;max-width:calc(100vw - 72px)!important;text-align:left!important}
+  .admin-public-footer .apf-title,.sk-public-admin-footer__name{font-size:10px!important;line-height:1.3!important;text-align:left!important}
+  .admin-public-footer .apf-sub,.sk-public-admin-footer__values{font-size:8.75px!important;line-height:1.3!important;text-align:left!important}
+}
+
+/* Activity/photo viewer: native horizontal swipe with visible scroll position. */
+.swal-gallery{width:100%!important;max-width:100%!important;display:flex!important;flex-wrap:nowrap!important;gap:10px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;scroll-snap-type:x mandatory!important;touch-action:pan-x!important;padding:4px 2px 10px!important;scrollbar-width:auto!important}
+.swal-gallery img{flex:0 0 min(78%,420px)!important;width:min(78%,420px)!important;height:auto!important;max-height:52vh!important;object-fit:contain!important;scroll-snap-align:center!important;border-radius:12px!important;background:#f7faf8!important}
+.swal-gallery-hint{font-size:12px;color:#718096;text-align:center;margin:2px 0 10px}
