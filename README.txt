@@ -1,3 +1,5 @@
+Current release: SK Alumni System V2.6.57 – News + Receipt + Donation UX Fix
+
 SK Alumni System V2.6.8 – Auto Address + Reliable Edit History
 
 ปรับปรุงจาก V2.6.7:

@@ -7,7 +7,7 @@
 .sk-app-line{display:block;white-space:nowrap}.brand .sk-app-line,.sk-nav-title .sk-app-line,.brand-title .sk-app-line{line-height:1.2}@media(max-width:700px){.sk-app-line{white-space:normal}}
 
 
-/* SK Alumni V2.6.28 — Admin Template Foundation */
+/* SK Alumni V2.6.72 — Admin Template Foundation */
 .admin-public-footer{margin-top:38px;border-top:1px solid #dcebe4;background:linear-gradient(90deg,#e8fbf0,#f8fff9,#fff9e9);padding:24px 0}
 .admin-public-footer .apf-inner{width:min(1180px,94vw);margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}
 .admin-public-footer .apf-brand{display:flex;align-items:center;gap:12px;min-width:0}
@@ -27,7 +27,7 @@
   .admin-public-footer .apf-copy{text-align:center;width:100%}
 }
 
-/* SK Alumni V2.6.32 — Admin template alignment + mobile footer stability */
+/* SK Alumni V2.6.72 — Admin template alignment + mobile footer stability */
 html,body{max-width:100%;overflow-x:hidden}
 .admin-public-footer{width:100%;max-width:100%;margin-top:34px!important;border-top:1px solid #dcebe4!important;background:linear-gradient(90deg,#eafaf1,#f7fff9,#fffaf0)!important;padding:18px 0!important;overflow:hidden!important;position:relative!important;z-index:2}
 .admin-public-footer .apf-inner{width:min(1180px,94vw)!important;max-width:1180px!important;margin:0 auto!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;min-height:64px!important}
@@ -50,3 +50,35 @@ html,body{max-width:100%;overflow-x:hidden}
  .admin-public-footer .apf-sub{font-size:10px!important;text-align:center!important}
  .admin-public-footer .apf-copy{width:100%!important;text-align:center!important;font-size:10px!important;border-top:1px dashed #d8e9df!important;padding-top:9px!important;margin-top:2px!important}
 }
+
+
+/* V2.6.72 — Public UI standard: typography, buttons, footer, responsive */
+body{font-family:"Noto Sans Thai",sans-serif!important}
+h1,h2,h3,.section-title,.title,.brand,.site-footer-name{font-family:"Mitr","Noto Sans Thai",sans-serif}
+button,.btn,input[type="button"],input[type="submit"],a.btn{transition:transform .08s ease,box-shadow .12s ease,filter .12s ease}
+button:active,.btn:active,input[type="button"]:active,input[type="submit"]:active,a.btn:active{transform:translateY(1px) scale(.98);filter:brightness(.97)}
+button:focus-visible,.btn:focus-visible,a:focus-visible{outline:3px solid rgba(15,159,110,.18);outline-offset:2px}
+.sk-public-footer{margin-top:34px;background:linear-gradient(90deg,#e9f9ef,#f8fff9 58%,#fff9ea);border-top:1px solid #d7edde;width:100%}
+.sk-public-footer .spf-inner{width:min(1180px,94vw);margin:auto;padding:18px 0;display:flex;align-items:center;justify-content:space-between;gap:18px;color:#64748b;font-size:12px}
+.sk-public-footer .spf-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.sk-public-footer .spf-logo{width:48px;height:48px;flex:0 0 48px;border-radius:50%;object-fit:contain;background:#fff;border:3px solid #dcfce7}
+.sk-public-footer .spf-name{font-family:"Mitr","Noto Sans Thai",sans-serif;font-weight:600;color:#166749;line-height:1.35}
+.sk-public-footer .spf-values{font-size:11px;color:#27805f;margin-top:2px}
+.sk-public-footer .spf-copy{text-align:right;line-height:1.5}
+@media(max-width:700px){
+ .sk-public-footer .spf-inner{flex-direction:column;text-align:center;padding:17px 14px;gap:9px}
+ .sk-public-footer .spf-brand{flex-direction:column;justify-content:center}
+ .sk-public-footer .spf-copy{text-align:center;font-size:10.5px}
+ .sk-public-footer .spf-name{font-size:12px}.sk-public-footer .spf-values{font-size:10px}
+ main{max-width:100%;overflow-x:hidden}
+}
+
+/* V2.6.72 — Public footer lock: match Status page across desktop/mobile */
+.site-footer.sk-standard-footer{margin-top:30px!important;background:linear-gradient(90deg,#e9f9ef,#f9fff8)!important;border-top:1px solid #d7edde!important;padding:0!important;width:100%!important;overflow:visible!important}
+.site-footer.sk-standard-footer .site-footer-in{width:min(1180px,94vw)!important;margin:0 auto!important;padding:18px 0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;color:#64748b!important;font-size:13px!important;min-height:0!important}
+.site-footer.sk-standard-footer .site-footer-brand{display:flex!important;align-items:center!important;gap:11px!important;max-width:none!important;flex-direction:row!important;text-align:left!important}
+.site-footer.sk-standard-footer .site-footer-brand img{display:block!important;width:48px!important;height:48px!important;min-width:48px!important;max-width:48px!important;min-height:48px!important;max-height:48px!important;flex:0 0 48px!important;border-radius:50%!important;object-fit:contain!important;background:#fff!important;border:3px solid #dcfce7!important;padding:0!important;box-shadow:none!important}
+.site-footer.sk-standard-footer .site-footer-name{font-family:'Noto Sans Thai',sans-serif!important;font-size:13px!important;font-weight:700!important;color:#166749!important;line-height:1.4!important}
+.site-footer.sk-standard-footer .site-footer-values{font-size:12px!important;color:#27805f!important;margin-top:2px!important;line-height:1.4!important}
+.site-footer.sk-standard-footer .site-footer-version{font-size:13px!important;text-align:right!important;line-height:1.45!important;color:#64748b!important;white-space:normal!important}
+@media(max-width:680px){.site-footer.sk-standard-footer .site-footer-in{width:min(94vw,1180px)!important;padding:18px 0!important;flex-direction:column!important;text-align:center!important;gap:10px!important}.site-footer.sk-standard-footer .site-footer-brand{flex-direction:row!important;justify-content:center!important;text-align:left!important;width:auto!important;max-width:100%!important}.site-footer.sk-standard-footer .site-footer-brand img{width:48px!important;height:48px!important;min-width:48px!important;max-width:48px!important;min-height:48px!important;max-height:48px!important;flex-basis:48px!important}.site-footer.sk-standard-footer .site-footer-name{font-size:13px!important;text-align:left!important}.site-footer.sk-standard-footer .site-footer-values{font-size:12px!important;text-align:left!important}.site-footer.sk-standard-footer .site-footer-version{text-align:center!important;font-size:12px!important;width:100%!important;border:0!important;padding:0!important;margin:0!important}}

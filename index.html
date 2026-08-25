@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="th">
-<head>
+<head><link rel="preconnect" href="https://sk-alumni-api.itpcmc2024.workers.dev" crossorigin>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7fff9">
@@ -70,9 +70,11 @@ main{padding:18px 0 38px}
 .s1{background:#eaf2ff;color:#2873d5}.s2{background:#e8faf0;color:#0aa766}.s3{background:#ffeef3;color:#eb3e70}.s4{background:#f2eaff;color:#8a55d8}
 .quote{background:linear-gradient(145deg,#effff7,#fffdf2);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:100%;padding:28px 24px}.quote>*{margin-left:auto;margin-right:auto}.quote p{width:100%;margin-top:8px;margin-bottom:12px}
 .quote-mark{font-size:55px;color:#f5b900;height:38px}.quote p{font-size:20px;font-weight:900;line-height:1.6;color:#34558b}.quote small{color:#7aa08f}
-.news-list{display:flex;flex-direction:column;gap:9px}.news-item{display:grid;grid-template-columns:52px 1fr 20px;gap:11px;align-items:center;padding:10px;border:1px solid #edf3ef;border-radius:16px}
+.news-list{display:flex;flex-direction:column;gap:9px;max-height:235px;overflow-y:auto;padding-right:4px;scrollbar-gutter:stable}.news-list::-webkit-scrollbar{width:7px}.news-list::-webkit-scrollbar-thumb{background:#b9ddcc;border-radius:999px}.news-item{display:grid;grid-template-columns:52px 1fr 20px;gap:11px;align-items:center;padding:10px;border:1px solid #edf3ef;border-radius:16px}
 .news-thumb{width:52px;height:52px;border-radius:13px;display:grid;place-items:center;background:#eff8ff;font-size:24px}
 .news-item b{display:block;font-size:14px}.news-item small{color:#92a098;font-size:11px}.arr{color:#0a9360;font-size:22px}
+.news-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:3px;font-size:10px;color:#85978e}.news-cat{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-weight:800}.news-cat.cat-news{background:#e7f8ee;color:#08744c}.news-cat.cat-announce{background:#e8f3ff;color:#2468a7}.news-cat.cat-activity{background:#fff0f5;color:#b13e69}.news-excerpt{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:#7f8d86}.read-more{color:#08744c;font-weight:800;margin-left:4px}
+.home-gallery-nav{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin:10px 0 8px}.home-gallery-nav button{border:1px solid #cfe4d9;background:#fff;color:#173f32;border-radius:11px;padding:8px 12px;font-weight:800;cursor:pointer}.home-gallery-count{text-align:center;color:#536a60;font-weight:800}
 
 footer{border-top:1px solid var(--line);background:linear-gradient(90deg,#e8fbf0,#f8fff9,#fff9e9);padding:24px 0}
 .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:20px}
@@ -96,8 +98,9 @@ background:transparent;padding:4px;border:3px solid rgba(50,169,105,.22);box-sha
  .footer-brand{flex-direction:row;align-items:center;justify-content:center;text-align:left;max-width:92%}.copy{text-align:center;width:100%}
  .footer-logo{width:76px;height:76px;flex:none}
 }
-</style>
-</head>
+
+.home-news-click{cursor:pointer}.home-news-modalback{display:none;position:fixed;inset:0;background:rgba(21,42,34,.58);z-index:9999;padding:20px;align-items:center;justify-content:center}.home-news-modalback.show{display:flex}.home-news-modal{width:min(900px,96vw);max-height:90vh;background:#fff;border-radius:26px;overflow:hidden;display:flex;flex-direction:column}.home-news-modalhead{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #e3eee8}.home-news-modalbody{padding:18px 22px;overflow:auto}.home-news-popup-list{display:flex;flex-direction:column;gap:9px;max-height:330px;overflow-y:auto;padding-right:5px}.home-news-popup-item{display:grid;grid-template-columns:64px 1fr 22px;gap:12px;align-items:center;padding:10px;border:1px solid #e0ece6;border-radius:16px;background:#fff;cursor:pointer}.home-news-popup-item img{width:64px;height:54px;object-fit:cover;border-radius:12px}.home-news-popup-item .ph{width:64px;height:54px;border-radius:12px;background:#eff8ff;display:grid;place-items:center;font-size:26px}.home-detail-gallery{display:flex;gap:8px;overflow-x:auto;margin:10px 0}.home-detail-gallery img{width:110px;height:82px;object-fit:cover;border-radius:11px;cursor:pointer}.home-detail-main{width:100%;max-height:390px;object-fit:contain;border-radius:14px;background:#f5f9f7}.home-news-close{border:0;background:#eef5f1;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}</style>
+<link rel="stylesheet" href="assets/public-footer.css?v=2.6.79.2"><link rel="stylesheet" href="assets/module-nav.css?v=2.6.79.2"><link rel="stylesheet" href="assets/public-footer.css?v=2.6.79.2"><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script defer src="assets/ui-feedback.js?v=2.6.79.2"></script></head>
 <body>
 <header class="site-header">
  <div class="container desktop-head">
@@ -110,10 +113,10 @@ background:transparent;padding:4px;border:3px solid rgba(50,169,105,.22);box-sha
      <a class="active" href="index.html"><span class="ico">🕌</span>หน้าแรก</a>
      <a href="register.html"><span class="ico">🧕</span>ลงทะเบียน</a>
      <a href="status.html"><span class="ico">🔎</span>ตรวจสอบสถานะ</a>
-     <a href="benefits.html?v=2.6.38"><span class="ico">🎁</span>สิทธิประโยชน์</a>
-     <a href="donation.html?v=2.6.38"><span class="ico">🤲</span>บริจาค</a>
-     <a href="news.html?v=2.6.38"><span class="ico">📣</span>ข่าวสาร</a>
-     <a href="admin-home.html?v=2.6.38"><span class="ico">🌙</span>Admin</a>
+     <a href="benefits.html?v=2.6.79.2"><span class="ico">🎁</span>สิทธิประโยชน์</a>
+     <a href="donation.html?v=2.6.79.2"><span class="ico">🤲</span>บริจาค</a>
+     <a href="news.html?v=2.6.79.2"><span class="ico">📣</span>ข่าวสาร</a>
+     <a href="admin-home.html?v=2.6.79.2"><span class="ico">🌙</span>Admin</a>
    </nav>
    <a class="line-desktop" href="register.html">LINE ลงทะเบียนผ่าน LINE ›</a>
  </div>
@@ -128,10 +131,10 @@ background:transparent;padding:4px;border:3px solid rgba(50,169,105,.22);box-sha
      <a class="active" href="index.html"><span class="ico">🕌</span><span>หน้าแรก</span></a>
      <a href="register.html"><span class="ico">🧕</span><span>ลงทะเบียน</span></a>
      <a href="status.html"><span class="ico">🔎</span><span>ตรวจสอบสถานะ</span></a>
-     <a href="benefits.html?v=2.6.38"><span class="ico">🎁</span><span>สิทธิประโยชน์</span></a>
-     <a href="donation.html?v=2.6.38"><span class="ico">🤲</span><span>บริจาค</span></a>
-     <a href="news.html?v=2.6.38"><span class="ico">📣</span><span>ข่าวสาร</span></a>
-     <a href="admin-home.html?v=2.6.38"><span class="ico">🛠️</span><span>Admin</span></a>
+     <a href="benefits.html?v=2.6.79.2"><span class="ico">🎁</span><span>สิทธิประโยชน์</span></a>
+     <a href="donation.html?v=2.6.79.2"><span class="ico">🤲</span><span>บริจาค</span></a>
+     <a href="news.html?v=2.6.79.2"><span class="ico">📣</span><span>ข่าวสาร</span></a>
+     <a href="admin-home.html?v=2.6.79.2"><span class="ico">🛠️</span><span>Admin</span></a>
      <a href="register.html"><img class="line-icon" src="assets/cute-line.jpg" alt="LINE"><span>ลงทะเบียนผ่าน LINE</span></a>
    </nav>
  </div>
@@ -147,29 +150,52 @@ background:transparent;padding:4px;border:3px solid rgba(50,169,105,.22);box-sha
  <section class="cards-shell"><div class="cards-grid">
   <a class="card register" href="register.html"><div class="card-img"><img src="assets/cute-register.jpg" alt="ลงทะเบียน"></div><div class="card-body"><h3>ลงทะเบียนศิษย์เก่า</h3><p>ลงทะเบียนข้อมูลศิษย์เก่า</p><span class="go">ลงทะเบียน ›</span></div></a>
   <a class="card status" href="status.html"><div class="card-img"><img src="assets/cute-status.jpg" alt="ตรวจสอบสถานะ"></div><div class="card-body"><h3>ตรวจสอบสถานะ</h3><p>เช็กผลและสถานะการสมัคร</p><span class="go">ตรวจสอบ ›</span></div></a>
-  <a class="card payment" href="payment.html?v=2.6.38"><div class="card-img"><img src="assets/cute-payment.jpg" alt="ชำระค่าสมาชิก"></div><div class="card-body"><h3>สนับสนุนรายปี</h3><p>ค่าบำรุงสมาคมศิษย์เก่าฯ</p><span class="go">ชำระเงิน ›</span></div></a>
-  <a class="card donation" href="donation.html?v=2.6.38"><div class="card-img"><img src="assets/cute-donation.jpg" alt="บริจาค"></div><div class="card-body"><h3>บริจาค</h3><p>ร่วมสนับสนุนกิจกรรมสมาคม</p><span class="go">บริจาค ›</span></div></a>
-  <a class="card benefits" href="benefits.html?v=2.6.38"><div class="card-img"><img src="assets/cute-benefits.jpg" alt="สิทธิประโยชน์"></div><div class="card-body"><h3>สิทธิประโยชน์</h3><p>สิทธิพิเศษสำหรับสมาชิก</p><span class="go">ดูสิทธิประโยชน์ ›</span></div></a>
-  <a class="card news" href="news.html?v=2.6.38"><div class="card-img"><img src="assets/cute-news.jpg" alt="ข่าวสาร"></div><div class="card-body"><h3>ข่าวสาร</h3><p>กิจกรรมและประชาสัมพันธ์</p><span class="go">ดูข่าว ›</span></div></a>
+  <a class="card payment" href="payment.html?v=2.6.79.2"><div class="card-img"><img src="assets/cute-payment.jpg" alt="ชำระค่าสมาชิก"></div><div class="card-body"><h3>สนับสนุนรายปี</h3><p>ค่าบำรุงสมาคมศิษย์เก่าฯ</p><span class="go">ชำระเงิน ›</span></div></a>
+  <a class="card donation" href="donation.html?v=2.6.79.2"><div class="card-img"><img src="assets/cute-donation.jpg" alt="บริจาค"></div><div class="card-body"><h3>บริจาค</h3><p>ร่วมสนับสนุนกิจกรรมสมาคม</p><span class="go">บริจาค ›</span></div></a>
+  <a class="card benefits" href="benefits.html?v=2.6.79.2"><div class="card-img"><img src="assets/cute-benefits.jpg" alt="สิทธิประโยชน์"></div><div class="card-body"><h3>สิทธิประโยชน์</h3><p>สิทธิพิเศษสำหรับสมาชิก</p><span class="go">ดูสิทธิประโยชน์ ›</span></div></a>
+  <a class="card news" href="news.html?v=2.6.79.2"><div class="card-img"><img src="assets/cute-news.jpg" alt="ข่าวสาร"></div><div class="card-body"><h3>ข่าวสาร</h3><p>กิจกรรมและประชาสัมพันธ์</p><span class="go">ดูข่าว ›</span></div></a>
  </div></section>
 
  <section class="info-grid">
   <article class="panel"><div class="panel-head"><h2>👥 จำนวนสมาชิกล่าสุด</h2><a class="more" href="status.html">ตรวจสอบสถานะ ›</a></div>
-   <div class="stats"><div class="stat s1">สมาชิกทั้งหมด<strong>—</strong></div><div class="stat s2">สมาชิกปีนี้<strong>—</strong></div><div class="stat s3">รอตรวจสอบ<strong>—</strong></div><div class="stat s4">กิจกรรม/ข่าว<strong>—</strong></div></div>
+   <div class="stats"><div class="stat s1">👥 สมาชิกทั้งหมด<strong id="homeTotalMembers">—</strong></div><div class="stat s2">👥 สมาชิกปีนี้<strong id="homeYearMembers">—</strong></div><div class="stat s3">♥ สมาชิกใหม่เดือนนี้<strong id="homeMonthMembers">—</strong></div><div class="stat s4">★ กิจกรรม/ปี<strong id="homeYearActivities">—</strong></div></div>
   </article>
-  <article class="panel quote"><div class="quote-mark">“</div><p>เราอาจไกลเพราะการศึกษา<br>แต่เราจะไปได้ไกลกว่า<br>เพราะความร่วมมือของเรา ❤️</p><small>— สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ —</small></article>
-  <article class="panel news-panel"><div class="panel-head"><h2>📣 ข่าวสารล่าสุด</h2><a class="more" href="news.html?v=2.6.38">ดูทั้งหมด ›</a></div>
-   <div class="news-list">
-    <a class="news-item" href="news.html?v=2.6.38"><div class="news-thumb">🌿</div><div><b>ติดตามข่าวสารและกิจกรรมของสมาคม</b><small>เปิดศูนย์ข่าวสารเพื่อดูข้อมูลล่าสุด</small></div><div class="arr">›</div></a>
-    <a class="news-item" href="register.html"><div class="news-thumb">🧑🏻‍🤝‍🧑🏻</div><div><b>ลงทะเบียนศิษย์เก่า</b><small>เริ่มต้นสร้างข้อมูลสมาชิกของคุณ</small></div><div class="arr">›</div></a>
-    <a class="news-item" href="benefits.html?v=2.6.38"><div class="news-thumb">🎁</div><div><b>สิทธิประโยชน์สมาชิก</b><small>สำหรับสมาชิกที่ได้รับการอนุมัติแล้ว</small></div><div class="arr">›</div></a>
-   </div>
-  </article>
+  <article class="panel quote"><div class="quote-mark">“</div><p id="homeQuoteText">เราอาจไกลเพราะการศึกษา<br>แต่เราจะไปได้ไกลกว่า<br>เพราะความร่วมมือของเรา ❤️</p><small id="homeQuoteBy">— สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ —</small></article>
+  <article class="panel news-panel home-news-click" id="homeNewsPanel"><div class="panel-head"><h2 id="homeNewsHeading">📣 ข่าวสารล่าสุด</h2><a class="more" href="news.html?v=2.6.79.2">ดูทั้งหมด ›</a></div>
+   <div class="news-list" id="homeNewsList"><a class="news-item" href="news.html?v=2.6.79.2"><div class="news-thumb">🌿</div><div><b>กำลังโหลดข่าวสารล่าสุด...</b><small>กรุณารอสักครู่</small></div><div class="arr">›</div></a></div></article>
  </section>
 </div></main>
 
-<footer><div class="container footer-inner">
- <div class="footer-brand"><img class="footer-logo" src="assets/association-logo.png" alt=""><div><div class="footer-title">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="footer-sub">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div>
- <div class="copy">© 2026 SK Alumni Member System by Kimhan · Public Home V2.6.38</div>
-</div></footer>
-</body></html>
+<div id="homeNewsBack" class="home-news-modalback"><section class="home-news-modal"><div class="home-news-modalhead"><div><b style="font-family:Mitr,'Noto Sans Thai',sans-serif;font-size:22px;color:#076846">📣 ข่าวสารและกิจกรรม</b><div style="font-size:12px;color:#789087">ข่าวเด่นก่อน แล้วเรียงข่าวล่าสุด</div></div><button id="homeNewsClose" class="home-news-close">×</button></div><div id="homeNewsPopupBody" class="home-news-modalbody"></div></section></div>
+<footer class="sk-public-admin-footer"><div class="sk-public-admin-footer__in"><div class="sk-public-admin-footer__brand"><img src="assets/association-logo.png" alt="โลโก้สมาคม"><div class="sk-public-admin-footer__text"><div class="sk-public-admin-footer__name">สมาคมศิษย์เก่านูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</div><div class="sk-public-admin-footer__values">🌙 ศรัทธา · 📚 ความรู้ · 💚 สายสัมพันธ์</div></div></div><div class="sk-public-admin-footer__copy">© 2026 SK Alumni Member System by KimhanIkals - หน้าหลัก · V2.6.79.2.1</div></div></footer>
+<script defer src="assets/module-nav.js?v=2.6.79.2"></script><script id="home-news-v2657">(async()=>{
+const API='https://sk-alumni-api.itpcmc2024.workers.dev',el=document.getElementById('homeNewsList'),panel=document.getElementById('homeNewsPanel'),back=document.getElementById('homeNewsBack'),body=document.getElementById('homeNewsPopupBody');if(!el)return;
+const esc=v=>String(v??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
+const parseImages=v=>{if(!v)return[];const t=String(v);if(t.startsWith('[')){try{const a=JSON.parse(t);if(Array.isArray(a))return a.filter(Boolean)}catch{}}return[t]};
+const dt=v=>{try{return new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric'}).format(new Date(v))}catch{return''}};
+let rows=[],galleryIndex=0,galleryImages=[];
+function sorted(a){return [...a].sort((x,y)=>(+!!y.featured)-(+!!x.featured)||(new Date(y.publish_date||y.created_at)-new Date(x.publish_date||x.created_at)))}
+function icon(n){return n.category==='กิจกรรม'?'🎉':n.category==='ประกาศ'?'📢':'🌿'}
+function catClass(c){return c==='กิจกรรม'?'cat-activity':c==='ประกาศ'?'cat-announce':'cat-news'}
+function thumb(n){const x=parseImages(n.image_data)[0];return x?`<img src="${x}" alt="">`:`<div class="ph">${icon(n)}</div>`}
+function excerpt(n,len=76){const t=String(n.content||'').replace(/\s+/g,' ').trim();return esc(t.slice(0,len))+(t.length>len?`… <span class="read-more">อ่านต่อ</span>`:'')}
+function renderGallery(){const main=document.getElementById('homeDetailMain'),cnt=document.getElementById('homeGalleryCount'),prev=document.getElementById('homeGalleryPrev'),next=document.getElementById('homeGalleryNext');if(!main||!galleryImages.length)return;main.src=galleryImages[galleryIndex];if(cnt)cnt.textContent=`${galleryIndex+1} / ${galleryImages.length}`;if(prev)prev.disabled=galleryImages.length<2;if(next)next.disabled=galleryImages.length<2;document.querySelectorAll('.home-detail-gallery img').forEach((x,i)=>x.style.outline=i===galleryIndex?'2px solid #16a66f':'none')}
+function openDetail(n){
+  galleryImages=parseImages(n.image_data);galleryIndex=0;
+  const gallery=galleryImages.length?`<img id="homeDetailMain" class="home-detail-main" src="${galleryImages[0]}">${galleryImages.length>1?`<div class="home-gallery-nav"><button id="homeGalleryPrev">‹ รูปก่อนหน้า</button><div id="homeGalleryCount" class="home-gallery-count">1 / ${galleryImages.length}</div><button id="homeGalleryNext">รูปถัดไป ›</button></div>`:''}<div class="home-detail-gallery">${galleryImages.map((x,i)=>`<img src="${x}" data-i="${i}">`).join('')}</div>`:'';
+  body.innerHTML=`${gallery}<div style="margin-top:12px"><span style="font-size:12px;color:#08744c;font-weight:900">${esc(n.category)} · ${dt(n.publish_date)}</span><h2 style="font-family:Mitr,'Noto Sans Thai',sans-serif;color:#173f32">${esc(n.title)}</h2><div style="white-space:pre-wrap;line-height:1.85;color:#475b52">${esc(n.content)}</div><button id="backToNewsList" style="margin-top:16px;border:1px solid #cfe4d9;background:#fff;border-radius:12px;padding:9px 14px;font-weight:900;color:#08744c">← กลับรายการข่าว</button></div>`;
+  document.querySelectorAll('.home-detail-gallery img').forEach(x=>x.onclick=()=>{galleryIndex=+x.dataset.i;renderGallery()});
+  document.getElementById('homeGalleryPrev')?.addEventListener('click',()=>{galleryIndex=(galleryIndex-1+galleryImages.length)%galleryImages.length;renderGallery()});
+  document.getElementById('homeGalleryNext')?.addEventListener('click',()=>{galleryIndex=(galleryIndex+1)%galleryImages.length;renderGallery()});
+  document.getElementById('backToNewsList').onclick=openList;renderGallery()
+}
+function openList(){body.innerHTML=`<div class="home-news-popup-list">${rows.map((n,i)=>`<div class="home-news-popup-item" data-i="${i}">${thumb(n)}<div><div class="news-meta"><span class="news-cat ${catClass(n.category)}">${esc(n.category)}</span><span>${dt(n.publish_date)}</span>${n.featured?'<span>⭐ ข่าวเด่น</span>':''}</div><b>${esc(n.title)}</b><small class="news-excerpt">${excerpt(n,90)}</small></div><div class="arr">›</div></div>`).join('')||'<div style="padding:30px;text-align:center">ยังไม่มีข่าวสาร</div>'}</div>`;body.querySelectorAll('[data-i]').forEach(x=>x.onclick=()=>openDetail(rows[+x.dataset.i]))}
+document.getElementById('homeNewsClose').onclick=()=>back.classList.remove('show');back.onclick=e=>{if(e.target===back)back.classList.remove('show')};panel.addEventListener('click',e=>{if(e.target.closest('a.more'))return;e.preventDefault();openList();back.classList.add('show')});
+try{
+ const [r,sr]=await Promise.all([fetch(API+'/api/news',{cache:'no-store'}),fetch(API+'/api/settings/public',{cache:'no-store'})]);const j=await r.json();rows=sorted(j.data||[]);
+ el.innerHTML=rows.length?rows.map((n,i)=>`<div class="news-item" data-home-news="${i}"><div class="news-thumb">${parseImages(n.image_data)[0]?`<img src="${parseImages(n.image_data)[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:13px" alt="">`:icon(n)}</div><div><div class="news-meta"><span class="news-cat ${catClass(n.category)}">${esc(n.category)}</span><span>${dt(n.publish_date)}</span>${n.featured?'<span>⭐ ข่าวเด่น</span>':''}</div><b>${esc(n.title)}</b><small class="news-excerpt">${excerpt(n,72)}</small></div><div class="arr">›</div></div>`).join(''):'<div class="news-item"><div class="news-thumb">🌿</div><div><b>ยังไม่มีข่าวสาร</b><small>ติดตามข้อมูลจากสมาคมได้ที่ศูนย์ข่าวสาร</small></div><div class="arr">›</div></div>';
+ el.querySelectorAll('[data-home-news]').forEach(x=>x.onclick=e=>{e.stopPropagation();openDetail(rows[+x.dataset.homeNews]);back.classList.add('show')});
+ let sj={};try{sj=await sr.json()}catch{}const d=sj.data||{};if(d.HOME_QUOTE)document.getElementById('homeQuoteText').innerHTML=esc(d.HOME_QUOTE).replace(/\n/g,'<br>');if(d.HOME_QUOTE_BY)document.getElementById('homeQuoteBy').textContent='— '+d.HOME_QUOTE_BY+' —';if(d.HOME_NEWS_TITLE)document.getElementById('homeNewsHeading').textContent='📣 '+d.HOME_NEWS_TITLE;
+}catch(err){console.warn(err)}
+try{const r=await fetch(API+'/api/home/summary',{cache:'no-store'}),j=await r.json(),d=j.data||{};document.getElementById('homeTotalMembers').textContent=Number(d.total||0).toLocaleString('th-TH');document.getElementById('homeYearMembers').textContent=Number(d.this_year||0).toLocaleString('th-TH');document.getElementById('homeMonthMembers').textContent=Number(d.this_month||0).toLocaleString('th-TH');document.getElementById('homeYearActivities').textContent=Number(d.activities_this_year||0).toLocaleString('th-TH')}catch(err){console.warn(err)}
+})();</script></body></html>
