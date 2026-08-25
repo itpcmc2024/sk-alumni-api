@@ -270,6 +270,25 @@ async function lineReply(env,replyToken,messages){
   if(!r.ok) console.error('LINE reply failed',r.status,text);
   return {ok:r.ok,status:r.status,body:text};
 }
+async function linePush(env,to,messages){
+  const uid=clean(to);
+  if(!uid||!env.LINE_CHANNEL_ACCESS_TOKEN) return {ok:false,skipped:true};
+  const payload={to:uid,messages:(Array.isArray(messages)?messages:[messages]).slice(0,5)};
+  const r=await fetch('https://api.line.me/v2/bot/message/push',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+env.LINE_CHANNEL_ACCESS_TOKEN},body:JSON.stringify(payload)});
+  const text=await r.text();
+  if(!r.ok) console.error('LINE push failed',r.status,text);
+  return {ok:r.ok,status:r.status,body:text};
+}
+async function notifyLinkedMember(sql,env,memberCode,text){
+  try{
+    const code=clean(memberCode).toUpperCase(); if(!code||!sql)return {ok:false,skipped:true};
+    await ensureLineSchema(sql);
+    const rows=await sql`SELECT line_user_id FROM line_users WHERE member_code=${code} AND follow_status='active' AND line_user_id IS NOT NULL ORDER BY updated_at DESC LIMIT 1`;
+    if(!rows.length)return {ok:false,skipped:true};
+    return await linePush(env,rows[0].line_user_id,{type:'text',text:String(text||'').slice(0,5000)});
+  }catch(err){console.error('LINE member notification error (ignored)',err);return {ok:false,error:String(err)}}
+}
+
 function lineWelcomeText(){
   return 'เชื่อมต่อ LINE กับระบบสมาชิกศิษย์เก่าสำเร็จแล้ว ✅\n\nพิมพ์ “เมนู” เพื่อดูคำสั่งที่ใช้งานได้';
 }
@@ -357,7 +376,7 @@ async function verifyFastLineLinkToken(token,env){
   return {line_user_id:uid,expires_at:new Date(exp*1000).toISOString()};
 }
 
-// V2.6.81: stateless token for the "ข้อมูลของฉัน" command.
+// V2.6.82: stateless token for the "ข้อมูลของฉัน" command.
 // It lets LINE reply immediately; PostgreSQL lookup happens only after the member opens the link.
 async function createFastLinePortalToken(lineUserId,env){
   const uid=clean(lineUserId);
@@ -441,17 +460,17 @@ async function handleLineEvent(event,env,sql){
     return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.81\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.82\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.81'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.82'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.81'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.82'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
@@ -461,7 +480,7 @@ async function handleLineEvent(event,env,sql){
     return;
   }
 
-  // V2.6.81: generate the account-link URL without touching PostgreSQL first.
+  // V2.6.82: generate the account-link URL without touching PostgreSQL first.
   // LINE reply tokens are short-lived; DB/DDL work before replying can make this command appear silent.
   if(t==='เชื่อมบัญชี'||t==='ผูกบัญชี'||t==='เชื่อมสมาชิก'){
     if(!userId){
@@ -470,7 +489,7 @@ async function handleLineEvent(event,env,sql){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.81\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
+      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.82\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -479,7 +498,7 @@ async function handleLineEvent(event,env,sql){
     return;
   }
 
-  // V2.6.81: LINE Member Self-Service shortcuts. Reply FIRST without PostgreSQL.
+  // V2.6.82: LINE Member Self-Service shortcuts. Reply FIRST without PostgreSQL.
   // Member linking/status is resolved only after the signed URL is opened.
   if(['ข้อมูลของฉัน','ข้อมูลสมาชิก','บัญชีสมาชิก'].includes(t)){
     await replyLinePortalShortcut(event,env,userId,'เปิดข้อมูลสมาชิกของฉันได้ที่');
@@ -595,7 +614,7 @@ export default {
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.81';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.82';
         return json(request,{success:true,data});
       }
 
@@ -1132,7 +1151,7 @@ export default {
       if(/^\/api\/admin\/members\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase(),b=await body(request),st=memberStatusText(b.status),reason=clean(b.reason);const old=await sql`SELECT status FROM members WHERE member_code=${code} LIMIT 1`;if(!old.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
         const stored=st==='cancelled'&&reason?`ไม่อนุมัติ (${reason})`:st;
-        await sql.begin(async tx=>{await tx`UPDATE members SET status=${stored},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'status',${st==='cancelled'&&reason?'ไม่อนุมัติ: '+reason:'เปลี่ยนสถานะเป็น '+st},CAST(${JSON.stringify(old[0])} AS JSONB),CAST(${JSON.stringify({status:stored,reason})} AS JSONB),'admin',NOW())`});return json(request,{success:true,status:stored});
+        await sql.begin(async tx=>{await tx`UPDATE members SET status=${stored},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'status',${st==='cancelled'&&reason?'ไม่อนุมัติ: '+reason:'เปลี่ยนสถานะเป็น '+st},CAST(${JSON.stringify(old[0])} AS JSONB),CAST(${JSON.stringify({status:stored,reason})} AS JSONB),'admin',NOW())`});const statusMsg=st==='active'?`✅ สมาชิก ${code} ได้รับการอนุมัติแล้ว\n\nพิมพ์ “ข้อมูลของฉัน” เพื่อเปิดข้อมูลสมาชิกและบัตรสมาชิกได้เลยค่ะ`:st==='cancelled'?`แจ้งสถานะสมาชิก ${code}: ไม่อนุมัติ${reason?'\nเหตุผล: '+reason:''}`:`แจ้งสถานะสมาชิก ${code}: ${stored}`;await notifyLinkedMember(sql,env,code,statusMsg);return json(request,{success:true,status:stored});
       }
 
       if(path==="/api/admin/payment-topics"){
@@ -1176,7 +1195,7 @@ export default {
             SELECT ${id('LED')},NOW(),'รายรับ','ค่าสมาชิก',${pay.payment_type},${pay.amount},'payment',${pay.payment_id},${pay.member_code},${'รับค่าบำรุงสมาคมศิษย์เก่าฯ รายปี '+pay.member_code},${clean(b.note)||null},${admin},'posted',NOW(),NOW(),${pay.slip_data||null},${pay.slip_data?'หลักฐานการโอน '+pay.payment_id:null},${pay.slip_data?(String(pay.slip_data).startsWith('data:application/pdf')?'application/pdf':'image/*'):null}
             WHERE NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference_type='payment' AND reference_id=${pay.payment_id} AND entry_type='รายรับ')`;
         });}catch(e){return json(request,{success:false,code:'RECEIPT_BOOK_REQUIRED',message:String(e?.message||e)},409)}
-        return json(request,{success:true,message:"ยืนยันการชำระแล้ว ต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt});
+        await notifyLinkedMember(sql,env,pay.member_code,`✅ ยืนยันการชำระเรียบร้อยแล้ว\nสมาชิก: ${pay.member_code}\nจำนวน ${Number(pay.amount||0).toLocaleString('th-TH')} บาท\nเลขที่ใบเสร็จ: ${officialReceipt||'-'}\n\nพิมพ์ “ประวัติชำระ” เพื่อดูรายละเอียด`);return json(request,{success:true,message:"ยืนยันการชำระแล้ว ต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt});
       }
 
       if(/^\/api\/admin\/payments\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
@@ -1184,7 +1203,7 @@ export default {
         const paymentId=decodeURIComponent(path.split('/')[4]);
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_no TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
-        /* V2.6.81: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.82: do not fabricate receipt numbers; official numbers come from receipt books. */
         const rows=await sql`SELECT p.payment_id,p.member_code,p.payment_type,p.amount,p.paid_at,p.status,p.verified_by,p.verified_at,p.receipt_no,p.receipt_issued_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email,a.address_line,a.subdistrict,a.district,a.province,a.postal_code FROM payments p LEFT JOIN members m ON m.member_code=p.member_code LEFT JOIN addresses a ON a.member_code=p.member_code WHERE p.payment_id=${paymentId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการชำระ"},404);
         if(rows[0].status!=="ชำระแล้ว")return json(request,{success:false,message:"ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว"},409);
@@ -1198,7 +1217,7 @@ export default {
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS slip_data TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_no TEXT`;
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
-        /* V2.6.81: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.82: do not fabricate receipt numbers; official numbers come from receipt books. */
         const rows=await sql`SELECT p.*,m.full_name,m.prefix,m.first_name,m.last_name,m.email AS member_email,m.phone AS member_phone FROM payments p LEFT JOIN members m ON m.member_code=p.member_code ORDER BY p.created_at DESC LIMIT 1000`;
         return json(request,{success:true,data:rows})
       }
@@ -1210,8 +1229,8 @@ export default {
       }
       if(path==="/api/admin/receipts"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureV2616Schema(sql);
-        /* V2.6.81: do not fabricate receipt numbers; official numbers come from receipt books. */
-        /* V2.6.81: official donation receipt numbers come from receipt books. */
+        /* V2.6.82: do not fabricate receipt numbers; official numbers come from receipt books. */
+        /* V2.6.82: official donation receipt numbers come from receipt books. */
         const rows=await sql`SELECT * FROM (SELECT 'payment'::text AS source_type,p.payment_id AS transaction_id,p.receipt_no,p.receipt_issued_at,p.member_code,p.payment_type AS receipt_type,p.amount,p.paid_at AS transferred_at,p.verified_by,p.verified_at,m.prefix,m.first_name,m.last_name,m.full_name,m.phone,m.email FROM payments p LEFT JOIN members m ON m.member_code=p.member_code WHERE p.status='ชำระแล้ว' UNION ALL SELECT 'donation'::text AS source_type,d.donation_id AS transaction_id,d.receipt_no,d.receipt_issued_at,d.member_code,COALESCE(dt.title,'เงินบริจาค') AS receipt_type,d.amount,d.donated_at AS transferred_at,d.verified_by,d.verified_at,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code WHERE d.status IN ('ตรวจสอบแล้ว','อนุมัติ','approved','verified')) q ORDER BY receipt_issued_at DESC LIMIT 4000`;
         return json(request,{success:true,data:rows});
       }
@@ -1291,6 +1310,7 @@ export default {
         if(done)return json(request,{success:true,message:"รายการนี้ตรวจสอบแล้ว"});
         if(!approve){
           await sql`UPDATE donations SET status='ไม่อนุมัติ',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE donation_id=${donationId}`;
+          if(don.member_code)await notifyLinkedMember(sql,env,don.member_code,`แจ้งผลตรวจสอบการบริจาค: ไม่อนุมัติ${clean(b.note)?'\nหมายเหตุ: '+clean(b.note):''}`);
           return json(request,{success:true,message:"บันทึกไม่อนุมัติแล้ว"})
         }
         await ensureReceiptOpsSchema(sql);let officialReceipt=null;
@@ -1301,11 +1321,11 @@ export default {
             SELECT ${id('LED')},NOW(),'รายรับ','เงินบริจาค',${don.topic_title||'บริจาค'},${don.amount},'donation',${don.donation_id},${don.member_code||null},${'รับเงินบริจาค '+(don.donor_name||'')},${clean(b.note)||null},${admin},'posted',NOW(),NOW(),${don.slip_data||null},${don.slip_data?'หลักฐานการโอน '+don.donation_id:null},${don.slip_data?(String(don.slip_data).startsWith('data:application/pdf')?'application/pdf':'image/*'):null}
             WHERE NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference_type='donation' AND reference_id=${don.donation_id} AND entry_type='รายรับ')`;
         });}catch(e){return json(request,{success:false,code:'RECEIPT_BOOK_REQUIRED',message:String(e?.message||e)},409)}
-        return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt})
+        if(don.member_code)await notifyLinkedMember(sql,env,don.member_code,`💚 ยืนยันการบริจาคเรียบร้อยแล้ว\nจำนวน ${Number(don.amount||0).toLocaleString('th-TH')} บาท\nเลขที่ใบเสร็จ: ${officialReceipt||'-'}\n\nพิมพ์ “ประวัติบริจาค” เพื่อดูรายละเอียด`);return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt})
       }
       if(/^\/api\/admin\/donations\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureV2616Schema(sql);const donationId=decodeURIComponent(path.split('/')[4]);
-        /* V2.6.81: official donation receipt numbers come from receipt books. */
+        /* V2.6.82: official donation receipt numbers come from receipt books. */
         const rows=await sql`SELECT d.donation_id,d.member_code,d.amount,d.donated_at,d.status,d.verified_by,d.verified_at,d.receipt_no,d.receipt_issued_at,d.donor_name,COALESCE(m.phone,d.phone) AS phone,COALESCE(m.email,d.email) AS email,COALESCE(dt.title,d.topic_id,'เงินบริจาค') AS donation_type,m.prefix,m.first_name,m.last_name,COALESCE(m.full_name,d.donor_name) AS full_name,COALESCE(a.address_line,d.address_line) AS address_line,COALESCE(a.subdistrict,d.subdistrict) AS subdistrict,COALESCE(a.district,d.district) AS district,COALESCE(a.province,d.province) AS province,COALESCE(a.postal_code,d.postal_code) AS postal_code FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id LEFT JOIN members m ON m.member_code=d.member_code LEFT JOIN addresses a ON a.member_code=d.member_code WHERE d.donation_id=${donationId} LIMIT 1`;
         if(!rows.length)return json(request,{success:false,message:'ไม่พบรายการบริจาค'},404);if(!['ตรวจสอบแล้ว','อนุมัติ','approved','verified'].includes(String(rows[0].status||'').toLowerCase())&&!['ตรวจสอบแล้ว','อนุมัติ'].includes(String(rows[0].status||'')))return json(request,{success:false,message:'ออกใบเสร็จได้เมื่อรายการได้รับอนุมัติแล้ว'},409);
         const st=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','CONTACT_EMAIL','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE')`;const settings={};for(const r of st)settings[r.setting_key]=r.setting_value;return json(request,{success:true,data:{...rows[0],source_type:'donation',transaction_id:donationId,settings}})
@@ -1448,7 +1468,7 @@ export default {
         if(newAdminKey){if(newAdminKey.length<8)return json(request,{success:false,message:'Admin API Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(newAdminKey);await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('ADMIN_API_KEY_HASH',${h},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;}
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.81',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.82',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }

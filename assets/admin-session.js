@@ -8,7 +8,7 @@ let timeoutMin=Math.max(1,Math.min(240,Number(localStorage.getItem(TIMEOUT_CACHE
 let lastWrite=0,checking=false,timer=null;
 function getKey(){for(const k of KEYS){const v=sessionStorage.getItem(k);if(v)return v}return''}
 function clearSession(){KEYS.forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)});localStorage.removeItem(LAST);sessionStorage.removeItem(LAST)}
-function loginUrl(){return 'admin.html?v=2.6.81'}
+function loginUrl(){return 'admin.html?v=2.6.82'}
 function touch(force=false){if(!getKey())return;const now=Date.now();if(!force&&now-lastWrite<15000)return;lastWrite=now;localStorage.setItem(LAST,String(now))}
 function expired(){const last=Number(localStorage.getItem(LAST)||0);return !!last && Date.now()-last>timeoutMin*60000}
 async function loadTimeout(){const key=getKey();if(!key)return;try{const r=await fetch(API+'/api/admin/settings',{cache:'no-store',headers:{Authorization:'Bearer '+key,'X-Admin-Key':key}});if(!r.ok)return;const j=await r.json();const n=Number(j?.data?.ADMIN_SESSION_TIMEOUT_MIN||10);timeoutMin=Math.max(1,Math.min(240,n||10));localStorage.setItem(TIMEOUT_CACHE,String(timeoutMin))}catch(_){}}

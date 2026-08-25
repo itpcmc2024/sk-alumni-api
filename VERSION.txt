@@ -1,1 +1,1 @@
-SK Alumni System V2.6.81 – LINE Member Self-Service
+SK Alumni System V2.6.82 – Responsive UI + LINE Member Notifications

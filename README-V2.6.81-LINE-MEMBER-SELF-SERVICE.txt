@@ -1,4 +1,4 @@
-SK Alumni System V2.6.81 – LINE Member Self-Service
+SK Alumni System V2.6.82 – LINE Member Self-Service
 
 ต่อยอดจาก V2.6.80.2 ที่ LINE Member Portal ใช้งานได้แล้ว
 
