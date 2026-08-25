@@ -1,4 +1,4 @@
-SK Alumni System V2.6.89 – LINE Inbox + Mobile Table Polish
+SK Alumni System V2.6.90 – LINE Inbox + Mobile Table Polish
 
 1) LINE Admin Inbox reliability
 - LINE webhook uses Cloudflare ctx.waitUntil() for database persistence after replying.
@@ -16,4 +16,4 @@ SK Alumni System V2.6.89 – LINE Inbox + Mobile Table Polish
 - Horizontal scrolling is enabled for all receipt-center table panels.
 
 4) Version sync
-- Web/API/address links updated to V2.6.89.
+- Web/API/address links updated to V2.6.90.

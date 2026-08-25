@@ -1,4 +1,4 @@
-SK Alumni System V2.6.89 – Admin Logout + LINE Conversation Center
+SK Alumni System V2.6.90 – Admin Logout + LINE Conversation Center
 
 1) Admin Center
 - เพิ่มปุ่ม "ออกจากระบบ" ต่อจาก "คืนค่าการจัดเรียง"
@@ -12,4 +12,4 @@ SK Alumni System V2.6.89 – Admin Logout + LINE Conversation Center
 - คงมุมมอง "รายการข้อความ" และ Dashboard filters เดิมไว้
 
 3) Version Sync
-- Sync URL/assets/footer/API เป็น V2.6.89
+- Sync URL/assets/footer/API เป็น V2.6.90

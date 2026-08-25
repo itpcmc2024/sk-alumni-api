@@ -248,7 +248,15 @@ async function ensureLineSchema(sql){
   await sql`CREATE INDEX IF NOT EXISTS idx_line_event_logs_user_created ON line_event_logs(line_user_id,created_at DESC)`;
   await sql`CREATE TABLE IF NOT EXISTS line_link_tokens (token_hash TEXT PRIMARY KEY,line_user_id TEXT NOT NULL,expires_at TIMESTAMPTZ NOT NULL,used_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`CREATE INDEX IF NOT EXISTS idx_line_link_tokens_user ON line_link_tokens(line_user_id,created_at DESC)`;
-  await sql`CREATE TABLE IF NOT EXISTS line_admin_messages (message_id TEXT PRIMARY KEY,line_user_id TEXT NOT NULL,member_code TEXT,direction TEXT NOT NULL DEFAULT 'in',message_text TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'received',admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),read_at TIMESTAMPTZ)`;
+  await sql`CREATE TABLE IF NOT EXISTS line_admin_messages (message_id TEXT PRIMARY KEY,line_user_id TEXT NOT NULL,member_code TEXT,direction TEXT NOT NULL DEFAULT 'in',message_text TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'received',admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),read_at TIMESTAMPTZ,message_type TEXT NOT NULL DEFAULT 'text',attachment_data TEXT,attachment_name TEXT,attachment_type TEXT,line_message_id TEXT,attachment_token TEXT)`;
+  await sql`ALTER TABLE line_admin_messages ALTER COLUMN message_text SET DEFAULT ''`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS message_type TEXT NOT NULL DEFAULT 'text'`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS attachment_data TEXT`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS attachment_name TEXT`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS attachment_type TEXT`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS line_message_id TEXT`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS attachment_token TEXT`;
+  await sql`ALTER TABLE line_admin_messages ADD COLUMN IF NOT EXISTS attachment_preview_data TEXT`;
   await sql`CREATE INDEX IF NOT EXISTS idx_line_admin_messages_created ON line_admin_messages(created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_line_admin_messages_user_created ON line_admin_messages(line_user_id,created_at DESC)`;
 }
@@ -281,6 +289,30 @@ async function linePush(env,to,messages){
   const text=await r.text();
   if(!r.ok) console.error('LINE push failed',r.status,text);
   return {ok:r.ok,status:r.status,body:text};
+}
+
+function lineAttachmentOK(data){
+  const t=String(data||'');
+  if(!/^data:(image\/(jpeg|jpg|png|webp|gif)|application\/pdf|text\/plain|application\/(zip|x-zip-compressed|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|vnd\.ms-excel|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet));base64,/i.test(t))return false;
+  return t.length<=7200000; // about 5 MB binary after base64 expansion
+}
+function dataUrlParts(data){
+  const m=String(data||'').match(/^data:([^;,]+);base64,(.*)$/s);if(!m)return null;
+  return {mime:m[1],base64:m[2]};
+}
+function base64ToBytes(b64){const bin=atob(String(b64||''));const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out}
+function attachmentLabel(type,name){const t=String(type||'').toLowerCase();if(t.startsWith('image/'))return '🖼️ รูปภาพ';return '📎 '+(clean(name)||'ไฟล์แนบ')}
+async function fetchLineMessageContent(env,messageId,maxBytes=5*1024*1024){
+  const mid=clean(messageId);if(!mid||!env.LINE_CHANNEL_ACCESS_TOKEN)return null;
+  const r=await fetch('https://api-data.line.me/v2/bot/message/'+encodeURIComponent(mid)+'/content',{headers:{'Authorization':'Bearer '+env.LINE_CHANNEL_ACCESS_TOKEN}});
+  if(!r.ok){console.error('LINE content fetch failed',r.status,await r.text().catch(()=>''));return null}
+  const declared=Number(r.headers.get('content-length')||0);if(declared&&declared>maxBytes)return {tooLarge:true,size:declared};
+  const ab=await r.arrayBuffer();if(ab.byteLength>maxBytes)return {tooLarge:true,size:ab.byteLength};
+  const mime=(r.headers.get('content-type')||'application/octet-stream').split(';')[0].trim();
+  return {data:'data:'+mime+';base64,'+bytesToBase64(ab),mime,size:ab.byteLength};
+}
+function publicLineMediaUrl(request,messageId,token){
+  const u=new URL(request.url);return u.origin+'/api/line/media/'+encodeURIComponent(messageId)+'?token='+encodeURIComponent(token);
 }
 async function notifyLinkedMember(sql,env,memberCode,text){
   try{
@@ -318,7 +350,7 @@ async function saveLineEventNonCritical(event,sql){
   if(!sql)return;
   try{
     const userId=clean(event?.source?.userId),eventType=clean(event?.type),msgType=clean(event?.message?.type);
-    const msgText=msgType==='text'?clean(event?.message?.text):'';
+    const msgText=msgType==='text'?clean(event?.message?.text):(msgType==='image'?'[รูปภาพ]':msgType==='file'?'[ไฟล์] '+clean(event?.message?.fileName):msgType?'['+msgType+']':'');
     await ensureLineSchema(sql);
     if(userId){
       await sql`INSERT INTO line_users(line_user_id,follow_status,last_event_type,last_message_at,last_seen_at,created_at,updated_at) VALUES(${userId},${eventType==='unfollow'?'inactive':'active'},${eventType||null},${eventType==='message'?new Date(Number(event.timestamp)||Date.now()).toISOString():null},NOW(),NOW(),NOW()) ON CONFLICT(line_user_id) DO UPDATE SET follow_status=EXCLUDED.follow_status,last_event_type=EXCLUDED.last_event_type,last_message_at=COALESCE(EXCLUDED.last_message_at,line_users.last_message_at),last_seen_at=NOW(),updated_at=NOW()`;
@@ -406,7 +438,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.89'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.90'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -436,13 +468,18 @@ async function createLineLinkToken(sql,lineUserId){
   return token;
 }
 
-async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in',adminBy=null){
-  const uid=clean(lineUserId),msg=clean(text);
-  if(!sql||!uid||!msg)return false;
+async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in',adminBy=null,meta={}){
+  const uid=clean(lineUserId),msg=String(text||'').trim();
+  if(!sql||!uid||(!msg&&!meta?.attachment_data))return false;
+  const messageId=clean(meta?.message_id)||id('LCM');
+  const messageType=clean(meta?.message_type)||((meta?.attachment_type||'').startsWith('image/')?'image':(meta?.attachment_data?'file':'text'));
+  const att=clean(meta?.attachment_data)||null,attName=clean(meta?.attachment_name)||null,attType=clean(meta?.attachment_type)||null,lineMessageId=clean(meta?.line_message_id)||null,attToken=clean(meta?.attachment_token)||lineRandomToken();
   const write=async()=>{
     const linked=await sql`SELECT member_code FROM line_users WHERE line_user_id=${uid} LIMIT 1`;
-    await sql`INSERT INTO line_admin_messages(message_id,line_user_id,member_code,direction,message_text,status,admin_by,created_at) VALUES(${id('LCM')},${uid},${linked[0]?.member_code||null},${direction},${msg},${direction==='in'?'received':'sent'},${adminBy||null},NOW())`;
-    return true;
+    await sql`INSERT INTO line_admin_messages(message_id,line_user_id,member_code,direction,message_text,status,admin_by,created_at,message_type,attachment_data,attachment_name,attachment_type,line_message_id,attachment_token)
+      VALUES(${messageId},${uid},${linked[0]?.member_code||null},${direction},${msg},${direction==='in'?'received':'sent'},${adminBy||null},NOW(),${messageType},${att},${attName},${attType},${lineMessageId},${attToken})
+      ON CONFLICT(message_id) DO NOTHING`;
+    return {ok:true,message_id:messageId,attachment_token:attToken};
   };
   try{return await write()}catch(err){
     console.error('LINE admin message direct save failed; retrying schema init',err);
@@ -451,7 +488,7 @@ async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in
 }
 
 async function recoverLineAdminMessages(sql){
-  // V2.6.89: recover member-to-Admin text from the general LINE event log.
+  // V2.6.90: recover member-to-Admin text from the general LINE event log.
   // Earlier versions only recovered messages beginning with "แอดมิน".  Since ordinary
   // free-form text is now a valid Admin conversation, old free-form test messages are
   // recoverable too, while known system commands are excluded.
@@ -486,7 +523,7 @@ function lineBackground(ctx,promise){
   const task=Promise.resolve(promise).catch(err=>console.error('LINE background task failed',err));
   if(ctx&&typeof ctx.waitUntil==='function'){
     // Keep a reference so the webhook can close PostgreSQL only after all LINE jobs finish.
-    // V2.6.89 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
+    // V2.6.90 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
     // so LINE replied successfully but the Admin inbox stayed empty.
     if(!Array.isArray(ctx.__skLineTasks)) ctx.__skLineTasks=[];
     ctx.__skLineTasks.push(task);
@@ -500,13 +537,32 @@ async function handleLineEvent(event,env,sql,ctx){
   const userId=clean(event?.source?.userId);
   const eventType=clean(event?.type);
   const msgType=clean(event?.message?.type);
-  const msgText=msgType==='text'?clean(event?.message?.text):'';
+  const msgText=msgType==='text'?clean(event?.message?.text):(msgType==='image'?'[รูปภาพ]':msgType==='file'?'[ไฟล์] '+clean(event?.message?.fileName):msgType?'['+msgType+']':'');
 
   // IMPORTANT V2.6.80:
   // Reply to follow/basic commands FIRST. No DB query/schema creation may delay replyToken.
   if(eventType==='follow'&&event.replyToken){
     await lineReply(env,event.replyToken,{type:'text',text:lineWelcomeText()+'\n\n'+lineMenuText(false)});
     lineBackground(ctx,saveLineEventNonCritical(event,sql));
+    return;
+  }
+
+  // V2.6.90: member can send images/files just like a normal LINE OA conversation.
+  // Acknowledge immediately, then download the content and persist it in the conversation in background.
+  if(eventType==='message'&&(msgType==='image'||msgType==='file')){
+    if(event.replyToken) await lineReply(env,event.replyToken,{type:'text',text:msgType==='image'?'✅ รับรูปภาพแล้วค่ะ ส่งถึง Admin เรียบร้อย':'✅ รับไฟล์แล้วค่ะ ส่งถึง Admin เรียบร้อย'});
+    lineBackground(ctx,(async()=>{
+      await saveLineEventNonCritical(event,sql);
+      const content=await fetchLineMessageContent(env,event?.message?.id);
+      const fileName=msgType==='file'?(clean(event?.message?.fileName)||'LINE-file'):'LINE-image.jpg';
+      if(content?.tooLarge){
+        await saveLineAdminMessageNonCritical(sql,userId,'[ไฟล์มีขนาดใหญ่เกิน 5 MB จึงไม่สามารถเก็บสำเนาในระบบได้]','in',null,{message_type:msgType,attachment_name:fileName,line_message_id:event?.message?.id});
+      }else if(content?.data){
+        await saveLineAdminMessageNonCritical(sql,userId,msgType==='image'?'[รูปภาพ]':'[ไฟล์] '+fileName,'in',null,{message_type:msgType,attachment_data:content.data,attachment_name:fileName,attachment_type:content.mime,line_message_id:event?.message?.id});
+      }else{
+        await saveLineAdminMessageNonCritical(sql,userId,msgType==='image'?'[ไม่สามารถดาวน์โหลดรูปภาพจาก LINE ได้]':'[ไม่สามารถดาวน์โหลดไฟล์จาก LINE ได้]','in',null,{message_type:msgType,attachment_name:fileName,line_message_id:event?.message?.id});
+      }
+    })());
     return;
   }
 
@@ -523,17 +579,17 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.89\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.90\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
     lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.89'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.90'});
     lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.89'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.90'});
     lineBackground(ctx,saveLineEventNonCritical(event,sql));
     return;
   }
@@ -564,7 +620,7 @@ async function handleLineEvent(event,env,sql,ctx){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.89\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
+      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.90\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -600,7 +656,7 @@ async function handleLineEvent(event,env,sql,ctx){
     lineBackground(ctx,saveLineEventNonCritical(event,sql));return;
   }
 
-  // V2.6.89: free-form text is a member-to-Admin conversation message.
+  // V2.6.90: free-form text is a member-to-Admin conversation message.
   // Known system commands have already returned above, so ordinary chat must not be lost.
   const freeText=clean(msgText);
   if(freeText){
@@ -674,9 +730,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.89",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.90",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.89",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.6.90",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -700,14 +756,23 @@ export default {
         return json(request,{success:true,verified:true,events:events.length,background_jobs:lineTasks.length});
       }
       sql=db(env);
+      if(/^\/api\/line\/media\/[^/]+$/.test(path)&&request.method==="GET"){
+        await ensureLineSchema(sql);
+        const mid=decodeURIComponent(path.split('/').pop()),token=clean(new URL(request.url).searchParams.get('token'));
+        const rows=await sql`SELECT attachment_data,attachment_preview_data,attachment_name,attachment_type,attachment_token FROM line_admin_messages WHERE message_id=${mid} LIMIT 1`;
+        if(!rows.length||!token||!safeEqual(token,clean(rows[0].attachment_token)))return new Response('Not found',{status:404});
+        const isPreview=new URL(request.url).searchParams.get('preview')==='1';const part=dataUrlParts(isPreview&&rows[0].attachment_preview_data?rows[0].attachment_preview_data:rows[0].attachment_data);if(!part)return new Response('Not found',{status:404});
+        const bytes=base64ToBytes(part.base64),name=clean(rows[0].attachment_name)||'line-attachment';
+        return new Response(bytes,{headers:{'Content-Type':clean(rows[0].attachment_type)||part.mime||'application/octet-stream','Content-Disposition':'inline; filename*=UTF-8\'\''+encodeURIComponent(name),'Cache-Control':'private, max-age=3600','X-Content-Type-Options':'nosniff'}});
+      }
       if(path==="/api/admin/line/messages"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
         await recoverLineAdminMessages(sql);
-        // V2.6.89: durable Inbox + direct LINE-event fallback.
+        // V2.6.90: durable Inbox + direct LINE-event fallback.
         // Even if an older background Inbox insert was missed, the Admin can still see the conversation.
         const rows=await sql`
           WITH durable AS (
-            SELECT lam.message_id,lam.line_user_id,lam.member_code,lam.direction,lam.message_text,lam.status,lam.admin_by,lam.created_at,lam.read_at,
+            SELECT lam.message_id,lam.line_user_id,lam.member_code,lam.direction,lam.message_text,lam.status,lam.admin_by,lam.created_at,lam.read_at,lam.message_type,lam.attachment_name,lam.attachment_type,lam.attachment_token,(lam.attachment_data IS NOT NULL AND lam.attachment_data<>'') AS has_attachment,
                    lu.display_name,m.prefix,m.first_name,m.last_name,m.full_name
             FROM line_admin_messages lam
             LEFT JOIN line_users lu ON lu.line_user_id=lam.line_user_id
@@ -717,7 +782,7 @@ export default {
                    CASE WHEN lel.message_text ~* '^(แอดมิน|admin)[[:space:]]+'
                         THEN REGEXP_REPLACE(lel.message_text,'^(แอดมิน|admin)[[:space:]]+','','i')
                         ELSE lel.message_text END AS message_text,
-                   'received'::text AS status,NULL::text AS admin_by,lel.created_at,NULL::timestamptz AS read_at,
+                   'received'::text AS status,NULL::text AS admin_by,lel.created_at,NULL::timestamptz AS read_at,'text'::text AS message_type,NULL::text AS attachment_name,NULL::text AS attachment_type,NULL::text AS attachment_token,FALSE AS has_attachment,
                    lu.display_name,m.prefix,m.first_name,m.last_name,m.full_name
             FROM line_event_logs lel
             LEFT JOIN line_users lu ON lu.line_user_id=lel.line_user_id
@@ -762,13 +827,26 @@ export default {
       }
       if(path==="/api/admin/line/reply"&&request.method==="POST"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureLineSchema(sql);
-        const b=await body(request),uid=clean(b.line_user_id),text=clean(b.message_text),admin=clean(b.admin_by)||'admin';
-        if(!uid||!text)return json(request,{success:false,message:'กรุณาระบุผู้รับและข้อความ'},400);
-        const pushed=await linePush(env,uid,{type:'text',text:text.slice(0,5000)});
-        if(!pushed?.ok)return json(request,{success:false,message:'ส่งข้อความ LINE ไม่สำเร็จ'},502);
-        await saveLineAdminMessageNonCritical(sql,uid,text,'out',admin);
+        const b=await body(request),uid=clean(b.line_user_id),text=clean(b.message_text),admin=clean(b.admin_by)||'admin',att=clean(b.attachment_data),preview=clean(b.attachment_preview_data),attName=clean(b.attachment_name),attType=clean(b.attachment_type);
+        if(!uid||(!text&&!att))return json(request,{success:false,message:'กรุณาระบุผู้รับและข้อความ/ไฟล์'},400);
+        if(att&&!lineAttachmentOK(att))return json(request,{success:false,message:'รองรับรูป JPG/PNG/WEBP/GIF, PDF, TXT, ZIP, Word, Excel ขนาดไม่เกินประมาณ 5 MB'},400);
+        const messageId=id('LCM'),mediaToken=lineRandomToken(),messageType=att?(/^image\/(jpeg|jpg|png)$/i.test(String(attType))?'image':'file'):'text';
+        const linked=await sql`SELECT member_code FROM line_users WHERE line_user_id=${uid} LIMIT 1`;
+        await sql`INSERT INTO line_admin_messages(message_id,line_user_id,member_code,direction,message_text,status,admin_by,created_at,message_type,attachment_data,attachment_name,attachment_type,attachment_token)
+          VALUES(${messageId},${uid},${linked[0]?.member_code||null},'out',${text||attachmentLabel(attType,attName)},'pending',${admin},NOW(),${messageType},${att||null},${attName||null},${attType||null},${mediaToken})`;
+        if(preview)await sql`UPDATE line_admin_messages SET attachment_preview_data=${preview} WHERE message_id=${messageId}`;
+        const messages=[];
+        if(text)messages.push({type:'text',text:text.slice(0,5000)});
+        if(att){
+          const mediaUrl=publicLineMediaUrl(request,messageId,mediaToken);
+          if(messageType==='image')messages.push({type:'image',originalContentUrl:mediaUrl,previewImageUrl:mediaUrl+'&preview=1'});
+          else messages.push({type:'text',text:'📎 '+(attName||'ไฟล์จาก Admin')+'\n'+mediaUrl});
+        }
+        const pushed=await linePush(env,uid,messages);
+        if(!pushed?.ok){await sql`UPDATE line_admin_messages SET status='failed' WHERE message_id=${messageId}`;return json(request,{success:false,message:'ส่งข้อความ LINE ไม่สำเร็จ'},502)}
+        await sql`UPDATE line_admin_messages SET status='sent' WHERE message_id=${messageId}`;
         await sql`UPDATE line_admin_messages SET read_at=COALESCE(read_at,NOW()),status=CASE WHEN direction='in' THEN 'read' ELSE status END WHERE line_user_id=${uid} AND direction='in'`;
-        return json(request,{success:true,message:'ส่งข้อความถึงสมาชิกแล้ว'});
+        return json(request,{success:true,message:'ส่งข้อความถึงสมาชิกแล้ว',message_id:messageId});
       }
       if(path==="/api/admin/line/read"&&request.method==="POST"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureLineSchema(sql);
@@ -777,12 +855,12 @@ export default {
       }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.89"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.90"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.89';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.90';
         return json(request,{success:true,data});
       }
 
@@ -1260,7 +1338,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.89"});
+        return json(request,{success:true,authorized:true,version:"2.6.90"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1636,7 +1714,7 @@ export default {
         if(newAdminKey){if(newAdminKey.length<8)return json(request,{success:false,message:'Admin API Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(newAdminKey);await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('ADMIN_API_KEY_HASH',${h},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;}
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.89',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.90',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }
