@@ -1,4 +1,4 @@
-SK Alumni System V2.6.87 – LINE Inbox Reliability + Conversation UX
+SK Alumni System V2.6.88 – LINE Inbox Reliability + Conversation UX
 
 FIXES
 1) LINE Inbox persistence
@@ -18,11 +18,11 @@ FIXES
 - Inbox remains recoverable from line_event_logs for free-form member messages.
 
 VERSION
-- API/UI/address query version synchronized to V2.6.87.
+- API/UI/address query version synchronized to V2.6.88.
 
 TEST
 1. Deploy Worker.
-2. In LINE send: แอดมิน ทดสอบข้อความ V2.6.87
+2. In LINE send: แอดมิน ทดสอบข้อความ V2.6.88
 3. Send another free-form message without the แอดมิน prefix.
 4. Open Admin → LINE สมาชิก and press รีเฟรช.
 5. Both messages should appear. Reply from Admin and confirm the LINE user receives it.
