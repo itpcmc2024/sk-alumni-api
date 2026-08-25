@@ -1,4 +1,4 @@
-SK Alumni System V2.6.90 – LINE OA Conversation Suite
+SK Alumni System V2.6.91 – LINE OA Conversation Suite
 
 ปรับปรุงหลัก
 - ปุ่มออกจากระบบหน้า Admin Center ใช้สไตล์เดียวกับปุ่มคืนค่าการจัดเรียง
@@ -10,7 +10,7 @@ SK Alumni System V2.6.90 – LINE OA Conversation Suite
 - Admin ส่งข้อความและรูป JPG/PNG แบบ Image message ได้
 - Admin ส่งไฟล์ PDF/TXT/ZIP/Word/Excel ผ่านลิงก์ดาวน์โหลดที่ระบบสร้างให้
 - แสดงรูปและไฟล์แนบในห้องสนทนา
-- Sync version เป็น V2.6.90
+- Sync version เป็น V2.6.91
 
 หมายเหตุ
 LINE Messaging API ไม่มี outbound "file message" สำหรับบอทโดยตรง ดังนั้นไฟล์ทั่วไปจะถูกส่งเป็นลิงก์ดาวน์โหลด HTTPS ส่วนรูป JPG/PNG ส่งเป็นรูปในแชทโดยตรง
