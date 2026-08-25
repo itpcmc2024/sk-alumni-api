@@ -321,6 +321,36 @@ function lineRandomToken(){
   const a=new Uint8Array(32);crypto.getRandomValues(a);
   return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');
 }
+async function lineLinkSignature(payload,env){
+  const secret=clean(env?.LINE_CHANNEL_SECRET)||clean(env?.ADMIN_API_KEY)||'sk-alumni-line-link';
+  const enc=new TextEncoder();
+  const key=await crypto.subtle.importKey('raw',enc.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const raw=await crypto.subtle.sign('HMAC',key,enc.encode(payload));
+  return Array.from(new Uint8Array(raw)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function createFastLineLinkToken(lineUserId,env){
+  const uid=clean(lineUserId);
+  if(!uid) throw new Error('LINE User ID is required');
+  const exp=Math.floor(Date.now()/1000)+(15*60);
+  const nonce=lineRandomToken().slice(0,24);
+  const payload=uid+'.'+exp+'.'+nonce;
+  const sig=await lineLinkSignature(payload,env);
+  return encodeURIComponent(payload)+'.'+sig;
+}
+async function verifyFastLineLinkToken(token,env){
+  const raw=String(token||'');
+  const dot=raw.lastIndexOf('.');
+  if(dot<=0)return null;
+  const encodedPayload=raw.slice(0,dot),sig=raw.slice(dot+1);
+  let payload='';try{payload=decodeURIComponent(encodedPayload)}catch{return null}
+  const parts=payload.split('.');
+  if(parts.length<3)return null;
+  const uid=clean(parts[0]),exp=Number(parts[1]);
+  if(!uid||!exp||exp<Math.floor(Date.now()/1000))return null;
+  const expected=await lineLinkSignature(payload,env);
+  if(!safeEqual(expected,sig))return null;
+  return {line_user_id:uid,expires_at:new Date(exp*1000).toISOString()};
+}
 async function createLineLinkToken(sql,lineUserId){
   const uid=clean(lineUserId);
   if(!sql||!uid) throw new Error('LINE User ID is required');
@@ -361,7 +391,7 @@ async function handleLineEvent(event,env,sql){
     return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.80\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.80.1\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
@@ -381,22 +411,18 @@ async function handleLineEvent(event,env,sql){
     return;
   }
 
-  // Account-linking commands intentionally use DB only when needed.
+  // V2.6.80.1: generate the account-link URL without touching PostgreSQL first.
+  // LINE reply tokens are short-lived; DB/DDL work before replying can make this command appear silent.
   if(t==='เชื่อมบัญชี'||t==='ผูกบัญชี'||t==='เชื่อมสมาชิก'){
     if(!userId){
       await lineReply(env,event.replyToken,{type:'text',text:'ไม่พบ LINE User ID กรุณาลองใหม่จากห้องแชทของบัญชีทางการ'});
       return;
     }
     try{
-      const linked=await linkedLineMember(sql,userId);
-      if(linked){
-        await lineReply(env,event.replyToken,{type:'text',text:'LINE นี้เชื่อมกับสมาชิก '+linked.member_code+' ('+lineMemberName(linked)+') อยู่แล้วค่ะ\n\nพิมพ์ “ข้อมูลของฉัน” เพื่อเปิดข้อมูลสมาชิก'});
-      }else{
-        const token=await createLineLinkToken(sql,userId);
-        await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.80\n\nลิงก์นี้ใช้ได้ 15 นาที และใช้ได้ครั้งเดียว'});
-      }
+      const token=await createFastLineLinkToken(userId,env);
+      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.80.1\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
     }catch(err){
-      console.error('LINE account-link error',err);
+      console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
     }
     await saveLineEventNonCritical(event,sql);
@@ -412,7 +438,7 @@ async function handleLineEvent(event,env,sql){
         await lineReply(env,event.replyToken,{type:'text',text:'สมาชิก '+linked.member_code+' ยังไม่อยู่ในสถานะใช้งาน กรุณาพิมพ์ “ตรวจสอบสถานะ” เพื่อตรวจสอบข้อมูล'});
       }else{
         const token=await statusAccessToken(linked.member_code,env);
-        await lineReply(env,event.replyToken,{type:'text',text:'ข้อมูลสมาชิก '+linked.member_code+' — '+lineMemberName(linked)+'\n'+lineWebBase()+'member.html?code='+encodeURIComponent(linked.member_code)+'&status_token='+encodeURIComponent(token)+'&from=line&v=2.6.80\n\nลิงก์เข้าสู่ข้อมูลสมาชิกมีอายุ 10 นาที'});
+        await lineReply(env,event.replyToken,{type:'text',text:'ข้อมูลสมาชิก '+linked.member_code+' — '+lineMemberName(linked)+'\n'+lineWebBase()+'member.html?code='+encodeURIComponent(linked.member_code)+'&status_token='+encodeURIComponent(token)+'&from=line&v=2.6.80.1\n\nลิงก์เข้าสู่ข้อมูลสมาชิกมีอายุ 10 นาที'});
       }
     }catch(err){
       console.error('LINE member portal error',err);
@@ -487,9 +513,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.80",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.80.1",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.80",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.6.80.1",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -506,7 +532,7 @@ export default {
       sql=db(env);
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.80"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.80.1"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
@@ -588,16 +614,18 @@ export default {
       if(path==="/api/line/link-account"&&request.method==="POST"){
         const b=await body(request),token=clean(b.token),code=clean(b.member_code).toUpperCase(),identity=clean(b.identity);
         if(!token||!code||!identity)return json(request,{success:false,message:'กรุณากรอกข้อมูลให้ครบ'},400);
+        const verified=await verifyFastLineLinkToken(token,env);
+        if(!verified)return json(request,{success:false,message:'ลิงก์เชื่อมบัญชีหมดอายุหรือไม่ถูกต้อง กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'},410);
         await ensureLineSchema(sql);
         const hash=await sha256Hex(token);
-        const tr=await sql`SELECT token_hash,line_user_id,expires_at,used_at FROM line_link_tokens WHERE token_hash=${hash} LIMIT 1`;
-        if(!tr.length||tr[0].used_at||new Date(tr[0].expires_at).getTime()<Date.now())return json(request,{success:false,message:'ลิงก์เชื่อมบัญชีหมดอายุหรือถูกใช้งานแล้ว กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'},410);
+        const used=await sql`SELECT token_hash FROM line_link_tokens WHERE token_hash=${hash} AND used_at IS NOT NULL LIMIT 1`;
+        if(used.length)return json(request,{success:false,message:'ลิงก์เชื่อมบัญชีนี้ถูกใช้งานแล้ว กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'},410);
         const mr=await memberWithAddress(sql,code);
         if(!mr.length)return json(request,{success:false,message:'ไม่พบรหัสสมาชิก'},404);
         const m=mr[0],st=effectiveMemberStatus(m);
         if(st!=='active')return json(request,{success:false,message:st==='renewal'?'สมาชิกอยู่ในสถานะรอต่ออายุ กรุณาต่ออายุสมาชิกก่อนเชื่อมบัญชี':'บัญชีสมาชิกยังไม่อยู่ในสถานะใช้งาน'},403);
         if(!identityMatches(m,identity))return json(request,{success:false,message:'อีเมลหรือเบอร์โทรศัพท์ไม่ตรงกับข้อมูลสมาชิก'},401);
-        const uid=clean(tr[0].line_user_id);
+        const uid=clean(verified.line_user_id);
         const occupied=await sql`SELECT line_user_id FROM line_users WHERE member_code=${code} AND line_user_id<>${uid} AND follow_status='active' LIMIT 1`;
         const memberOccupied=await sql`SELECT line_user_id FROM members WHERE member_code=${code} AND line_user_id IS NOT NULL AND line_user_id<>${uid} LIMIT 1`;
         if(occupied.length||memberOccupied.length)return json(request,{success:false,message:'รหัสสมาชิกนี้เชื่อมกับ LINE อื่นอยู่แล้ว กรุณาติดต่อ Admin หากต้องการเปลี่ยนบัญชี LINE'},409);
@@ -606,7 +634,7 @@ export default {
           await tx`UPDATE members SET line_user_id=NULL,updated_at=NOW() WHERE line_user_id=${uid} AND member_code<>${code}`;
           await tx`UPDATE line_users SET member_code=${code},follow_status='active',last_seen_at=NOW(),updated_at=NOW() WHERE line_user_id=${uid}`;
           await tx`UPDATE members SET line_user_id=${uid},updated_at=NOW() WHERE member_code=${code}`;
-          await tx`UPDATE line_link_tokens SET used_at=NOW() WHERE token_hash=${hash}`;
+          await tx`INSERT INTO line_link_tokens(token_hash,line_user_id,expires_at,used_at,created_at) VALUES(${hash},${uid},${verified.expires_at},NOW(),NOW()) ON CONFLICT(token_hash) DO UPDATE SET used_at=NOW()`;
         });
         return json(request,{success:true,message:'เชื่อมบัญชี LINE สำเร็จ',data:{member_code:code,member_name:lineMemberName(m)}});
       }
@@ -975,7 +1003,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.80"});
+        return json(request,{success:true,authorized:true,version:"2.6.80.1"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
