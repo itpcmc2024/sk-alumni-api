@@ -1,4 +1,4 @@
-SK Alumni System V2.6.88 – LINE Conversation Dashboard + Admin Home
+SK Alumni System V2.6.89 – LINE Conversation Dashboard + Admin Home
 
 Changes
 1. LINE Inbox reliability: member-to-Admin messages are saved synchronously after LINE reply succeeds.
@@ -7,10 +7,10 @@ Changes
 4. Added Admin LINE Events endpoint for diagnostics and event browsing.
 5. Admin login now defaults to Admin Center (admin-home.html).
 6. Member management remains available from Admin Center through admin.html?manage=1.
-7. Version synchronized to V2.6.88.
+7. Version synchronized to V2.6.89.
 
 Recommended test
-- Send: แอดมิน ทดสอบข้อความ V2.6.88
+- Send: แอดมิน ทดสอบข้อความ V2.6.89
 - Send a normal free-form message
 - Open Admin > LINE สมาชิก and click each dashboard card
 - Logout, login again: should land at Admin Center
