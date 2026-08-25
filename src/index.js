@@ -248,6 +248,9 @@ async function ensureLineSchema(sql){
   await sql`CREATE INDEX IF NOT EXISTS idx_line_event_logs_user_created ON line_event_logs(line_user_id,created_at DESC)`;
   await sql`CREATE TABLE IF NOT EXISTS line_link_tokens (token_hash TEXT PRIMARY KEY,line_user_id TEXT NOT NULL,expires_at TIMESTAMPTZ NOT NULL,used_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`CREATE INDEX IF NOT EXISTS idx_line_link_tokens_user ON line_link_tokens(line_user_id,created_at DESC)`;
+  await sql`CREATE TABLE IF NOT EXISTS line_admin_messages (message_id TEXT PRIMARY KEY,line_user_id TEXT NOT NULL,member_code TEXT,direction TEXT NOT NULL DEFAULT 'in',message_text TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'received',admin_by TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),read_at TIMESTAMPTZ)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_line_admin_messages_created ON line_admin_messages(created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_line_admin_messages_user_created ON line_admin_messages(line_user_id,created_at DESC)`;
 }
 function bytesToBase64(bytes){
   let binary='';
@@ -403,7 +406,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.81'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.83'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -433,6 +436,16 @@ async function createLineLinkToken(sql,lineUserId){
   return token;
 }
 
+async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in',adminBy=null){
+  try{
+    const uid=clean(lineUserId),msg=clean(text);
+    if(!sql||!uid||!msg)return;
+    await ensureLineSchema(sql);
+    const linked=await sql`SELECT member_code FROM line_users WHERE line_user_id=${uid} LIMIT 1`;
+    await sql`INSERT INTO line_admin_messages(message_id,line_user_id,member_code,direction,message_text,status,admin_by,created_at) VALUES(${id('LCM')},${uid},${linked[0]?.member_code||null},${direction},${msg},${direction==='in'?'received':'sent'},${adminBy||null},NOW())`;
+  }catch(err){console.error('LINE admin message save error (ignored)',err)}
+}
+
 async function handleLineEvent(event,env,sql){
   const userId=clean(event?.source?.userId);
   const eventType=clean(event?.type);
@@ -460,22 +473,34 @@ async function handleLineEvent(event,env,sql){
     return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.82\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.83\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.82'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.83'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.82'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.83'});
     await saveLineEventNonCritical(event,sql);
     return;
   }
-  if(t.includes('ติดต่อ')||t.includes('แอดมิน')||t.includes('admin')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ได้รับข้อความของคุณแล้วค่ะ กรุณาพิมพ์รายละเอียดที่ต้องการติดต่อไว้ในแชทนี้ เพื่อให้ Admin ดูแลต่อได้\n\nพิมพ์ “เมนู” เพื่อกลับสู่เมนูหลัก'});
+  if(t==='ติดต่อแอดมิน'||t==='ติดต่อ admin'||t==='contact admin'){
+    await lineReply(env,event.replyToken,{type:'text',text:'ติดต่อ Admin ได้เลยค่ะ 💬\n\nพิมพ์คำว่า “แอดมิน” เว้นวรรค แล้วตามด้วยข้อความ เช่น\nแอดมิน ขอสอบถามเรื่องใบเสร็จรับเงิน\n\nระบบจะส่งข้อความให้ Admin และ Admin สามารถตอบกลับมาที่ LINE นี้ได้ค่ะ'});
+    await saveLineEventNonCritical(event,sql);
+    return;
+  }
+  if(t.startsWith('แอดมิน ')||t.startsWith('admin ')){
+    const detail=clean(msgText.replace(/^แอดมิน\s+/i,'').replace(/^admin\s+/i,''));
+    if(!detail){
+      await lineReply(env,event.replyToken,{type:'text',text:'กรุณาพิมพ์รายละเอียดต่อท้ายคำว่า “แอดมิน” เช่น\nแอดมิน ขอสอบถามเรื่องใบเสร็จรับเงิน'});
+      return;
+    }
+    // Reply first, then save to PostgreSQL so a slow DB never consumes the LINE reply token.
+    await lineReply(env,event.replyToken,{type:'text',text:'✅ ส่งข้อความถึง Admin แล้วค่ะ\n\n“'+detail.slice(0,1200)+'”\n\nเมื่อ Admin ตอบ ระบบจะส่งกลับมาที่ LINE นี้โดยอัตโนมัติ'});
+    await saveLineAdminMessageNonCritical(sql,userId,detail,'in',null);
     await saveLineEventNonCritical(event,sql);
     return;
   }
@@ -489,7 +514,7 @@ async function handleLineEvent(event,env,sql){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.82\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
+      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.83\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -590,9 +615,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.81",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.83",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.81",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.6.83",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -607,14 +632,33 @@ export default {
         return json(request,{success:true,verified:true,events:events.length});
       }
       sql=db(env);
+      if(path==="/api/admin/line/messages"&&request.method==="GET"){
+        const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureLineSchema(sql);
+        const rows=await sql`SELECT lam.message_id,lam.line_user_id,lam.member_code,lam.direction,lam.message_text,lam.status,lam.admin_by,lam.created_at,lu.display_name,m.prefix,m.first_name,m.last_name,m.full_name FROM line_admin_messages lam LEFT JOIN line_users lu ON lu.line_user_id=lam.line_user_id LEFT JOIN members m ON m.member_code=lam.member_code ORDER BY lam.created_at DESC LIMIT 2000`;
+        return json(request,{success:true,data:rows});
+      }
+      if(path==="/api/admin/line/reply"&&request.method==="POST"){
+        const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureLineSchema(sql);
+        const b=await body(request),uid=clean(b.line_user_id),text=clean(b.message_text),admin=clean(b.admin_by)||'admin';
+        if(!uid||!text)return json(request,{success:false,message:'กรุณาระบุผู้รับและข้อความ'},400);
+        const pushed=await linePush(env,uid,{type:'text',text:text.slice(0,5000)});
+        if(!pushed?.ok)return json(request,{success:false,message:'ส่งข้อความ LINE ไม่สำเร็จ'},502);
+        await saveLineAdminMessageNonCritical(sql,uid,text,'out',admin);
+        return json(request,{success:true,message:'ส่งข้อความถึงสมาชิกแล้ว'});
+      }
+      if(path==="/api/admin/line/read"&&request.method==="POST"){
+        const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureLineSchema(sql);
+        const b=await body(request),uid=clean(b.line_user_id);if(uid)await sql`UPDATE line_admin_messages SET read_at=COALESCE(read_at,NOW()),status=CASE WHEN direction='in' THEN 'read' ELSE status END WHERE line_user_id=${uid} AND direction='in'`;
+        return json(request,{success:true});
+      }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.81"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.83"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.82';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.83';
         return json(request,{success:true,data});
       }
 
@@ -1092,7 +1136,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        return json(request,{success:true,authorized:true,version:"2.6.81"});
+        return json(request,{success:true,authorized:true,version:"2.6.83"});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1468,7 +1512,7 @@ export default {
         if(newAdminKey){if(newAdminKey.length<8)return json(request,{success:false,message:'Admin API Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(newAdminKey);await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('ADMIN_API_KEY_HASH',${h},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;}
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.82',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.83',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }
