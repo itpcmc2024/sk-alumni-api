@@ -407,11 +407,11 @@ function lineLinkFlex(title,body,url,buttonLabel){
   return {type:'flex',altText:title,contents:{type:'bubble',styles:{header:{backgroundColor:'#DDF4E8'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:title,weight:'bold',size:'xl',color:'#075E43',wrap:true}]},body:{type:'box',layout:'vertical',contents:[{type:'text',text:body,size:'sm',color:'#49645A',wrap:true}]},footer:{type:'box',layout:'vertical',contents:[lineFlexButton(buttonLabel,{type:'uri',uri:url})]}}};
 }
 function lineWelcomeFlex(){
-  return {type:'flex',altText:'ศิษย์เก่าคือครอบครัว',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',alignItems:'center',contents:[{type:'text',text:'🌿 ศิษย์เก่าคือครอบครัว',weight:'bold',size:'xl',color:'#075E43',wrap:true,align:'center'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'ลงทะเบียนศิษย์เก่า หรือ เชื่อม Line กับรหัสสมาชิกเดิมได้เลยครับ',size:'sm',color:'#49645A',wrap:true,align:'center'}]},footer:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ลงทะเบียนศิษย์เก่า',{type:'uri',uri:lineWebBase()+'register.html?v=2.6.99'}),lineFlexButton('เชื่อมบัญชีสมาชิก',{type:'message',text:'เชื่อมบัญชี'},'secondary','#17966A'),lineFlexButton('ดูเมนูหลัก',{type:'message',text:'เมนู'},'link','#17966A')]}}};
+  return {type:'flex',altText:'ศิษย์เก่าคือครอบครัว',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',alignItems:'center',contents:[{type:'text',text:'🌿 ศิษย์เก่าคือครอบครัว',weight:'bold',size:'xl',color:'#075E43',wrap:true,align:'center'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'ลงทะเบียนศิษย์เก่า หรือ เชื่อม Line กับรหัสสมาชิกเดิมได้เลยครับ',size:'sm',color:'#49645A',wrap:true,align:'center'}]},footer:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ลงทะเบียนศิษย์เก่า',{type:'uri',uri:lineWebBase()+'register.html?v=2.7.00'}),lineFlexButton('เชื่อมบัญชีสมาชิก',{type:'message',text:'เชื่อมบัญชี'},'secondary','#17966A'),lineFlexButton('ดูเมนูหลัก',{type:'message',text:'เมนู'},'link','#17966A')]}}};
 }
 function lineMainMenuFlex(){
   const item=(icon,title,text,color)=>({type:'box',layout:'horizontal',spacing:'md',paddingAll:'14px',cornerRadius:'12px',backgroundColor:color,action:{type:'message',label:title,text},contents:[{type:'text',text:icon,size:'xl',flex:0},{type:'text',text:title,weight:'bold',color:'#075E43',gravity:'center',wrap:true}]});
-  return {type:'flex',altText:'เมนูสมาชิก 6 รายการ',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🌿 เมนูสมาชิก',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[item('🏠','หน้าหลัก','หน้าหลัก','#E6F7EE'),item('🔗','เชื่อมบัญชี','เชื่อมบัญชี','#EEF8DF'),item('🔎','ตรวจสอบสถานะ','ตรวจสอบสถานะ','#FFF4D8'),item('💳','สนับสนุนรายปี','สนับสนุนรายปี','#EAF4FF'),item('🤲🏻','บริจาค','บริจาค','#F9ECF4'),item('📞','โทรหาแอดมิน','โทรหาแอดมิน','#E3F7F5')]}}};
+  return {type:'flex',altText:'เมนูสมาชิก 6 รายการ',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🌿 เมนูสมาชิก',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[item('🔗','เชื่อมบัญชี','เชื่อมบัญชี','#EEF8DF'),item('🏠','หน้าหลักระบบ','หน้าหลัก','#E6F7EE'),item('🔎','ตรวจสอบสถานะ','ตรวจสอบสถานะ','#FFF4D8'),item('🪪','ข้อมูลของฉัน','ข้อมูลของฉัน','#EAF4FF'),item('🤲🏻','บริจาค','บริจาค','#F9ECF4'),item('📞','ติดต่อแอดมิน','ติดต่อแอดมิน','#E3F7F5')]}}};
 }
 function lineHistoryMenuFlex(){
   return {type:'flex',altText:'เลือกประวัติของฉัน',contents:{type:'bubble',styles:{header:{backgroundColor:'#EAF4FF'},body:{backgroundColor:'#F8FBFF'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🧾 ประวัติของฉัน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ประวัติชำระค่าสมาชิก',{type:'message',text:'ประวัติชำระ'}),lineFlexButton('ประวัติการบริจาค',{type:'message',text:'ประวัติบริจาค'},'secondary','#17966A'),lineFlexButton('ประวัติการใช้สิทธิ์',{type:'message',text:'ประวัติสิทธิ์'},'secondary','#17966A')]}}};
@@ -514,7 +514,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.99'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.7.00'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -565,7 +565,7 @@ async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in
 }
 
 async function recoverLineAdminMessages(sql){
-  // V2.6.99: recover member-to-Admin text from the general LINE event log.
+  // V2.7.00: recover member-to-Admin text from the general LINE event log.
   // Earlier versions only recovered messages beginning with "แอดมิน".  Since ordinary
   // free-form text is now a valid Admin conversation, old free-form test messages are
   // recoverable too, while known system commands are excluded.
@@ -600,7 +600,7 @@ function lineBackground(ctx,promise){
   const task=Promise.resolve(promise).catch(err=>console.error('LINE background task failed',err));
   if(ctx&&typeof ctx.waitUntil==='function'){
     // Keep a reference so the webhook can close PostgreSQL only after all LINE jobs finish.
-    // V2.6.99 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
+    // V2.7.00 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
     // so LINE replied successfully but the Admin inbox stayed empty.
     if(!Array.isArray(ctx.__skLineTasks)) ctx.__skLineTasks=[];
     ctx.__skLineTasks.push(task);
@@ -624,7 +624,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.6.99: LINE doesn't expose sticker image bytes, but webhook sticker metadata
+  // V2.7.00: LINE doesn't expose sticker image bytes, but webhook sticker metadata
   // must still become a visible Admin Inbox message.
   if(eventType==='message'&&msgType==='sticker'){
     const packageId=clean(event?.message?.packageId),stickerId=clean(event?.message?.stickerId);
@@ -642,7 +642,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.6.99: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
+  // V2.7.00: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
   // LINE already shows the user's sent media, so avoid repetitive acknowledgement bubbles.
   if(eventType==='message'&&(msgType==='image'||msgType==='file')){
     lineBackground(ctx,(async()=>{
@@ -673,34 +673,35 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
   if(t==='หน้าหลัก'){
-    await lineReply(env,event.replyToken,lineLinkFlex('หน้าหลัก','เปิดหน้าแรกระบบสมาชิกสมาคมศิษย์เก่า',lineWebBase()+'index.html?v=2.6.99','เปิดหน้าหลัก'));
+    await lineReply(env,event.replyToken,lineLinkFlex('หน้าหลัก','เปิดหน้าแรกระบบสมาชิกสมาคมศิษย์เก่า',lineWebBase()+'index.html?v=2.7.00','เปิดหน้าหลัก'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='สนับสนุนรายปี'){
-    await lineReply(env,event.replyToken,lineLinkFlex('สนับสนุนรายปี','แจ้งชำระค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',lineWebBase()+'payment.html?v=2.6.99','เปิดหน้าแจ้งชำระ'));
+    await lineReply(env,event.replyToken,lineLinkFlex('สนับสนุนรายปี','แจ้งชำระค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',lineWebBase()+'payment.html?v=2.7.00','เปิดหน้าแจ้งชำระ'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='บริจาค'){
-    await lineReply(env,event.replyToken,lineLinkFlex('บริจาค','ร่วมสนับสนุนกิจกรรมและโครงการของสมาคม',lineWebBase()+'donation.html?v=2.6.99','เปิดหน้าบริจาค'));
+    await lineReply(env,event.replyToken,lineLinkFlex('บริจาค','ร่วมสนับสนุนกิจกรรมและโครงการของสมาคม',lineWebBase()+'donation.html?v=2.7.00','เปิดหน้าบริจาค'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
-  if(t==='โทรหาแอดมิน'){
+  if(t==='โทรหาแอดมิน'||t==='ติดต่อแอดมิน'){
     let phone='';try{const rows=await sql`SELECT setting_value FROM app_settings WHERE setting_key='CONTACT_PHONE' LIMIT 1`;phone=clean(rows[0]?.setting_value).replace(/[^\d+]/g,'')}catch{}
-    const msg=phone?{type:'flex',altText:'โทรหาแอดมิน',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'📞 โทรหาแอดมิน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'เบอร์ติดต่อ '+phone,wrap:true,color:'#49645A'},lineFlexButton('โทรเลย',{type:'uri',uri:'tel:'+phone})]}}}:{type:'text',text:'ยังไม่ได้กำหนดเบอร์โทรแอดมินในตั้งค่าระบบค่ะ\nกรุณาพิมพ์ “ติดต่อแอดมิน” เพื่อส่งข้อความแทน'};
+    const masked=phone&&phone.length>=7?phone.slice(0,3)+'-'+phone.slice(3,6)+'xxxx':'';
+    const msg={type:'flex',altText:'ติดต่อแอดมิน',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'📞 ติดต่อแอดมิน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'ส่งคำขอให้แอดมินโทรกลับผ่าน LINE แล้วค่ะ\nแอดมินจะส่ง Call request ให้เมื่อพร้อมรับสาย'+(masked?'\nเบอร์สำรอง: '+masked:''),wrap:true,color:'#49645A'},lineFlexButton('ขอโทรหาแอดมิน',{type:'message',text:'ขอโทรหาแอดมิน'})]}}};
     await lineReply(env,event.replyToken,msg);lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,lineLinkFlex('ลงทะเบียนสมาชิก','หลังได้รับรหัสสมาชิกแล้ว กลับมาพิมพ์ “เชื่อมบัญชี”',lineWebBase()+'register.html?v=2.6.99','เปิดหน้าลงทะเบียน'));
+    await lineReply(env,event.replyToken,lineLinkFlex('ลงทะเบียนสมาชิก','หลังได้รับรหัสสมาชิกแล้ว กลับมาพิมพ์ “เชื่อมบัญชี”',lineWebBase()+'register.html?v=2.7.00','เปิดหน้าลงทะเบียน'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,lineLinkFlex('ตรวจสอบสถานะสมาชิก','ค้นหาและตรวจสอบสถานะสมาชิก',lineWebBase()+'status.html?v=2.6.99','ตรวจสอบสถานะ'));
+    await lineReply(env,event.replyToken,lineLinkFlex('ตรวจสอบสถานะสมาชิก','ค้นหาและตรวจสอบสถานะสมาชิก',lineWebBase()+'status.html?v=2.7.00','ตรวจสอบสถานะ'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,lineLinkFlex('สิทธิประโยชน์','ดูสิทธิประโยชน์สำหรับสมาชิกที่กำลังเปิดใช้งาน',lineWebBase()+'benefits.html?v=2.6.99','ดูสิทธิประโยชน์'));
+    await lineReply(env,event.replyToken,lineLinkFlex('สิทธิประโยชน์','ดูสิทธิประโยชน์สำหรับสมาชิกที่กำลังเปิดใช้งาน',lineWebBase()+'benefits.html?v=2.7.00','ดูสิทธิประโยชน์'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
@@ -731,7 +732,7 @@ async function handleLineEvent(event,env,sql,ctx){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,lineLinkFlex('เชื่อมบัญชีสมาชิก','ลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้',lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.99','เชื่อมบัญชี'));
+      await lineReply(env,event.replyToken,lineLinkFlex('เชื่อมบัญชีสมาชิก','ลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้',lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.7.00','เชื่อมบัญชี'));
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -771,7 +772,7 @@ async function handleLineEvent(event,env,sql,ctx){
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
 
-  // V2.6.99: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
+  // V2.7.00: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
   const freeText=clean(msgText);
   if(freeText){
     await saveLineAdminMessageNonCritical(sql,userId,freeText,'in',null,{line_message_id:event?.message?.id,message_type:'text'});
@@ -843,9 +844,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.99",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.7.00",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.99",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.7.00",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -881,7 +882,7 @@ export default {
       if(path==="/api/admin/line/messages"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
         await recoverLineAdminMessages(sql);
-        // V2.6.99: durable Inbox + direct LINE-event fallback.
+        // V2.7.00: durable Inbox + direct LINE-event fallback.
         // Even if an older background Inbox insert was missed, the Admin can still see the conversation.
         const rows=await sql`
           WITH durable AS (
@@ -997,12 +998,12 @@ export default {
       }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.99"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.7.00"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','CONTACT_PHONE','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','HOME_HERO_IMAGE','HOME_HERO_MOBILE_IMAGE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.99';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.7.00';
         return json(request,{success:true,data});
       }
 
@@ -1493,7 +1494,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.6.99",admin:a});
+        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.7.00",admin:a});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1906,7 +1907,7 @@ export default {
         if(clean(b.CONTACT_PHONE)&&!/^\+?\d{9,12}$/.test(clean(b.CONTACT_PHONE).replace(/[\s-]/g,'')))return json(request,{success:false,message:'เบอร์โทรแอดมินไม่ถูกต้อง กรุณากรอกตัวเลข 9–12 หลัก'},400);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','CONTACT_PHONE','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','HOME_HERO_IMAGE','HOME_HERO_MOBILE_IMAGE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.99',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.7.00',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }

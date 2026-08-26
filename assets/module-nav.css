@@ -485,7 +485,7 @@ body[class*="admin"] :is(.admin-action,.linkbtn,.head-actions .pill,.sk-admin-ba
   .sk-mobile-home>a.sk-mobile-public-admin,.sk-mobile-home>a[href*="index.html"]{min-width:112px!important;justify-content:center!important}
 }
 
-/* V2.6.99 cross-device stability */
+/* V2.7.00 cross-device stability */
 html,body{max-width:100%;overflow-x:hidden}body>*{min-width:0}.sk-nav-wrap,.sk-public-admin-footer__in{max-width:100%}.sk-admin-action-group{max-width:100%}
 @media(max-width:900px){.sk-mobile-home{gap:8px!important;flex-wrap:wrap!important}.sk-mobile-home>a,.sk-mobile-home>button{max-width:100%;white-space:nowrap}.sk-nav-wrap{width:100%!important;padding-inline:12px!important}}
 @media(max-width:520px){.sk-mobile-home{display:grid!important;grid-template-columns:repeat(2,minmax(0,auto));justify-content:center!important}.sk-mobile-home>*{min-width:0!important}.sk-nav-title{overflow-wrap:anywhere}.sk-nav-sub{overflow-wrap:anywhere}}
