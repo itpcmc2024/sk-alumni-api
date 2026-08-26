@@ -1,4 +1,4 @@
--- SK Alumni V2.6.91 LINE Inbox Reliability
+-- SK Alumni V2.6.92 LINE Inbox Reliability
 ALTER TABLE IF EXISTS line_event_logs ADD COLUMN IF NOT EXISTS webhook_event_id TEXT;
 ALTER TABLE IF EXISTS line_event_logs ADD COLUMN IF NOT EXISTS line_message_id TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS uq_line_event_logs_webhook ON line_event_logs(webhook_event_id) WHERE webhook_event_id IS NOT NULL;

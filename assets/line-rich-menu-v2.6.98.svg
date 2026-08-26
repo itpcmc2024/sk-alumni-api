@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="1686" viewBox="0 0 2500 1686">
+  <style>
+    .title{font:700 86px Sarabun,sans-serif;fill:#075E43;text-anchor:middle}
+    .sub{font:400 42px Sarabun,sans-serif;fill:#4F7465;text-anchor:middle}
+    .icon{fill:none;stroke:#17966A;stroke-width:34;stroke-linecap:round;stroke-linejoin:round}
+    .line{stroke:#B8DDCB;stroke-width:8}
+  </style>
+  <rect width="2500" height="1686" fill="#F7FCF9"/>
+  <rect x="0" y="0" width="834" height="843" fill="#E6F7EE"/>
+  <rect x="834" y="0" width="833" height="843" fill="#EEF8DF"/>
+  <rect x="1667" y="0" width="833" height="843" fill="#FFF4D8"/>
+  <rect x="0" y="843" width="834" height="843" fill="#EAF4FF"/>
+  <rect x="834" y="843" width="833" height="843" fill="#F9ECF4"/>
+  <rect x="1667" y="843" width="833" height="843" fill="#E3F7F5"/>
+  <path class="line" d="M834 0v1686M1667 0v1686M0 843h2500"/>
+  <!-- user -->
+  <circle class="icon" cx="417" cy="250" r="106"/><path class="icon" d="M205 535c18-125 98-196 212-196s194 71 212 196"/>
+  <text class="title" x="417" y="660">ข้อมูลของฉัน</text><text class="sub" x="417" y="730">ดูและแก้ไขข้อมูลสมาชิก</text>
+  <!-- link -->
+  <path class="icon" d="M1092 354l-61 61c-82 82 44 208 126 126l95-95M1408 354l61-61c82-82-44-208-126-126l-95 95M1138 407l224-224"/>
+  <text class="title" x="1250" y="660">เชื่อมบัญชี</text><text class="sub" x="1250" y="730">เชื่อม LINE กับสมาชิก</text>
+  <!-- card -->
+  <rect class="icon" x="1882" y="160" width="403" height="300" rx="42"/><circle class="icon" cx="1991" cy="278" r="48"/><path class="icon" d="M1916 398c17-56 54-86 103-86s86 30 103 86M2161 246h74M2161 326h74"/>
+  <text class="title" x="2083" y="660">บัตรสมาชิก</text><text class="sub" x="2083" y="730">บัตรดิจิทัลพร้อมใช้งาน</text>
+  <!-- history -->
+  <path class="icon" d="M265 1010h304v373l-47-27-47 27-47-27-47 27-47-27-69 27zM326 1110h182M326 1190h182M326 1270h124"/>
+  <text class="title" x="417" y="1500">ประวัติของฉัน</text><text class="sub" x="417" y="1570">ชำระเงิน บริจาค และสิทธิ์</text>
+  <!-- gift -->
+  <rect class="icon" x="1043" y="1125" width="414" height="270" rx="24"/><path class="icon" d="M1250 1125v270M1010 1125h480v-92h-480zM1250 1028c-43-91-174-79-167 8 4 50 76 64 167 64M1250 1028c43-91 174-79 167 8-4 50-76 64-167 64"/>
+  <text class="title" x="1250" y="1500">สิทธิประโยชน์</text><text class="sub" x="1250" y="1570">สิทธิพิเศษสำหรับสมาชิก</text>
+  <!-- chat -->
+  <path class="icon" d="M1865 1030h438v292h-237l-111 94 15-94h-105z"/><path class="icon" d="M1970 1165h15M2076 1165h15M2182 1165h15"/>
+  <text class="title" x="2083" y="1500">ติดต่อแอดมิน</text><text class="sub" x="2083" y="1570">พูดคุยและส่งไฟล์ได้เลย</text>
+</svg>

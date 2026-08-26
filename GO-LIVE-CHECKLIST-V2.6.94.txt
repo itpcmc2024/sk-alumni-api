@@ -1,0 +1,59 @@
+SK Alumni System V2.6.95 – FINAL GO-LIVE CHECKLIST
+
+A. ACCESS
+[ ] Admin login/logout desktop
+[ ] Admin login/logout mobile
+[ ] Unauthorized Admin API blocked
+[ ] Member portal login/status
+
+B. MEMBERS
+[ ] Register
+[ ] Approve / reject
+[ ] Edit member
+[ ] LINE User ID/link state visible
+[ ] Member card / proof document
+
+C. LINE OA
+[ ] Link account
+[ ] Text / emoji
+[ ] Image / file
+[ ] No duplicate inbound message
+[ ] Draft text survives background refresh
+[ ] Read/unread behavior
+[ ] Admin reply clears composer after success
+[ ] Data Management navigator/selection/cleanup
+
+D. FINANCE – MANUAL SLIP CHECK
+[ ] Payment evidence visible
+[ ] Admin manually checks amount/account/date-time
+[ ] Approve -> ledger -> receipt
+[ ] Reject flow
+[ ] Donation equivalent flow
+[ ] No external paid slip verification dependency
+
+E. ACCOUNTING / DOCUMENTS
+[ ] Ledger
+[ ] Summary
+[ ] Receipt/reprint log
+[ ] Remittance/report
+[ ] CSV exports
+
+F. CONTENT / BENEFITS
+[ ] News/activity/media
+[ ] Benefits
+[ ] Benefit usage + accounting
+
+G. QUALITY
+[ ] Desktop responsive
+[ ] Tablet responsive
+[ ] Phone responsive
+[ ] No browser console blocking errors
+[ ] Worker health OK
+[ ] LINE health OK
+[ ] Acceptable page/API response speed
+
+H. LAUNCH SAFETY
+[ ] Backup/tag current production
+[ ] Delete only identified test records
+[ ] Re-test one real-like end-to-end transaction
+[ ] Final V2.6.95 deploy

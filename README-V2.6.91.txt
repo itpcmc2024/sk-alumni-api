@@ -1,4 +1,4 @@
-SK Alumni System V2.6.91 – LINE Inbox Reliability + Storage Management
+SK Alumni System V2.6.92 – LINE Inbox Reliability + Storage Management
 
 - ป้องกันข้อความ LINE ซ้ำด้วย webhookEventId / LINE message ID
 - Auto refresh ไม่ล้างข้อความที่ Admin กำลังพิมพ์ และเก็บ draft ใน session
