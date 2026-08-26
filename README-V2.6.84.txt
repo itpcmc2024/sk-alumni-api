@@ -1,4 +1,4 @@
-SK Alumni System V2.6.89 – Responsive + LINE Inbox Reliability + UX
+SK Alumni System V2.6.92 – Responsive + LINE Inbox Reliability + UX
 
 ปรับปรุงหลัก
 1) แก้ Admin → LINE สมาชิกไม่พบข้อความ
@@ -13,13 +13,13 @@ SK Alumni System V2.6.89 – Responsive + LINE Inbox Reliability + UX
    - Gallery กิจกรรมหลายรูป: swipe/scroll ซ้าย-ขวาได้ พร้อมคำแนะนำ
    - Footer mobile: โลโก้เล็กลง อยู่หน้าชื่อสมาคม พร้อมกรอบวงกลม
 3) Version Sync
-   - Sync V2.6.89 ทั้ง UI/API/links
-   - module-nav.js และ site.js จะปรับ query ?v=2.6.89 ใน address bar ให้ตรงกับเวอร์ชันปัจจุบันด้วย history.replaceState
+   - Sync V2.6.92 ทั้ง UI/API/links
+   - module-nav.js และ site.js จะปรับ query ?v=2.6.92 ใน address bar ให้ตรงกับเวอร์ชันปัจจุบันด้วย history.replaceState
 
 ติดตั้ง
 - นำไฟล์ทั้งหมดไปทับโฟลเดอร์ sk-alumni-api เดิม
 - git add -A
-- git commit -m "SK Alumni System V2.6.89 Responsive LINE Inbox UX"
+- git commit -m "SK Alumni System V2.6.92 Responsive LINE Inbox UX"
 - git push origin main
 - npx.cmd wrangler deploy --dry-run
 - หากไม่มี ERROR ให้ npx.cmd wrangler deploy

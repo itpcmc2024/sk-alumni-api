@@ -1,4 +1,4 @@
-SK Alumni System V2.6.89 – Benefit Usage Tab + LINE Conversation Continuation
+SK Alumni System V2.6.92 – Benefit Usage Tab + LINE Conversation Continuation
 
 - เพิ่ม TAB “การใช้สิทธิประโยชน์” ต่อจาก TAB “บันทึกการใช้สิทธิ์”
 - ย้าย Toolbar + ตารางประวัติการใช้สิทธิ์ไปอยู่ TAB ใหม่
@@ -7,4 +7,4 @@ SK Alumni System V2.6.89 – Benefit Usage Tab + LINE Conversation Continuation
 - หากแก้ไขรายการจากประวัติ ระบบพาไป TAB บันทึกการใช้สิทธิ์ และเมื่อบันทึก/ยกเลิกจะกลับ TAB ประวัติ
 - TAB ด้านบนเลื่อนแนวนอนได้บนจอเล็กโดยไม่บีบข้อความ
 - คง LINE Conversation Dashboard จาก V2.6.87 ที่ผ่านการทดสอบไว้เดิม
-- Sync เวอร์ชัน URL / assets / footer / API references เป็น V2.6.89
+- Sync เวอร์ชัน URL / assets / footer / API references เป็น V2.6.92
