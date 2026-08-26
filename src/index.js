@@ -164,7 +164,7 @@ function newsImages(v){
 function newsImageOK(v){
   const imgs=newsImages(v);
   if(!imgs.length)return true;
-  if(imgs.length>10)return false;
+  if(imgs.length>8)return false;
   let total=0;
   for(const img of imgs){
     const t=String(img||'');
@@ -174,6 +174,10 @@ function newsImageOK(v){
     total+=t.length;
   }
   return total<=7000000;
+}
+function homeHeroImageOK(v){
+  const t=String(v||'');
+  return !t||(/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(t)&&t.length<=1400000);
 }
 
 async function ensureMediaSchema(sql){
@@ -367,12 +371,19 @@ async function notifyLinkedMember(sql,env,memberCode,text){
     return await linePush(env,rows[0].line_user_id,{type:'text',text:String(text||'').slice(0,5000)});
   }catch(err){console.error('LINE member notification error (ignored)',err);return {ok:false,error:String(err)}}
 }
+function lineDateTime(value=new Date()){
+  try{return new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date(value))+' น.'}catch{return String(value||'')}
+}
+function notifyLinkedMemberBackground(ctx,env,memberCode,text){
+  return lineBackground(ctx,(async()=>{const client=db(env);try{return await notifyLinkedMember(client,env,memberCode,text)}finally{await client.end().catch(()=>{})}})());
+}
 
 function lineWelcomeText(){
   return 'เชื่อมต่อ LINE กับระบบสมาชิกศิษย์เก่าสำเร็จแล้ว ✅\n\nพิมพ์ “เมนู” เพื่อดูคำสั่งที่ใช้งานได้';
 }
 function lineMenuText(){
   return 'เมนูระบบสมาชิกศิษย์เก่า\n'
+    +'• หน้าหลัก — เปิดหน้าแรกของระบบ\n'
     +'• ลงทะเบียน — เปิดหน้าลงทะเบียน\n'
     +'• ตรวจสอบสถานะ — ตรวจสอบสถานะสมาชิก\n'
     +'• สิทธิประโยชน์ — ดูสิทธิประโยชน์ที่เปิดใช้งาน\n'
@@ -383,7 +394,10 @@ function lineMenuText(){
     +'• ประวัติชำระ — ดูประวัติชำระสมาชิก\n'
     +'• ประวัติบริจาค — ดูประวัติการบริจาค\n'
     +'• ประวัติสิทธิ์ — ดูประวัติการใช้สิทธิประโยชน์\n'
-    +'• ติดต่อแอดมิน — ติดต่อผู้ดูแลระบบ\n\n'
+    +'• สนับสนุนรายปี — แจ้งชำระค่าบำรุงสมาคม\n'
+    +'• บริจาค — สนับสนุนกิจกรรมสมาคม\n'
+    +'• โทรหาแอดมิน — โทรจากเบอร์ที่ระบบกำหนด\n'
+    +'• ติดต่อแอดมิน — ส่งข้อความหรือไฟล์ถึงผู้ดูแลระบบ\n\n'
     +'พิมพ์ชื่อเมนูที่ต้องการได้เลยค่ะ';
 }
 function lineFlexButton(label,action,style='primary',color='#17966A'){
@@ -393,11 +407,11 @@ function lineLinkFlex(title,body,url,buttonLabel){
   return {type:'flex',altText:title,contents:{type:'bubble',styles:{header:{backgroundColor:'#DDF4E8'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:title,weight:'bold',size:'xl',color:'#075E43',wrap:true}]},body:{type:'box',layout:'vertical',contents:[{type:'text',text:body,size:'sm',color:'#49645A',wrap:true}]},footer:{type:'box',layout:'vertical',contents:[lineFlexButton(buttonLabel,{type:'uri',uri:url})]}}};
 }
 function lineWelcomeFlex(){
-  return {type:'flex',altText:'ยินดีต้อนรับสู่ระบบสมาชิกศิษย์เก่า',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',alignItems:'center',contents:[{type:'text',text:'🌿 ยินดีต้อนรับ',weight:'bold',size:'xxl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'สมาคมศิษย์เก่านุรจีอิสลามสัมพันธ์ (สุเหร่าเขียว)',weight:'bold',size:'md',color:'#075E43',wrap:true,align:'center'},{type:'text',text:'ลงทะเบียนสมาชิกใหม่ หรือเชื่อม LINE กับรหัสสมาชิกเดิมได้เลยค่ะ',size:'sm',color:'#49645A',wrap:true,align:'center'}]},footer:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ลงทะเบียนสมาชิก',{type:'uri',uri:lineWebBase()+'register.html?v=2.6.98'}),lineFlexButton('เชื่อมบัญชีสมาชิก',{type:'message',text:'เชื่อมบัญชี'},'secondary','#17966A'),lineFlexButton('ดูเมนูหลัก',{type:'message',text:'เมนู'},'link','#17966A')]}}};
+  return {type:'flex',altText:'ศิษย์เก่าคือครอบครัว',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',alignItems:'center',contents:[{type:'text',text:'🌿 ศิษย์เก่าคือครอบครัว',weight:'bold',size:'xl',color:'#075E43',wrap:true,align:'center'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'ลงทะเบียนศิษย์เก่า หรือ เชื่อม Line กับรหัสสมาชิกเดิมได้เลยครับ',size:'sm',color:'#49645A',wrap:true,align:'center'}]},footer:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ลงทะเบียนศิษย์เก่า',{type:'uri',uri:lineWebBase()+'register.html?v=2.6.99'}),lineFlexButton('เชื่อมบัญชีสมาชิก',{type:'message',text:'เชื่อมบัญชี'},'secondary','#17966A'),lineFlexButton('ดูเมนูหลัก',{type:'message',text:'เมนู'},'link','#17966A')]}}};
 }
 function lineMainMenuFlex(){
   const item=(icon,title,text,color)=>({type:'box',layout:'horizontal',spacing:'md',paddingAll:'14px',cornerRadius:'12px',backgroundColor:color,action:{type:'message',label:title,text},contents:[{type:'text',text:icon,size:'xl',flex:0},{type:'text',text:title,weight:'bold',color:'#075E43',gravity:'center',wrap:true}]});
-  return {type:'flex',altText:'เมนูสมาชิก 6 รายการ',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🌿 เมนูสมาชิก',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[item('👤','ข้อมูลของฉัน','ข้อมูลของฉัน','#E6F7EE'),item('🔗','เชื่อมบัญชี','เชื่อมบัญชี','#EEF8DF'),item('🪪','บัตรสมาชิก','บัตรสมาชิก','#FFF4D8'),item('🧾','ประวัติของฉัน','ประวัติของฉัน','#EAF4FF'),item('🎁','สิทธิประโยชน์','สิทธิประโยชน์','#F9ECF4'),item('💬','ติดต่อแอดมิน','ติดต่อแอดมิน','#E3F7F5')]}}};
+  return {type:'flex',altText:'เมนูสมาชิก 6 รายการ',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🌿 เมนูสมาชิก',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[item('🏠','หน้าหลัก','หน้าหลัก','#E6F7EE'),item('🔗','เชื่อมบัญชี','เชื่อมบัญชี','#EEF8DF'),item('🔎','ตรวจสอบสถานะ','ตรวจสอบสถานะ','#FFF4D8'),item('💳','สนับสนุนรายปี','สนับสนุนรายปี','#EAF4FF'),item('🤲🏻','บริจาค','บริจาค','#F9ECF4'),item('📞','โทรหาแอดมิน','โทรหาแอดมิน','#E3F7F5')]}}};
 }
 function lineHistoryMenuFlex(){
   return {type:'flex',altText:'เลือกประวัติของฉัน',contents:{type:'bubble',styles:{header:{backgroundColor:'#EAF4FF'},body:{backgroundColor:'#F8FBFF'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🧾 ประวัติของฉัน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ประวัติชำระค่าสมาชิก',{type:'message',text:'ประวัติชำระ'}),lineFlexButton('ประวัติการบริจาค',{type:'message',text:'ประวัติบริจาค'},'secondary','#17966A'),lineFlexButton('ประวัติการใช้สิทธิ์',{type:'message',text:'ประวัติสิทธิ์'},'secondary','#17966A')]}}};
@@ -500,7 +514,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.98'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.99'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -551,7 +565,7 @@ async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in
 }
 
 async function recoverLineAdminMessages(sql){
-  // V2.6.98: recover member-to-Admin text from the general LINE event log.
+  // V2.6.99: recover member-to-Admin text from the general LINE event log.
   // Earlier versions only recovered messages beginning with "แอดมิน".  Since ordinary
   // free-form text is now a valid Admin conversation, old free-form test messages are
   // recoverable too, while known system commands are excluded.
@@ -568,7 +582,7 @@ async function recoverLineAdminMessages(sql){
       AND COALESCE(NULLIF(TRIM(lel.message_text),''),'')<>''
       AND LOWER(TRIM(lel.message_text)) NOT IN (
         'เมนู','menu','help','ช่วยเหลือ','คำสั่ง','ลงทะเบียน','ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก',
-        'สิทธิประโยชน์','สิทธิ','ติดต่อแอดมิน','ติดต่อ admin','contact admin','เชื่อมบัญชี','ผูกบัญชี','เชื่อมสมาชิก',
+        'หน้าหลัก','สนับสนุนรายปี','บริจาค','โทรหาแอดมิน','สิทธิประโยชน์','สิทธิ','ติดต่อแอดมิน','ติดต่อ admin','contact admin','เชื่อมบัญชี','ผูกบัญชี','เชื่อมสมาชิก',
         'ข้อมูลของฉัน','ข้อมูลสมาชิก','บัญชีสมาชิก','แก้ไขข้อมูล','แก้ไขข้อมูลส่วนตัว','ข้อมูลส่วนตัว','บัตรสมาชิก','บัตรสมาชิกดิจิทัล','บัตรของฉัน',
         'ประวัติของฉัน','ประวัติ','ประวัติชำระ','ประวัติชำระสมาชิก','ประวัติการชำระ','ชำระสมาชิก','ประวัติบริจาค','ประวัติการบริจาค','บริจาคของฉัน',
         'ประวัติสิทธิ์','ประวัติสิทธิประโยชน์','ประวัติการใช้สิทธิ','สิทธิ์ของฉัน'
@@ -586,7 +600,7 @@ function lineBackground(ctx,promise){
   const task=Promise.resolve(promise).catch(err=>console.error('LINE background task failed',err));
   if(ctx&&typeof ctx.waitUntil==='function'){
     // Keep a reference so the webhook can close PostgreSQL only after all LINE jobs finish.
-    // V2.6.98 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
+    // V2.6.99 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
     // so LINE replied successfully but the Admin inbox stayed empty.
     if(!Array.isArray(ctx.__skLineTasks)) ctx.__skLineTasks=[];
     ctx.__skLineTasks.push(task);
@@ -610,7 +624,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.6.98: LINE doesn't expose sticker image bytes, but webhook sticker metadata
+  // V2.6.99: LINE doesn't expose sticker image bytes, but webhook sticker metadata
   // must still become a visible Admin Inbox message.
   if(eventType==='message'&&msgType==='sticker'){
     const packageId=clean(event?.message?.packageId),stickerId=clean(event?.message?.stickerId);
@@ -628,7 +642,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.6.98: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
+  // V2.6.99: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
   // LINE already shows the user's sent media, so avoid repetitive acknowledgement bubbles.
   if(eventType==='message'&&(msgType==='image'||msgType==='file')){
     lineBackground(ctx,(async()=>{
@@ -658,18 +672,35 @@ async function handleLineEvent(event,env,sql,ctx){
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
+  if(t==='หน้าหลัก'){
+    await lineReply(env,event.replyToken,lineLinkFlex('หน้าหลัก','เปิดหน้าแรกระบบสมาชิกสมาคมศิษย์เก่า',lineWebBase()+'index.html?v=2.6.99','เปิดหน้าหลัก'));
+    lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
+  }
+  if(t==='สนับสนุนรายปี'){
+    await lineReply(env,event.replyToken,lineLinkFlex('สนับสนุนรายปี','แจ้งชำระค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',lineWebBase()+'payment.html?v=2.6.99','เปิดหน้าแจ้งชำระ'));
+    lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
+  }
+  if(t==='บริจาค'){
+    await lineReply(env,event.replyToken,lineLinkFlex('บริจาค','ร่วมสนับสนุนกิจกรรมและโครงการของสมาคม',lineWebBase()+'donation.html?v=2.6.99','เปิดหน้าบริจาค'));
+    lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
+  }
+  if(t==='โทรหาแอดมิน'){
+    let phone='';try{const rows=await sql`SELECT setting_value FROM app_settings WHERE setting_key='CONTACT_PHONE' LIMIT 1`;phone=clean(rows[0]?.setting_value).replace(/[^\d+]/g,'')}catch{}
+    const msg=phone?{type:'flex',altText:'โทรหาแอดมิน',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'📞 โทรหาแอดมิน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'เบอร์ติดต่อ '+phone,wrap:true,color:'#49645A'},lineFlexButton('โทรเลย',{type:'uri',uri:'tel:'+phone})]}}}:{type:'text',text:'ยังไม่ได้กำหนดเบอร์โทรแอดมินในตั้งค่าระบบค่ะ\nกรุณาพิมพ์ “ติดต่อแอดมิน” เพื่อส่งข้อความแทน'};
+    await lineReply(env,event.replyToken,msg);lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
+  }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,lineLinkFlex('ลงทะเบียนสมาชิก','หลังได้รับรหัสสมาชิกแล้ว กลับมาพิมพ์ “เชื่อมบัญชี”',lineWebBase()+'register.html?v=2.6.98','เปิดหน้าลงทะเบียน'));
+    await lineReply(env,event.replyToken,lineLinkFlex('ลงทะเบียนสมาชิก','หลังได้รับรหัสสมาชิกแล้ว กลับมาพิมพ์ “เชื่อมบัญชี”',lineWebBase()+'register.html?v=2.6.99','เปิดหน้าลงทะเบียน'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,lineLinkFlex('ตรวจสอบสถานะสมาชิก','ค้นหาและตรวจสอบสถานะสมาชิก',lineWebBase()+'status.html?v=2.6.98','ตรวจสอบสถานะ'));
+    await lineReply(env,event.replyToken,lineLinkFlex('ตรวจสอบสถานะสมาชิก','ค้นหาและตรวจสอบสถานะสมาชิก',lineWebBase()+'status.html?v=2.6.99','ตรวจสอบสถานะ'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,lineLinkFlex('สิทธิประโยชน์','ดูสิทธิประโยชน์สำหรับสมาชิกที่กำลังเปิดใช้งาน',lineWebBase()+'benefits.html?v=2.6.98','ดูสิทธิประโยชน์'));
+    await lineReply(env,event.replyToken,lineLinkFlex('สิทธิประโยชน์','ดูสิทธิประโยชน์สำหรับสมาชิกที่กำลังเปิดใช้งาน',lineWebBase()+'benefits.html?v=2.6.99','ดูสิทธิประโยชน์'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
@@ -700,7 +731,7 @@ async function handleLineEvent(event,env,sql,ctx){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,lineLinkFlex('เชื่อมบัญชีสมาชิก','ลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้',lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.98','เชื่อมบัญชี'));
+      await lineReply(env,event.replyToken,lineLinkFlex('เชื่อมบัญชีสมาชิก','ลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้',lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.99','เชื่อมบัญชี'));
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -740,7 +771,7 @@ async function handleLineEvent(event,env,sql,ctx){
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
 
-  // V2.6.98: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
+  // V2.6.99: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
   const freeText=clean(msgText);
   if(freeText){
     await saveLineAdminMessageNonCritical(sql,userId,freeText,'in',null,{line_message_id:event?.message?.id,message_type:'text'});
@@ -812,9 +843,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.98",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.99",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.98",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.6.99",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -850,7 +881,7 @@ export default {
       if(path==="/api/admin/line/messages"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
         await recoverLineAdminMessages(sql);
-        // V2.6.98: durable Inbox + direct LINE-event fallback.
+        // V2.6.99: durable Inbox + direct LINE-event fallback.
         // Even if an older background Inbox insert was missed, the Admin can still see the conversation.
         const rows=await sql`
           WITH durable AS (
@@ -873,7 +904,7 @@ export default {
               AND COALESCE(NULLIF(TRIM(lel.message_text),''),'')<>''
               AND LOWER(TRIM(lel.message_text)) NOT IN (
                 'เมนู','menu','help','ช่วยเหลือ','คำสั่ง','ลงทะเบียน','ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก',
-                'สิทธิประโยชน์','สิทธิ','ติดต่อแอดมิน','ติดต่อ admin','contact admin','เชื่อมบัญชี','ผูกบัญชี','เชื่อมสมาชิก',
+                'หน้าหลัก','สนับสนุนรายปี','บริจาค','โทรหาแอดมิน','สิทธิประโยชน์','สิทธิ','ติดต่อแอดมิน','ติดต่อ admin','contact admin','เชื่อมบัญชี','ผูกบัญชี','เชื่อมสมาชิก',
                 'ข้อมูลของฉัน','ข้อมูลสมาชิก','บัญชีสมาชิก','แก้ไขข้อมูล','แก้ไขข้อมูลส่วนตัว','ข้อมูลส่วนตัว','บัตรสมาชิก','บัตรสมาชิกดิจิทัล','บัตรของฉัน',
                 'ประวัติของฉัน','ประวัติ','ประวัติชำระ','ประวัติชำระสมาชิก','ประวัติการชำระ','ชำระสมาชิก','ประวัติบริจาค','ประวัติการบริจาค','บริจาคของฉัน',
                 'ประวัติสิทธิ์','ประวัติสิทธิประโยชน์','ประวัติการใช้สิทธิ','สิทธิ์ของฉัน'
@@ -966,12 +997,12 @@ export default {
       }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.98"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.99"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
-        const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.98';
+        const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','CONTACT_PHONE','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','HOME_HERO_IMAGE','HOME_HERO_MOBILE_IMAGE') ORDER BY setting_key`;
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.99';
         return json(request,{success:true,data});
       }
 
@@ -1043,6 +1074,16 @@ export default {
           await tx`INSERT INTO addresses(member_code,address_line,subdistrict,district,province,postal_code,updated_at) VALUES(${code},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null},NOW()) ON CONFLICT(member_code) DO UPDATE SET address_line=EXCLUDED.address_line,subdistrict=EXCLUDED.subdistrict,district=EXCLUDED.district,province=EXCLUDED.province,postal_code=EXCLUDED.postal_code,updated_at=NOW()`;
         });
         return json(request,{success:true,message:"ลงทะเบียนเรียบร้อยแล้ว",member_code:code,data:{member_code:code,status:"payment_pending"}},201);
+      }
+
+      if(path==="/api/line/link-status"&&request.method==="POST"){
+        const b=await body(request),token=clean(b.token);
+        if(!token)return json(request,{success:false,message:'ไม่พบลิงก์ยืนยันจาก LINE'},400);
+        const verified=await verifyFastLineLinkToken(token,env);
+        if(!verified)return json(request,{success:false,message:'ลิงก์เชื่อมบัญชีหมดอายุหรือไม่ถูกต้อง กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'},410);
+        const linked=await linkedLineMember(sql,verified.line_user_id);
+        if(!linked)return json(request,{success:true,data:{linked:false}});
+        return json(request,{success:true,data:{linked:true,member_code:linked.member_code,member_name:lineMemberName(linked)}});
       }
 
       if(path==="/api/line/link-account"&&request.method==="POST"){
@@ -1373,6 +1414,7 @@ export default {
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS slip_data TEXT`;
         const paymentId=id('PAY');
         await sql.begin(async tx=>{await tx`INSERT INTO payments(payment_id,member_code,topic_id,payment_type,amount,paid_at,status,note,created_at,updated_at,slip_data) VALUES(${paymentId},${code},${topicId},${paymentType},${amount},${b.paid_at||new Date().toISOString()},'รอตรวจสอบการชำระ',${clean(b.note)||null},NOW(),NOW(),${slip})`;await tx`UPDATE members SET status='review',updated_at=NOW() WHERE member_code=${code} AND status<>'active'`});
+        notifyLinkedMemberBackground(ctx,env,code,`📩 ระบบได้รับแจ้งชำระแล้ว\nรายการ: ${paymentType}\nจำนวน ${amount.toLocaleString('th-TH')} บาท\nวันที่โอน: ${lineDateTime(b.paid_at||new Date())}\nสถานะ: รอผู้ดูแลตรวจสอบ`);
         return json(request,{success:true,payment_id:paymentId,status:'รอตรวจสอบการชำระ',member_status:'review'},201);
       }
 
@@ -1385,6 +1427,7 @@ export default {
         if(memberCode){const mr=await sql`SELECT member_code,prefix,first_name,last_name,full_name,phone,email FROM members WHERE member_code=${memberCode} LIMIT 1`;if(!mr.length)return json(request,{success:false,message:"ไม่พบรหัสสมาชิก"},404);const m=mr[0],mn=[m.prefix,m.first_name,m.last_name].filter(Boolean).join(' ')||m.full_name||'';if(mn)name=mn;}
         const donationId=id('DON');await ensureV2616Schema(sql);await sql`ALTER TABLE donations ADD COLUMN IF NOT EXISTS slip_data TEXT`;
         await sql`INSERT INTO donations(donation_id,member_code,topic_id,amount,donated_at,slip_url,status,donor_name,phone,email,created_at,updated_at,slip_data,note,address_line,subdistrict,district,province,postal_code) VALUES(${donationId},${memberCode||null},${topicId},${amount},${b.donated_at||new Date().toISOString()},NULL,'รอตรวจสอบ',${name},${phone},${email},NOW(),NOW(),${slip},${clean(b.note)||null},${clean(b.address_line)||null},${clean(b.subdistrict)||null},${clean(b.district)||null},${clean(b.province)||null},${clean(b.postal_code)||null})`;
+        if(memberCode)notifyLinkedMemberBackground(ctx,env,memberCode,`📩 ระบบได้รับข้อมูลการบริจาคแล้ว\nรายการ: ${topicRows[0].title}\nจำนวน ${amount.toLocaleString('th-TH')} บาท\nวันที่โอน: ${lineDateTime(b.donated_at||new Date())}\nสถานะ: รอผู้ดูแลตรวจสอบ`);
         return json(request,{success:true,donation_id:donationId,status:'รอตรวจสอบ'},201);
       }
 
@@ -1425,7 +1468,8 @@ export default {
         `;
         const usageId=id('USE');
         await sql`INSERT INTO benefit_usage(usage_id,member_code,benefit_id,used_at,recorded_by,note,amount,active,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${usageId},${code},${benefitId},${b.used_at||new Date().toISOString()},${await currentAdminLabel(request,env,sql)},${clean(b.note)||null},${amount},TRUE,NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;
-        if(amount>0){const bn=await sql`SELECT title FROM benefits WHERE benefit_id=${benefitId} LIMIT 1`;await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'รายจ่าย','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${usageId},${code},${'ค่าใช้สิทธิ์: '+(bn[0]?.title||benefitId)},${clean(b.note)||null},'admin','posted',NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;}
+        const bn=await sql`SELECT title FROM benefits WHERE benefit_id=${benefitId} LIMIT 1`;if(amount>0){await sql`INSERT INTO ledger_entries(entry_id,entry_date,entry_type,category,source,amount,reference_type,reference_id,member_code,description,note,created_by,status,created_at,updated_at,attachment_data,attachment_name,attachment_type) VALUES(${id('LED')},${b.used_at||new Date().toISOString()},'รายจ่าย','สิทธิประโยชน์สมาชิก','benefit_usage',${amount},'benefit_usage',${usageId},${code},${'ค่าใช้สิทธิ์: '+(bn[0]?.title||benefitId)},${clean(b.note)||null},'admin','posted',NOW(),NOW(),${att},${clean(b.attachment_name)||null},${clean(b.attachment_type)||null})`;}
+        notifyLinkedMemberBackground(ctx,env,code,`🎁 บันทึกการใช้สิทธิประโยชน์แล้ว\nสิทธิ์: ${bn[0]?.title||benefitId}\nเมื่อ ${lineDateTime(b.used_at||new Date())}${amount>0?`\nมูลค่า ${amount.toLocaleString('th-TH')} บาท`:''}`);
         return json(request,{success:true,usage_id:usageId,message:"บันทึกการใช้สิทธิประโยชน์แล้ว"},201);
       }
 
@@ -1449,7 +1493,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.6.98",admin:a});
+        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.6.99",admin:a});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1508,7 +1552,7 @@ export default {
       if(/^\/api\/admin\/members\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase(),b=await body(request),st=memberStatusText(b.status),reason=clean(b.reason);const old=await sql`SELECT status FROM members WHERE member_code=${code} LIMIT 1`;if(!old.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
         const stored=st==='cancelled'&&reason?`ไม่อนุมัติ (${reason})`:st;
-        await sql.begin(async tx=>{await tx`UPDATE members SET status=${stored},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'status',${st==='cancelled'&&reason?'ไม่อนุมัติ: '+reason:'เปลี่ยนสถานะเป็น '+st},CAST(${JSON.stringify(old[0])} AS JSONB),CAST(${JSON.stringify({status:stored,reason})} AS JSONB),${await currentAdminLabel(request,env,sql)},NOW())`});const statusMsg=st==='active'?`✅ สมาชิก ${code} ได้รับการอนุมัติแล้ว\n\nพิมพ์ “ข้อมูลของฉัน” เพื่อเปิดข้อมูลสมาชิกและบัตรสมาชิกได้เลยค่ะ`:st==='cancelled'?`แจ้งสถานะสมาชิก ${code}: ไม่อนุมัติ${reason?'\nเหตุผล: '+reason:''}`:`แจ้งสถานะสมาชิก ${code}: ${stored}`;await notifyLinkedMember(sql,env,code,statusMsg);return json(request,{success:true,status:stored});
+        await sql.begin(async tx=>{await tx`UPDATE members SET status=${stored},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'status',${st==='cancelled'&&reason?'ไม่อนุมัติ: '+reason:'เปลี่ยนสถานะเป็น '+st},CAST(${JSON.stringify(old[0])} AS JSONB),CAST(${JSON.stringify({status:stored,reason})} AS JSONB),${await currentAdminLabel(request,env,sql)},NOW())`});const when=lineDateTime();const statusMsg=st==='active'?`✅ สมาชิก ${code} ได้รับการอนุมัติแล้ว\nเมื่อ ${when}\n\nพิมพ์ “ข้อมูลของฉัน” เพื่อเปิดข้อมูลสมาชิกและบัตรสมาชิกได้เลยค่ะ`:st==='cancelled'?`แจ้งสถานะสมาชิก ${code}: ไม่อนุมัติ\nเมื่อ ${when}${reason?'\nเหตุผล: '+reason:''}`:`แจ้งสถานะสมาชิก ${code}: ${stored}\nเมื่อ ${when}`;await notifyLinkedMember(sql,env,code,statusMsg);return json(request,{success:true,status:stored});
       }
 
       if(path==="/api/admin/payment-topics"){
@@ -1542,7 +1586,7 @@ export default {
         await sql`ALTER TABLE payments ADD COLUMN IF NOT EXISTS receipt_issued_at TIMESTAMPTZ`;
         const rows=await sql`SELECT payment_id,member_code,payment_type,amount,status,paid_at,slip_data FROM payments WHERE payment_id=${paymentId} LIMIT 1`;if(!rows.length)return json(request,{success:false,message:"ไม่พบรายการชำระ"},404);const pay=rows[0];
         if(pay.status==='ชำระแล้ว')return json(request,{success:true,message:"รายการนี้ยืนยันแล้ว"});
-        if(!approve){await sql`UPDATE payments SET status='ไม่อนุมัติ',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE payment_id=${paymentId}`;return json(request,{success:true,message:"บันทึกไม่อนุมัติแล้ว"})}
+        if(!approve){await sql`UPDATE payments SET status='ไม่อนุมัติ',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE payment_id=${paymentId}`;await notifyLinkedMember(sql,env,pay.member_code,`⚠️ รายการแจ้งชำระไม่ผ่านการตรวจสอบ\nเมื่อ ${lineDateTime()}${clean(b.note)?'\nเหตุผล: '+clean(b.note):''}\nกรุณาตรวจสอบข้อมูลและแจ้งใหม่`);return json(request,{success:true,message:"บันทึกไม่อนุมัติแล้ว"})}
         await ensureReceiptOpsSchema(sql);let officialReceipt=null;
         try{await sql.begin(async tx=>{
           const cur=await tx`SELECT receipt_no FROM payments WHERE payment_id=${paymentId} LIMIT 1 FOR UPDATE`;officialReceipt=cur[0]?.receipt_no||null;if(!officialReceipt)officialReceipt=await allocateReceiptNumber(tx);
@@ -1552,7 +1596,7 @@ export default {
             SELECT ${id('LED')},NOW(),'รายรับ','ค่าสมาชิก',${pay.payment_type},${pay.amount},'payment',${pay.payment_id},${pay.member_code},${'รับค่าบำรุงสมาคมศิษย์เก่าฯ รายปี '+pay.member_code},${clean(b.note)||null},${admin},'posted',NOW(),NOW(),${pay.slip_data||null},${pay.slip_data?'หลักฐานการโอน '+pay.payment_id:null},${pay.slip_data?(String(pay.slip_data).startsWith('data:application/pdf')?'application/pdf':'image/*'):null}
             WHERE NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference_type='payment' AND reference_id=${pay.payment_id} AND entry_type='รายรับ')`;
         });}catch(e){return json(request,{success:false,code:'RECEIPT_BOOK_REQUIRED',message:String(e?.message||e)},409)}
-        await notifyLinkedMember(sql,env,pay.member_code,`✅ ยืนยันการชำระเรียบร้อยแล้ว\nสมาชิก: ${pay.member_code}\nจำนวน ${Number(pay.amount||0).toLocaleString('th-TH')} บาท\nเลขที่ใบเสร็จ: ${officialReceipt||'-'}\n\nพิมพ์ “ประวัติชำระ” เพื่อดูรายละเอียด`);return json(request,{success:true,message:"ยืนยันการชำระแล้ว ต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt});
+        await notifyLinkedMember(sql,env,pay.member_code,`✅ ได้รับค่าสมาชิกแล้ว\nสมาชิก: ${pay.member_code}\nจำนวน ${Number(pay.amount||0).toLocaleString('th-TH')} บาท\nยืนยันเมื่อ ${lineDateTime()}\nเลขที่ใบเสร็จ: ${officialReceipt||'-'}\n\nพิมพ์ “ประวัติชำระ” เพื่อดูรายละเอียด`);return json(request,{success:true,message:"ยืนยันการชำระแล้ว ต่ออายุสมาชิก 1 ปี และลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt});
       }
 
       if(/^\/api\/admin\/payments\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
@@ -1667,7 +1711,7 @@ export default {
         if(done)return json(request,{success:true,message:"รายการนี้ตรวจสอบแล้ว"});
         if(!approve){
           await sql`UPDATE donations SET status='ไม่อนุมัติ',verified_by=${admin},verified_at=NOW(),note=COALESCE(NULLIF(${clean(b.note)},''),note),updated_at=NOW() WHERE donation_id=${donationId}`;
-          if(don.member_code)await notifyLinkedMember(sql,env,don.member_code,`แจ้งผลตรวจสอบการบริจาค: ไม่อนุมัติ${clean(b.note)?'\nหมายเหตุ: '+clean(b.note):''}`);
+          if(don.member_code)await notifyLinkedMember(sql,env,don.member_code,`⚠️ รายการบริจาคไม่ผ่านการตรวจสอบ\nเมื่อ ${lineDateTime()}${clean(b.note)?'\nเหตุผล: '+clean(b.note):''}\nกรุณาตรวจสอบข้อมูลและแจ้งใหม่`);
           return json(request,{success:true,message:"บันทึกไม่อนุมัติแล้ว"})
         }
         await ensureReceiptOpsSchema(sql);let officialReceipt=null;
@@ -1678,7 +1722,7 @@ export default {
             SELECT ${id('LED')},NOW(),'รายรับ','เงินบริจาค',${don.topic_title||'บริจาค'},${don.amount},'donation',${don.donation_id},${don.member_code||null},${'รับเงินบริจาค '+(don.donor_name||'')},${clean(b.note)||null},${admin},'posted',NOW(),NOW(),${don.slip_data||null},${don.slip_data?'หลักฐานการโอน '+don.donation_id:null},${don.slip_data?(String(don.slip_data).startsWith('data:application/pdf')?'application/pdf':'image/*'):null}
             WHERE NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference_type='donation' AND reference_id=${don.donation_id} AND entry_type='รายรับ')`;
         });}catch(e){return json(request,{success:false,code:'RECEIPT_BOOK_REQUIRED',message:String(e?.message||e)},409)}
-        if(don.member_code)await notifyLinkedMember(sql,env,don.member_code,`💚 ยืนยันการบริจาคเรียบร้อยแล้ว\nจำนวน ${Number(don.amount||0).toLocaleString('th-TH')} บาท\nเลขที่ใบเสร็จ: ${officialReceipt||'-'}\n\nพิมพ์ “ประวัติบริจาค” เพื่อดูรายละเอียด`);return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt})
+        if(don.member_code)await notifyLinkedMember(sql,env,don.member_code,`💚 ยืนยันการรับบริจาคแล้ว\nจำนวน ${Number(don.amount||0).toLocaleString('th-TH')} บาท\nยืนยันเมื่อ ${lineDateTime()}\nเลขที่ใบเสร็จ: ${officialReceipt||'-'}\n\nพิมพ์ “ประวัติบริจาค” เพื่อดูรายละเอียด`);return json(request,{success:true,message:"ยืนยันการบริจาคและลงบัญชีรายรับเรียบร้อย",receipt_no:officialReceipt})
       }
       if(/^\/api\/admin\/donations\/[^/]+\/receipt$/.test(path)&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureV2616Schema(sql);const donationId=decodeURIComponent(path.split('/')[4]);
@@ -1745,7 +1789,7 @@ export default {
       if(path==="/api/admin/news"&&request.method==="POST"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureNewsSchema(sql);const b=await body(request),nid=id('NEWS'),img=clean(b.image_data);
         if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:"กรุณากรอกหัวข้อและเนื้อหา"},400);
-        if(img&&!newsImageOK(img))return json(request,{success:false,message:"รูปข่าวรองรับ JPG/PNG/WEBP · ข่าว/ประกาศ 1 รูป · กิจกรรมสูงสุด 10 รูป ระบบย่อรูปอัตโนมัติ (หลังย่อแต่ละรูปไม่เกินประมาณ 650 KB และรวมไม่เกินประมาณ 5 MB)"},400);
+        if(img&&!newsImageOK(img))return json(request,{success:false,message:"รูปข่าวรองรับ JPG/PNG/WEBP ทุกหมวดแนบได้สูงสุด 8 รูป ระบบย่อแต่ละรูปอัตโนมัติ"},400);
         const cat=['ข่าวสาร','ประกาศ','กิจกรรม'].includes(clean(b.category))?clean(b.category):'ข่าวสาร';
         await sql`INSERT INTO news(news_id,category,title,content,publish_date,active,created_at,updated_at,image_data,image_name,featured) VALUES(${nid},${cat},${clean(b.title)},${clean(b.content)},COALESCE(${b.publish_date||null}::timestamptz,NOW()),${b.active!==false},NOW(),NOW(),${img||null},${clean(b.image_name)||null},${!!b.featured})`;
         return json(request,{success:true,news_id:nid},201)
@@ -1754,7 +1798,7 @@ export default {
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureNewsSchema(sql);const nid=decodeURIComponent(path.split('/').pop()),b=await body(request),img=clean(b.image_data),remove=!!b.remove_image;
         const before=await sql`SELECT news_id FROM news WHERE news_id=${nid} LIMIT 1`;if(!before.length)return json(request,{success:false,message:'ไม่พบข่าวสาร'},404);
         if(!clean(b.title)||!clean(b.content))return json(request,{success:false,message:'กรุณากรอกหัวข้อและเนื้อหา'},400);
-        if(img&&!newsImageOK(img))return json(request,{success:false,message:'รูปข่าวรองรับ JPG/PNG/WEBP · ข่าว/ประกาศ 1 รูป · กิจกรรมสูงสุด 10 รูป ระบบย่อรูปอัตโนมัติ (หลังย่อแต่ละรูปไม่เกินประมาณ 650 KB และรวมไม่เกินประมาณ 5 MB)'},400);
+        if(img&&!newsImageOK(img))return json(request,{success:false,message:'รูปข่าวรองรับ JPG/PNG/WEBP ทุกหมวดแนบได้สูงสุด 8 รูป ระบบย่อแต่ละรูปอัตโนมัติ'},400);
         const cat=['ข่าวสาร','ประกาศ','กิจกรรม'].includes(clean(b.category))?clean(b.category):'ข่าวสาร';
         await sql`UPDATE news SET category=${cat},title=${clean(b.title)},content=${clean(b.content)},publish_date=COALESCE(${b.publish_date||null}::timestamptz,publish_date),active=${b.active!==false},featured=${!!b.featured},image_data=CASE WHEN ${!!img} THEN ${img||null} WHEN ${remove} THEN NULL ELSE image_data END,image_name=CASE WHEN ${!!img} THEN ${clean(b.image_name)||null} WHEN ${remove} THEN NULL ELSE image_name END,updated_at=NOW() WHERE news_id=${nid}`;
         return json(request,{success:true,message:'บันทึกการแก้ไขแล้ว'})
@@ -1857,9 +1901,12 @@ export default {
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureV2616Schema(sql);const b=await body(request);
         const newAdminKey=clean(b.NEW_ADMIN_API_KEY);
         if(newAdminKey){if(newAdminKey.length<8)return json(request,{success:false,message:'Admin API Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(newAdminKey);await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('ADMIN_API_KEY_HASH',${h},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;}
-        const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
+        if(Object.prototype.hasOwnProperty.call(b,'HOME_HERO_IMAGE')&&!homeHeroImageOK(b.HOME_HERO_IMAGE))return json(request,{success:false,message:'รูปปกเดสก์ท็อปไม่ถูกต้องหรือมีขนาดใหญ่เกินไป'},400);
+        if(Object.prototype.hasOwnProperty.call(b,'HOME_HERO_MOBILE_IMAGE')&&!homeHeroImageOK(b.HOME_HERO_MOBILE_IMAGE))return json(request,{success:false,message:'รูปปกมือถือไม่ถูกต้องหรือมีขนาดใหญ่เกินไป'},400);
+        if(clean(b.CONTACT_PHONE)&&!/^\+?\d{9,12}$/.test(clean(b.CONTACT_PHONE).replace(/[\s-]/g,'')))return json(request,{success:false,message:'เบอร์โทรแอดมินไม่ถูกต้อง กรุณากรอกตัวเลข 9–12 หลัก'},400);
+        const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','CONTACT_PHONE','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','HOME_HERO_IMAGE','HOME_HERO_MOBILE_IMAGE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.98',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.99',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }

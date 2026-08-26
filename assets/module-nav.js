@@ -1,9 +1,9 @@
 (()=>{
   'use strict';
   const path=(location.pathname.split('/').pop()||'index.html').toLowerCase();
-  const V='2.6.98';
+  const V='2.6.99';
   try{const u=new URL(location.href);if(u.searchParams.get('v')!==V){u.searchParams.set('v',V);history.replaceState(null,'',u.pathname+u.search+u.hash)}}catch{}
-  const items=[['index.html','🕌','หน้าแรก'],['register.html','🧕🏻','ลงทะเบียน'],['status.html','🔎','ตรวจสอบ'],['benefits.html','🎁','สิทธิประโยชน์'],['donation.html','🤲🏻','บริจาค'],['news.html','📣','ข่าวสาร'],['admin-home.html','🌙','Admin']];
+  const items=[['index.html','🕌','หน้าแรก'],['register.html','🧕🏻','ลงทะเบียน'],['status.html','🔎','ตรวจสอบ'],['benefits.html','🎁','ข้อมูลของฉัน'],['donation.html','🤲🏻','บริจาค'],['news.html','📣','ข่าวสาร'],['admin-home.html','🌙','Admin']];
   const isAdmin=path.startsWith('admin');
   const publicPages=new Set(['index.html','register.html','status.html','benefits.html','member.html','payment.html','donation.html','news.html']);
   const active=(href)=>path===href||(href==='benefits.html'&&path==='member.html')||(href==='admin-home.html'&&isAdmin);
@@ -11,9 +11,9 @@
   function logout(){clearAdminKey(); try{document.getElementById('logoutBtn')?.click()}catch{}; location.href='admin.html?v='+V;}
   const mobileAdmin=isAdmin?(path==='admin-home.html'?`<button type="button" class="sk-mobile-admin-logout">ออกจากระบบ</button>`:`<a class="sk-mobile-admin-back" href="admin-home.html?v=${V}">🧩 ศูนย์จัดการระบบ</a><button type="button" class="sk-mobile-admin-logout">ออกจากระบบ</button>`):'';
   const mobilePublicAdmin=!isAdmin?`<a class="sk-mobile-public-admin" href="admin-home.html?v=${V}">🌙 Admin</a>`:'';
-  const header=()=>`<header class="sk-module-nav" data-sk-nav="v2.6.98"><div class="sk-nav-wrap"><a class="sk-nav-brand" href="index.html?v=${V}"><img class="sk-nav-logo" src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name><span class="sk-app-line">ระบบสมาชิกสมาคมศิษย์เก่า</span><span class="sk-app-line">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a><nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}?v=${V}"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav><div class="sk-mobile-home"><a href="index.html?v=${V}">🏠 หน้าแรก</a>${mobilePublicAdmin}${mobileAdmin}</div></div></header>`;
+  const header=()=>`<header class="sk-module-nav" data-sk-nav="v2.6.99"><div class="sk-nav-wrap"><a class="sk-nav-brand" href="index.html?v=${V}"><img class="sk-nav-logo" src="assets/association-logo.png?v=${V}" alt="โลโก้สมาคม"><div><div class="sk-nav-title" data-app-name><span class="sk-app-line">ระบบสมาชิกสมาคมศิษย์เก่า</span><span class="sk-app-line">นูรุ้ลอิสลามสัมพันธ์ (สุเหร่าเขียว)</span></div><div class="sk-nav-sub">🌙 Nurul Islam · SK Alumni Member System</div></div></a><nav class="sk-nav-icons">${items.map(x=>`<a class="${active(x[0])?'active':''}" href="${x[0]}?v=${V}"><span class="ico">${x[1]}</span>${x[2]}</a>`).join('')}</nav><div class="sk-mobile-home"><a href="index.html?v=${V}">🏠 หน้าแรก</a>${mobilePublicAdmin}${mobileAdmin}</div></div></header>`;
   function ensureHeader(){
-    if(document.querySelector('[data-sk-nav="v2.6.98"]')) return;
+    if(document.querySelector('[data-sk-nav="v2.6.99"]')) return;
     const holder=document.createElement('div'); holder.innerHTML=header(); const fresh=holder.firstElementChild;
     if(!fresh)return;
     const old=document.querySelector('body > header.site-header, body > header.top, body > header, .site-header, header.top');
@@ -60,7 +60,7 @@
       addAdminActions();
       ensureAdminHeadingIcon();
       document.querySelectorAll('.sk-mobile-admin-logout').forEach(b=>b.addEventListener('click',logout));
-      const headingMap={'register.html':['🧕🏻','ลงทะเบียนศิษย์เก่า'],'status.html':['🔎','ตรวจสอบสถานะ'],'benefits.html':['🎁','สิทธิประโยชน์'],'member.html':['🎁','สิทธิประโยชน์'],'payment.html':['💳','ชำระค่าสมาชิก'],'donation.html':['🤲🏻','บริจาค'],'news.html':['📣','ข่าวสาร']};
+      const headingMap={'status.html':['🔎','ตรวจสอบสถานะ'],'benefits.html':['🎁','สิทธิประโยชน์'],'member.html':['🎁','สิทธิประโยชน์'],'payment.html':['💳','ชำระค่าสมาชิก'],'donation.html':['🤲🏻','บริจาค'],'news.html':['📣','ข่าวสาร']};
       document.querySelectorAll('.eyebrow').forEach(x=>x.classList.add('sk-module-badge'));const info=headingMap[path];if(info&&!document.querySelector('.sk-module-badge')){const h=document.querySelector('main .section-title, main h1');if(h)h.insertAdjacentHTML('beforebegin',`<div class="sk-module-badge">${info[0]} ${info[1]}</div>`)}
       if(typeof window.applyPublicSettings==='function'&&window.SK_SETTINGS)window.applyPublicSettings(window.SK_SETTINGS);
       unifyPublicFooter();

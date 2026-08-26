@@ -3,30 +3,43 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>เชื่อมบัญชี LINE · SK Alumni</title>
-<link rel="stylesheet" href="assets/site.css?v=2.6.98">
+<link rel="stylesheet" href="assets/site.css?v=2.6.99">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
-body{background:#f4fbf7}.wrap{max-width:620px;margin:0 auto;padding:28px 16px 50px}.card{background:#fff;border:1px solid #dcebe3;border-radius:22px;padding:24px;box-shadow:0 12px 34px rgba(30,85,61,.08)}.logo{width:76px;height:76px;object-fit:contain;display:block;margin:0 auto 10px}.title{text-align:center;margin:0;color:#205b45}.sub{text-align:center;color:#64756e;margin:8px 0 22px}.field{margin:14px 0}.field label{display:block;font-weight:700;margin-bottom:7px;color:#31594a}.field input{width:100%;height:46px;border:1px solid #cddfd6;border-radius:12px;padding:0 13px;font:inherit}.btn{width:100%;height:48px;border:0;border-radius:12px;background:#1f8f5f;color:#fff;font:inherit;font-weight:700;cursor:pointer}.note{font-size:13px;color:#718079;background:#f6faf8;border-radius:12px;padding:12px;margin-top:16px}.done{text-align:center;padding:18px 4px}.done h2{color:#18794e}.hidden{display:none!important}
+body{background:#f4fbf7}.wrap{max-width:620px;margin:0 auto;padding:28px 16px 50px}.card{background:#fff;border:1px solid #dcebe3;border-radius:22px;padding:24px;box-shadow:0 12px 34px rgba(30,85,61,.08)}.logo{width:76px;height:76px;object-fit:contain;display:block;margin:0 auto 10px}.title{text-align:center;margin:0;color:#205b45}.sub{text-align:center;color:#64756e;margin:8px 0 22px}.field{margin:14px 0}.field label{display:block;font-weight:700;margin-bottom:7px;color:#31594a}.field input{width:100%;height:46px;border:1px solid #cddfd6;border-radius:12px;padding:0 13px;font:inherit}.btn{width:100%;height:48px;border:0;border-radius:12px;background:#1f8f5f;color:#fff;font:inherit;font-weight:700;cursor:pointer}.note{font-size:13px;color:#718079;background:#f6faf8;border-radius:12px;padding:12px;margin-top:16px}.done,.checking,.linked{text-align:center;padding:18px 4px}.done h2,.linked h2{color:#18794e}.checking{color:#557269}.member-code{font-size:28px;font-weight:900;color:#08744c;margin:10px 0 4px}.member-name{font-weight:800;color:#31594a}.admin-note{margin-top:18px;padding:14px;border:1px solid #f0d68a;border-radius:14px;background:#fff8de;color:#775b18;line-height:1.65}.hidden{display:none!important}
 </style>
-<link rel="stylesheet" href="assets/responsive-v2685.css?v=2.6.98"></head>
+<link rel="stylesheet" href="assets/responsive-v2685.css?v=2.6.99"></head>
 <body>
 <div class="wrap"><div class="card">
 <img class="logo" src="assets/association-logo.png" alt="logo">
 <h1 class="title">เชื่อมบัญชีสมาชิกกับ LINE</h1>
 <p class="sub">ยืนยันเพียงครั้งแรก หลังจากนั้นสามารถเปิดข้อมูลสมาชิกจาก LINE ได้สะดวกขึ้น</p>
-<form id="form">
+<div id="checking" class="checking">กำลังตรวจสอบการเชื่อมบัญชี LINE...</div>
+<form id="form" class="hidden">
 <div class="field"><label>รหัสสมาชิก</label><input id="code" autocomplete="off" placeholder="เช่น 69-SK0001" required></div>
 <div class="field"><label>อีเมล หรือ เบอร์โทรศัพท์ที่ใช้สมัคร</label><input id="identity" autocomplete="off" placeholder="ใช้ข้อมูลเดียวกับระบบสมาชิก" required></div>
 <button class="btn" id="submit" type="submit">เชื่อมบัญชี LINE</button>
 <div class="note">เพื่อความปลอดภัย ลิงก์นี้ใช้ได้ 15 นาทีและใช้ได้เพียงครั้งเดียว ระบบจะไม่ขอ Channel Token หรือข้อมูล LINE Secret จากสมาชิก</div>
 </form>
+<div id="linked" class="linked hidden"><h2>✓ เชื่อมบัญชีไว้แล้ว</h2><p>บัญชี LINE นี้ได้ผูกบัญชีกับรหัสสมาชิก</p><div id="linkedCode" class="member-code"></div><div id="linkedName" class="member-name"></div><p>เรียบร้อยแล้ว</p><div class="admin-note">หากต้องการยกเลิกการเชื่อมบัญชี กรุณาติดต่อผู้ดูแลระบบ</div></div>
 <div id="done" class="done hidden"><h2>✓ เชื่อมบัญชีสำเร็จ</h2><p id="doneText"></p><p>กลับไปที่ LINE แล้วพิมพ์ <strong>ข้อมูลของฉัน</strong> เพื่อเปิด Member Portal ได้เลยค่ะ</p><p style="font-size:13px;color:#718079">หากต้องการเปลี่ยนบัญชี LINE ในอนาคต ให้ติดต่อ Admin เพื่อยกเลิกการเชื่อมเดิมก่อน</p></div>
 </div></div>
 <script>
 const API='https://sk-alumni-api.itpcmc2024.workers.dev';
 const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id);
-if(!token){$('form').classList.add('hidden');Swal.fire({icon:'warning',title:'ลิงก์ไม่ถูกต้อง',text:'กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'})}
+async function checkLinkStatus(){
+ if(!token){$('checking').classList.add('hidden');return Swal.fire({icon:'warning',title:'ลิงก์ไม่ถูกต้อง',text:'กรุณากลับ LINE แล้วพิมพ์ “เชื่อมบัญชี” ใหม่'})}
+ try{
+  const r=await fetch(API+'/api/line/link-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||j.success===false)throw new Error(j.message||'ตรวจสอบการเชื่อมบัญชีไม่สำเร็จ');
+  $('checking').classList.add('hidden');
+  if(j.data?.linked){$('linkedCode').textContent=j.data.member_code||'-';$('linkedName').textContent=j.data.member_name||'';$('linked').classList.remove('hidden');return}
+  $('form').classList.remove('hidden');
+ }catch(err){$('checking').classList.add('hidden');Swal.fire({icon:'warning',title:'ไม่สามารถเปิดลิงก์ได้',text:err.message})}
+}
+checkLinkStatus();
 $('form').addEventListener('submit',async e=>{
  e.preventDefault();const code=$('code').value.trim().toUpperCase(),identity=$('identity').value.trim(),btn=$('submit');
  if(!code||!identity)return;
