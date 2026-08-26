@@ -8,7 +8,7 @@ let timeoutMin=Math.max(1,Math.min(240,Number(localStorage.getItem(TIMEOUT_CACHE
 let lastWrite=0,checking=false,timer=null;
 function getKey(){for(const k of KEYS){const v=sessionStorage.getItem(k);if(v)return v}return''}
 function clearSession(){KEYS.forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)});localStorage.removeItem(LAST);sessionStorage.removeItem(LAST)}
-function loginUrl(){return 'admin.html?v=2.6.95'}
+function loginUrl(){return 'admin.html?v=2.6.95.1'}
 async function loadProfile(){const key=getKey();if(!key)return null;try{const r=await fetch(API+'/api/admin/me',{cache:'no-store',headers:{Authorization:'Bearer '+key,'X-Admin-Key':key}});const j=await r.json();if(r.ok&&j.success){sessionStorage.setItem('sk_alumni_admin_profile',JSON.stringify(j.data||{}));return j.data||null}}catch(_){}return null}
 function touch(force=false){if(!getKey())return;const now=Date.now();if(!force&&now-lastWrite<15000)return;lastWrite=now;localStorage.setItem(LAST,String(now))}
 function expired(){const last=Number(localStorage.getItem(LAST)||0);return !!last && Date.now()-last>timeoutMin*60000}

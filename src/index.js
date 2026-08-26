@@ -477,7 +477,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.95'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.6.95.1'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -528,7 +528,7 @@ async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in
 }
 
 async function recoverLineAdminMessages(sql){
-  // V2.6.95: recover member-to-Admin text from the general LINE event log.
+  // V2.6.95.1: recover member-to-Admin text from the general LINE event log.
   // Earlier versions only recovered messages beginning with "แอดมิน".  Since ordinary
   // free-form text is now a valid Admin conversation, old free-form test messages are
   // recoverable too, while known system commands are excluded.
@@ -563,7 +563,7 @@ function lineBackground(ctx,promise){
   const task=Promise.resolve(promise).catch(err=>console.error('LINE background task failed',err));
   if(ctx&&typeof ctx.waitUntil==='function'){
     // Keep a reference so the webhook can close PostgreSQL only after all LINE jobs finish.
-    // V2.6.95 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
+    // V2.6.95.1 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
     // so LINE replied successfully but the Admin inbox stayed empty.
     if(!Array.isArray(ctx.__skLineTasks)) ctx.__skLineTasks=[];
     ctx.__skLineTasks.push(task);
@@ -587,7 +587,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.6.95: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
+  // V2.6.95.1: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
   // LINE already shows the user's sent media, so avoid repetitive acknowledgement bubbles.
   if(eventType==='message'&&(msgType==='image'||msgType==='file')){
     lineBackground(ctx,(async()=>{
@@ -618,17 +618,17 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.95\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ลงทะเบียนศิษย์เก่าได้ที่\n'+lineWebBase()+'register.html?v=2.6.95.1\n\nหลังได้รับรหัสสมาชิกแล้ว พิมพ์ “เชื่อมบัญชี” เพื่อเชื่อมกับ LINE'});
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.95'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสถานะสมาชิกได้ที่\n'+lineWebBase()+'status.html?v=2.6.95.1'});
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.95'});
+    await lineReply(env,event.replyToken,{type:'text',text:'ตรวจสอบสิทธิประโยชน์สมาชิกได้ที่\n'+lineWebBase()+'benefits.html?v=2.6.95.1'});
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
@@ -659,7 +659,7 @@ async function handleLineEvent(event,env,sql,ctx){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.95\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
+      await lineReply(env,event.replyToken,{type:'text',text:'เชื่อม LINE กับบัญชีสมาชิกได้ที่\n'+lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.6.95.1\n\nลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้'});
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -695,7 +695,7 @@ async function handleLineEvent(event,env,sql,ctx){
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
 
-  // V2.6.95: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
+  // V2.6.95.1: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
   const freeText=clean(msgText);
   if(freeText){
     await saveLineAdminMessageNonCritical(sql,userId,freeText,'in',null,{line_message_id:event?.message?.id,message_type:'text'});
@@ -767,9 +767,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.95",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.6.95.1",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.6.95",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.6.95.1",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -805,7 +805,7 @@ export default {
       if(path==="/api/admin/line/messages"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
         await recoverLineAdminMessages(sql);
-        // V2.6.95: durable Inbox + direct LINE-event fallback.
+        // V2.6.95.1: durable Inbox + direct LINE-event fallback.
         // Even if an older background Inbox insert was missed, the Admin can still see the conversation.
         const rows=await sql`
           WITH durable AS (
@@ -906,12 +906,12 @@ export default {
       }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.95"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.6.95.1"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.95';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.6.95.1';
         return json(request,{success:true,data});
       }
 
@@ -1389,7 +1389,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.6.95",admin:a});
+        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.6.95.1",admin:a});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1767,11 +1767,20 @@ export default {
         try{await sql`INSERT INTO admin_accounts(admin_id,full_name,key_hash,role,active,created_at,updated_at) VALUES(${aid},${name},${h},${role},TRUE,NOW(),NOW())`;return json(request,{success:true,admin_id:aid},201)}catch(e){return json(request,{success:false,message:'User ID หรือ Admin Key นี้มีอยู่แล้ว'},409)}
       }
       if(/^\/api\/admin\/accounts\/[^/]+$/.test(path)&&request.method==="PUT"){
-        const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);const aid=decodeURIComponent(path.split('/').pop()).toUpperCase(),b=await body(request),name=clean(b.full_name),role=clean(b.role)==='owner'?'owner':'admin',active=b.active!==false,key=clean(b.admin_key),h=key?await sha256Hex(key):null;
-        const rows=await sql`UPDATE admin_accounts SET full_name=COALESCE(NULLIF(${name},''),full_name),role=${role},active=${active},key_hash=CASE WHEN ${h} IS NULL THEN key_hash ELSE ${h} END,updated_at=NOW() WHERE admin_id=${aid} RETURNING admin_id`;if(!rows.length)return json(request,{success:false,message:'ไม่พบบัญชี Admin'},404);return json(request,{success:true});
+        const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);
+        const aid=decodeURIComponent(path.split('/').pop()).toUpperCase(),b=await body(request),name=clean(b.full_name),role=clean(b.role)==='owner'?'owner':'admin',active=b.active!==false,key=clean(b.admin_key),newAid=clean(b.new_admin_id).toUpperCase()||aid;
+        if(!newAid||!name)return json(request,{success:false,message:'กรุณากรอก User ID และชื่อ-นามสกุล'},400);
+        if(key&&key.length<8)return json(request,{success:false,message:'Admin Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);
+        const h=key?await sha256Hex(key):null;
+        const cur=await sql`SELECT admin_id,role,active FROM admin_accounts WHERE admin_id=${aid} LIMIT 1`;if(!cur.length)return json(request,{success:false,message:'ไม่พบบัญชี Admin'},404);
+        if(cur[0].role==='owner'&&cur[0].active&&(role!=='owner'||!active)){const owners=await sql`SELECT COUNT(*)::int n FROM admin_accounts WHERE role='owner' AND active=TRUE`;if(Number(owners[0]?.n||0)<=1)return json(request,{success:false,message:'ไม่สามารถปิดหรือลดสิทธิ์ Owner คนสุดท้ายได้'},409)}
+        try{const rows=await sql`UPDATE admin_accounts SET admin_id=${newAid},full_name=${name},role=${role},active=${active},key_hash=CASE WHEN ${h} IS NULL THEN key_hash ELSE ${h} END,updated_at=NOW() WHERE admin_id=${aid} RETURNING admin_id`;return json(request,{success:true,admin_id:rows[0].admin_id})}catch(e){return json(request,{success:false,message:'User ID หรือ Admin Key นี้มีอยู่แล้ว'},409)}
       }
       if(/^\/api\/admin\/accounts\/[^/]+$/.test(path)&&request.method==="DELETE"){
-        const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);const aid=decodeURIComponent(path.split('/').pop()).toUpperCase();await sql`UPDATE admin_accounts SET active=FALSE,updated_at=NOW() WHERE admin_id=${aid}`;return json(request,{success:true});
+        const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);const aid=decodeURIComponent(path.split('/').pop()).toUpperCase();
+        const cur=await sql`SELECT role,active FROM admin_accounts WHERE admin_id=${aid} LIMIT 1`;if(!cur.length)return json(request,{success:false,message:'ไม่พบบัญชี Admin'},404);
+        if(cur[0].role==='owner'&&cur[0].active){const owners=await sql`SELECT COUNT(*)::int n FROM admin_accounts WHERE role='owner' AND active=TRUE`;if(Number(owners[0]?.n||0)<=1)return json(request,{success:false,message:'ไม่สามารถปิด Owner คนสุดท้ายได้'},409)}
+        await sql`UPDATE admin_accounts SET active=FALSE,updated_at=NOW() WHERE admin_id=${aid}`;return json(request,{success:true});
       }
       if(path==="/api/admin/settings"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureV2616Schema(sql);
@@ -1785,7 +1794,7 @@ export default {
         if(newAdminKey){if(newAdminKey.length<8)return json(request,{success:false,message:'Admin API Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(newAdminKey);await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('ADMIN_API_KEY_HASH',${h},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;}
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.95',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.6.95.1',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }
