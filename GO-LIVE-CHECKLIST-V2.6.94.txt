@@ -1,4 +1,4 @@
-SK Alumni System V2.6.94 – FINAL GO-LIVE CHECKLIST
+SK Alumni System V2.6.95 – FINAL GO-LIVE CHECKLIST
 
 A. ACCESS
 [ ] Admin login/logout desktop
@@ -56,4 +56,4 @@ H. LAUNCH SAFETY
 [ ] Backup/tag current production
 [ ] Delete only identified test records
 [ ] Re-test one real-like end-to-end transaction
-[ ] Final V2.6.94 deploy
+[ ] Final V2.6.95 deploy
