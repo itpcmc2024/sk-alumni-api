@@ -1,11 +1,11 @@
-/* SK Alumni System V2.6.93 — global responsive safety layer */
+/* SK Alumni System V2.6.94 — global responsive safety layer */
 html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:border-box}img,svg,video,canvas,iframe{max-width:100%;height:auto}input,select,textarea,button{max-width:100%;min-width:0}textarea{resize:vertical}p,li,td,th,label,.card,.panel,.box,.note,.detail,.message,.modal,.modal-content{overflow-wrap:anywhere;word-break:break-word}.wrap,.container,.content,.main,.page,.section{max-width:100%}.table-wrap,.table-responsive,.table-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}table{max-width:100%}.modal,.modal-card,.modal-content,.swal2-popup{max-width:calc(100vw - 24px)!important}.toolbar,.actions,.filters,.nav,.topin,.head,.footerin,.apf-inner,.sk-public-admin-footer__in{flex-wrap:wrap;min-width:0}.grid>*{min-width:0}
 @media(max-width:900px){.wrap,.container{width:min(100% - 24px,1180px)!important}.toolbar,.filters,.actions{gap:8px}.toolbar>* ,.filters>*{min-width:0;flex:1 1 180px}.nav{width:100%}.nav a,.nav button{white-space:normal}.module-grid,.cards,.grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))!important}}
 @media(max-width:640px){body{font-size:14px}.wrap,.container{width:calc(100% - 20px)!important}.topin,.head,.footerin,.apf-inner,.sk-public-admin-footer__in{align-items:flex-start!important}.toolbar,.filters,.actions,.form-actions{display:flex;flex-direction:column;align-items:stretch}.toolbar>* ,.filters>* ,.actions>* ,.form-actions>*{width:100%!important;flex:1 1 auto!important}.grid,.cards,.login-grid,.form-grid,.member,.addr-two{grid-template-columns:1fr!important}.card,.panel,.box,.portal{max-width:100%;padding-left:min(18px,4vw)!important;padding-right:min(18px,4vw)!important}.table-wrap,.table-responsive,.table-scroll{margin-left:0;margin-right:0}table{font-size:12px}th,td{padding:7px 6px!important;white-space:normal!important}.site-footer-in,.footerin,.apf-inner,.sk-public-admin-footer__in{flex-direction:column!important;text-align:center!important;justify-content:center!important}.footer-brand,.apf-brand,.sk-public-admin-footer__brand{max-width:100%;justify-content:center}.footer-copy,.apf-copy,.sk-public-admin-footer__copy{text-align:center!important;width:100%}.swal2-popup{width:calc(100vw - 20px)!important;padding:1em!important}}
 @media(max-width:390px){.wrap,.container{width:calc(100% - 14px)!important}.card,.panel,.box,.portal{border-radius:14px!important}.brand,.section-title,h1{overflow-wrap:anywhere}.btn,button,a.button{white-space:normal}}
 
 
-/* V2.6.93 — mobile polish: centered compact footer + scrollable tab/navigation rows */
+/* V2.6.94 — mobile polish: centered compact footer + scrollable tab/navigation rows */
 @media(max-width:700px){
   .sk-public-admin-footer__in{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;padding:12px 12px 11px!important;gap:6px!important}
   .sk-public-admin-footer__brand{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:100%!important;gap:4px!important;text-align:center!important}
@@ -42,7 +42,7 @@ html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:borde
 }
 
 
-/* V2.6.93 — mobile admin action placement, finance tools, footer badge and media gallery */
+/* V2.6.94 — mobile admin action placement, finance tools, footer badge and media gallery */
 @media(max-width:760px){
   /* Admin pages already provide the Home / Admin Center / Logout controls in the mobile masthead. */
   .settings-title-row .settings-actions{display:none!important}
@@ -83,7 +83,7 @@ html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:borde
 .swal-gallery img{flex:0 0 min(78%,420px)!important;width:min(78%,420px)!important;height:auto!important;max-height:52vh!important;object-fit:contain!important;scroll-snap-align:center!important;border-radius:12px!important;background:#f7faf8!important}
 .swal-gallery-hint{font-size:12px;color:#718096;text-align:center;margin:2px 0 10px}
 
-/* V2.6.93 — settings topic cards: readable labels + one-row action buttons */
+/* V2.6.94 — settings topic cards: readable labels + one-row action buttons */
 @media(max-width:700px){
   #sp-payment .topicitem,#sp-donation .topicitem{
     display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;align-items:start!important;
@@ -101,7 +101,7 @@ html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:borde
   }
 }
 
-/* V2.6.93 — receipt center mobile tables stay as true tables and scroll horizontally. */
+/* V2.6.94 — receipt center mobile tables stay as true tables and scroll horizontally. */
 @media(max-width:760px){
   .receipt-main .tablewrap{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:auto!important;touch-action:pan-x!important}
   .receipt-main .tablewrap .tbl{width:max-content!important;min-width:980px!important;max-width:none!important;table-layout:auto!important;border-collapse:collapse!important}

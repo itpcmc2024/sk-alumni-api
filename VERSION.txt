@@ -1,1 +1,4 @@
-2.6.93
+SK Alumni System V2.6.94
+Pre-Production Audit + Go-Live Readiness
+Build basis: V2.6.93 LINE Data Navigator + Quiet Conversation + Performance Polish
+Payment slip verification: Manual Admin Verification (no paid external slip API)
