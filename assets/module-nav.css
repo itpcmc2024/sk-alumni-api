@@ -489,3 +489,17 @@ body[class*="admin"] :is(.admin-action,.linkbtn,.head-actions .pill,.sk-admin-ba
 html,body{max-width:100%;overflow-x:hidden}body>*{min-width:0}.sk-nav-wrap,.sk-public-admin-footer__in{max-width:100%}.sk-admin-action-group{max-width:100%}
 @media(max-width:900px){.sk-mobile-home{gap:8px!important;flex-wrap:wrap!important}.sk-mobile-home>a,.sk-mobile-home>button{max-width:100%;white-space:nowrap}.sk-nav-wrap{width:100%!important;padding-inline:12px!important}}
 @media(max-width:520px){.sk-mobile-home{display:grid!important;grid-template-columns:repeat(2,minmax(0,auto));justify-content:center!important}.sk-mobile-home>*{min-width:0!important}.sk-nav-title{overflow-wrap:anywhere}.sk-nav-sub{overflow-wrap:anywhere}}
+
+/* V2.7.09 — official LINE add-friend control follows the Admin menu */
+.sk-module-nav .sk-nav-icons .sk-line-add-friend{
+  min-width:0!important;padding:0!important;border:0!important;background:transparent!important;
+  border-radius:0!important;line-height:0!important;box-shadow:none!important;
+}
+.sk-module-nav .sk-line-add-friend img{display:block!important;width:auto!important;height:36px!important;max-width:100%!important;object-fit:contain!important}
+@media(max-width:900px){
+  .sk-module-nav .sk-mobile-home .sk-mobile-line-friend{
+    min-width:0!important;min-height:0!important;padding:0!important;border:0!important;
+    background:transparent!important;box-shadow:none!important;border-radius:0!important;
+  }
+  .sk-module-nav .sk-mobile-line-friend img{height:32px!important}
+}
