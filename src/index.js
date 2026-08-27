@@ -1539,12 +1539,12 @@ export default {
         const payments=await sql`SELECT payment_id,payment_type,amount,status,paid_at,verified_at,receipt_no FROM payments WHERE member_code=${code} ORDER BY paid_at DESC,created_at DESC LIMIT 500`;
         const donations=await sql`SELECT d.donation_id,d.topic_id,COALESCE(dt.title,d.topic_id) AS topic_title,d.amount,d.status,d.donated_at FROM donations d LEFT JOIN donation_topics dt ON dt.topic_id=d.topic_id WHERE d.member_code=${code} ORDER BY d.donated_at DESC,d.created_at DESC LIMIT 500`;
         let usages=[];try{const ex=await sql`SELECT to_regclass('public.benefit_usage') AS t`;if(ex[0]?.t)usages=await sql`SELECT u.usage_id,u.used_at,u.amount,u.note,u.benefit_id,COALESCE(b.title,u.benefit_id) AS title,('USE-'||u.usage_id) AS reference_no FROM benefit_usage u LEFT JOIN benefits b ON b.benefit_id=u.benefit_id WHERE u.member_code=${code} ORDER BY u.used_at DESC,u.created_at DESC LIMIT 500`}catch(e){}
-        const logs=await sql`SELECT log_id,action,detail,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 300`;
+        const logs=await sql`SELECT log_id,action,detail,old_data,new_data,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 300`;
         const memberCardToken=await cardToken(code,env);return json(request,{success:true,data:{member:{...mr[0],status:memberStatusText(mr[0].status)},payments,donations,benefit_usage:usages,logs,card_token:memberCardToken}});
       }
       if(/^\/api\/admin\/members\/[^/]+\/logs$/.test(path)&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase();
-        const rows=await sql`SELECT log_id,member_code,action,detail,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows});
+        const rows=await sql`SELECT log_id,member_code,action,detail,old_data,new_data,admin_by,created_at FROM member_admin_logs WHERE member_code=${code} ORDER BY created_at DESC LIMIT 500`;return json(request,{success:true,data:rows});
       }
       if(/^\/api\/admin\/members\/[^/]+$/.test(path)){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;const code=decodeURIComponent(path.split('/').pop()).toUpperCase();
@@ -1574,6 +1574,7 @@ export default {
       if(/^\/api\/admin\/members\/[^/]+\/status$/.test(path)&&request.method==="PATCH"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;await ensureMemberAdminSchema(sql);const code=decodeURIComponent(path.split('/')[4]).toUpperCase(),b=await body(request),st=memberStatusText(b.status),reason=clean(b.reason);const old=await sql`SELECT status FROM members WHERE member_code=${code} LIMIT 1`;if(!old.length)return json(request,{success:false,message:"ไม่พบสมาชิก"},404);
         const stored=st==='cancelled'&&reason?`ไม่อนุมัติ (${reason})`:st;
+        if(String(old[0].status||'')===stored)return json(request,{success:true,status:stored,unchanged:true,message:'สถานะเดิมอยู่แล้ว'});
         await sql.begin(async tx=>{await tx`UPDATE members SET status=${stored},member_start=CASE WHEN ${st}='active' AND member_start IS NULL THEN NOW() ELSE member_start END,member_expire=CASE WHEN ${st}='active' AND member_expire IS NULL THEN NOW()+INTERVAL '1 year' ELSE member_expire END,updated_at=NOW() WHERE member_code=${code}`;await tx`INSERT INTO member_admin_logs(log_id,member_code,action,detail,old_data,new_data,admin_by,created_at) VALUES(${id('MLOG')},${code},'status',${st==='cancelled'&&reason?'ไม่อนุมัติ: '+reason:'เปลี่ยนสถานะเป็น '+st},CAST(${JSON.stringify(old[0])} AS JSONB),CAST(${JSON.stringify({status:stored,reason})} AS JSONB),${await currentAdminLabel(request,env,sql)},NOW())`});const when=lineDateTime();const statusMsg=st==='active'?`✅ สมาชิก ${code} ได้รับการอนุมัติแล้ว\nเมื่อ ${when}\n\nพิมพ์ “ข้อมูลของฉัน” เพื่อเปิดข้อมูลสมาชิกและบัตรสมาชิกได้เลยค่ะ`:st==='cancelled'?`แจ้งสถานะสมาชิก ${code}: ไม่อนุมัติ\nเมื่อ ${when}${reason?'\nเหตุผล: '+reason:''}`:`แจ้งสถานะสมาชิก ${code}: ${stored}\nเมื่อ ${when}`;await notifyLinkedMember(sql,env,code,statusMsg);return json(request,{success:true,status:stored});
       }
 

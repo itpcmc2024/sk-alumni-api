@@ -86,7 +86,7 @@ html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:borde
   .table-wrap .actions>*,.tablewrap .actions>*,.table-responsive .actions>*,.table-scroll .actions>*{width:auto!important;min-width:0!important;flex:0 0 auto!important}
 }
 @media(orientation:landscape) and (max-height:520px){
-  .table-wrap,.tablewrap,.table-responsive,.table-scroll{max-height:calc(100vh - 170px)!important}
+  .table-wrap,.tablewrap,.table-responsive,.table-scroll{max-height:calc(100vh - 170px)!important;overflow:auto!important;overscroll-behavior:contain!important;touch-action:pan-x pan-y!important}
   .table-wrap>table,.tablewrap>table,.table-responsive>table,.table-scroll>table{min-width:1080px!important}
   .table-wrap th,.table-wrap td,.tablewrap th,.tablewrap td,.table-responsive th,.table-responsive td,.table-scroll th,.table-scroll td{font-size:12px!important;padding:7px 8px!important}
 }
