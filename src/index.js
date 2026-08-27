@@ -25,6 +25,8 @@ async function ensureAdminAccountsSchema(sql){
     key_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'admin',
     active BOOLEAN NOT NULL DEFAULT TRUE,
+    contact_phone TEXT,
+    phone_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_login_at TIMESTAMPTZ
@@ -32,6 +34,8 @@ async function ensureAdminAccountsSchema(sql){
   await sql`ALTER TABLE admin_accounts DROP CONSTRAINT IF EXISTS admin_accounts_key_hash_key`;
   await sql`DROP INDEX IF EXISTS admin_accounts_key_hash_key`;
   await sql`CREATE INDEX IF NOT EXISTS idx_admin_accounts_key_hash ON admin_accounts(key_hash)`;
+  await sql`ALTER TABLE admin_accounts ADD COLUMN IF NOT EXISTS contact_phone TEXT`;
+  await sql`ALTER TABLE admin_accounts ADD COLUMN IF NOT EXISTS phone_enabled BOOLEAN NOT NULL DEFAULT FALSE`;
 }
 function adminLabel(a){return a?`${clean(a.full_name)||'Admin'} (${clean(a.admin_id)||'ADMIN'})`:'Admin'}
 async function resolveAdmin(request,env,sql){
@@ -409,17 +413,17 @@ function lineFlexButton(label,action,style='primary',color='#17966A'){
   return {type:'button',style,color,height:'sm',action:{label,...action}};
 }
 function lineLinkFlex(title,body,url,buttonLabel){
-  return {type:'flex',altText:title,contents:{type:'bubble',styles:{header:{backgroundColor:'#DDF4E8'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:title,weight:'bold',size:'xl',color:'#075E43',wrap:true}]},body:{type:'box',layout:'vertical',contents:[{type:'text',text:body,size:'sm',color:'#49645A',wrap:true}]},footer:{type:'box',layout:'vertical',contents:[lineFlexButton(buttonLabel,{type:'uri',uri:url})]}}};
+  return {type:'flex',altText:title,contents:{type:'bubble',styles:{header:{backgroundColor:'#DDF4E8'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🌿 '+title,weight:'bold',size:'lg',color:'#075E43',wrap:true}]},body:{type:'box',layout:'vertical',contents:[{type:'text',text:body,size:'sm',color:'#49645A',wrap:true}]},footer:{type:'box',layout:'vertical',contents:[lineFlexButton(buttonLabel,{type:'uri',uri:url})]}}};
 }
 function lineWelcomeFlex(){
-  return {type:'flex',altText:'ศิษย์เก่าคือครอบครัว',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',alignItems:'center',contents:[{type:'text',text:'🌿 ศิษย์เก่าคือครอบครัว',weight:'bold',size:'xl',color:'#075E43',wrap:true,align:'center'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'ลงทะเบียนศิษย์เก่า หรือ เชื่อม Line กับรหัสสมาชิกเดิมได้เลยครับ',size:'sm',color:'#49645A',wrap:true,align:'center'}]},footer:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ลงทะเบียนศิษย์เก่า',{type:'uri',uri:lineWebBase()+'register.html?v=2.7.04'}),lineFlexButton('เชื่อมบัญชีสมาชิก',{type:'message',text:'เชื่อมบัญชี'},'secondary','#17966A'),lineFlexButton('ดูเมนูหลัก',{type:'message',text:'เมนู'},'link','#17966A')]}}};
+  return {type:'flex',altText:'ศิษย์เก่าคือครอบครัว',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'},footer:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',alignItems:'center',contents:[{type:'text',text:'🌿 ศิษย์เก่าคือครอบครัว',weight:'bold',size:'xl',color:'#075E43',wrap:true,align:'center'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'ลงทะเบียนศิษย์เก่า หรือ เชื่อม Line กับรหัสสมาชิกเดิมได้เลยครับ',size:'sm',color:'#49645A',wrap:true,align:'center'}]},footer:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ลงทะเบียนศิษย์เก่า',{type:'uri',uri:lineWebBase()+'register.html?v=2.7.05'}),lineFlexButton('เชื่อมบัญชีสมาชิก',{type:'message',text:'เชื่อมบัญชี'},'secondary','#17966A'),lineFlexButton('ดูเมนูหลัก',{type:'message',text:'เมนู'},'link','#17966A')]}}};
 }
 function lineMainMenuFlex(){
   const item=(icon,title,text,color)=>({type:'box',layout:'horizontal',spacing:'md',paddingAll:'14px',cornerRadius:'12px',backgroundColor:color,action:{type:'message',label:title,text},contents:[{type:'text',text:icon,size:'xl',flex:0},{type:'text',text:title,weight:'bold',color:'#075E43',gravity:'center',wrap:true}]});
   return {type:'flex',altText:'เมนูสมาชิก 6 รายการ',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🌿 เมนูสมาชิก',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[item('🔗','เชื่อมบัญชี','เชื่อมบัญชี','#EEF8DF'),item('🏠','หน้าหลักระบบ','หน้าหลัก','#E6F7EE'),item('🔎','ตรวจสอบสถานะ','ตรวจสอบสถานะ','#FFF4D8'),item('🪪','ข้อมูลของฉัน','ข้อมูลของฉัน','#EAF4FF'),item('🤲🏻','บริจาค','บริจาค','#F9ECF4'),item('📞','ติดต่อแอดมิน','ติดต่อแอดมิน','#E3F7F5')]}}};
 }
 function lineHistoryMenuFlex(){
-  return {type:'flex',altText:'เลือกประวัติของฉัน',contents:{type:'bubble',styles:{header:{backgroundColor:'#EAF4FF'},body:{backgroundColor:'#F8FBFF'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🧾 ประวัติของฉัน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ประวัติชำระค่าสมาชิก',{type:'message',text:'ประวัติชำระ'}),lineFlexButton('ประวัติการบริจาค',{type:'message',text:'ประวัติบริจาค'},'secondary','#17966A'),lineFlexButton('ประวัติการใช้สิทธิ์',{type:'message',text:'ประวัติสิทธิ์'},'secondary','#17966A')]}}};
+  return {type:'flex',altText:'เลือกประวัติของฉัน',contents:{type:'bubble',styles:{header:{backgroundColor:'#EAF4FF'},body:{backgroundColor:'#F8FBFF'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🧾 ประวัติของฉัน',weight:'bold',size:'lg',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'sm',contents:[lineFlexButton('ประวัติชำระค่าสมาชิก',{type:'message',text:'ประวัติชำระ'}),lineFlexButton('ประวัติการบริจาค',{type:'message',text:'ประวัติบริจาค'},'secondary','#17966A'),lineFlexButton('ประวัติการใช้สิทธิ์',{type:'message',text:'ประวัติสิทธิ์'},'secondary','#17966A')]}}};
 }
 function lineWebBase(){return 'https://itpcmc2024.github.io/sk-alumni-api/'}
 function normalizeLineCommand(value){
@@ -519,7 +523,7 @@ async function verifyFastLinePortalToken(token,env){
 }
 
 function linePortalUrl(token,extra={}){
-  const q=new URLSearchParams({line_token:token,from:'line',v:'2.7.04'});
+  const q=new URLSearchParams({line_token:token,from:'line',v:'2.7.05'});
   Object.entries(extra||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null&&String(v)!=='')q.set(k,String(v))});
   return lineWebBase()+'member.html?'+q.toString();
 }
@@ -570,7 +574,7 @@ async function saveLineAdminMessageNonCritical(sql,lineUserId,text,direction='in
 }
 
 async function recoverLineAdminMessages(sql){
-  // V2.7.04: recover member-to-Admin text from the general LINE event log.
+  // V2.7.05: recover member-to-Admin text from the general LINE event log.
   // Earlier versions only recovered messages beginning with "แอดมิน".  Since ordinary
   // free-form text is now a valid Admin conversation, old free-form test messages are
   // recoverable too, while known system commands are excluded.
@@ -605,7 +609,7 @@ function lineBackground(ctx,promise){
   const task=Promise.resolve(promise).catch(err=>console.error('LINE background task failed',err));
   if(ctx&&typeof ctx.waitUntil==='function'){
     // Keep a reference so the webhook can close PostgreSQL only after all LINE jobs finish.
-    // V2.7.04 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
+    // V2.7.05 closed the shared PG client in fetch.finally() while waitUntil() jobs were still writing,
     // so LINE replied successfully but the Admin inbox stayed empty.
     if(!Array.isArray(ctx.__skLineTasks)) ctx.__skLineTasks=[];
     ctx.__skLineTasks.push(task);
@@ -629,7 +633,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.7.04: LINE doesn't expose sticker image bytes, but webhook sticker metadata
+  // V2.7.05: LINE doesn't expose sticker image bytes, but webhook sticker metadata
   // must still become a visible Admin Inbox message.
   if(eventType==='message'&&msgType==='sticker'){
     const packageId=clean(event?.message?.packageId),stickerId=clean(event?.message?.stickerId);
@@ -647,7 +651,7 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
 
-  // V2.7.04: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
+  // V2.7.05: media messages enter the Admin Inbox quietly, like a natural LINE OA chat.
   // LINE already shows the user's sent media, so avoid repetitive acknowledgement bubbles.
   if(eventType==='message'&&(msgType==='image'||msgType==='file')){
     lineBackground(ctx,(async()=>{
@@ -678,35 +682,37 @@ async function handleLineEvent(event,env,sql,ctx){
     return;
   }
   if(t==='หน้าหลัก'){
-    await lineReply(env,event.replyToken,lineLinkFlex('หน้าหลัก','เปิดหน้าแรกระบบสมาชิกสมาคมศิษย์เก่า',lineWebBase()+'index.html?v=2.7.04','เปิดหน้าหลัก'));
+    await lineReply(env,event.replyToken,lineLinkFlex('หน้าหลัก','เปิดหน้าแรกระบบสมาชิกสมาคมศิษย์เก่า',lineWebBase()+'index.html?v=2.7.05','เปิดหน้าหลัก'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='สนับสนุนรายปี'){
-    await lineReply(env,event.replyToken,lineLinkFlex('สนับสนุนรายปี','แจ้งชำระค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',lineWebBase()+'payment.html?v=2.7.04','เปิดหน้าแจ้งชำระ'));
+    await lineReply(env,event.replyToken,lineLinkFlex('สนับสนุนรายปี','แจ้งชำระค่าบำรุงสมาคมศิษย์เก่าฯ รายปี',lineWebBase()+'payment.html?v=2.7.05','เปิดหน้าแจ้งชำระ'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='บริจาค'){
-    await lineReply(env,event.replyToken,lineLinkFlex('บริจาค','ร่วมสนับสนุนกิจกรรมและโครงการของสมาคม',lineWebBase()+'donation.html?v=2.7.04','เปิดหน้าบริจาค'));
+    await lineReply(env,event.replyToken,lineLinkFlex('บริจาค','ร่วมสนับสนุนกิจกรรมและโครงการของสมาคม',lineWebBase()+'donation.html?v=2.7.05','เปิดหน้าบริจาค'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='โทรหาแอดมิน'||t==='ติดต่อแอดมิน'){
-    let phone='',phoneEnabled=false;try{const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('CONTACT_PHONE','CONTACT_PHONE_ENABLED')`;phone=clean(rows.find(x=>x.setting_key==='CONTACT_PHONE')?.setting_value).replace(/[^\d+]/g,'');phoneEnabled=clean(rows.find(x=>x.setting_key==='CONTACT_PHONE_ENABLED')?.setting_value)!=='false'}catch{}
-    const masked=phone&&phone.length>=7?phone.slice(0,3)+'-'+phone.slice(3,6)+'xxxx':'';
-    const msg=phoneEnabled&&phone?{type:'flex',altText:'ติดต่อแอดมิน',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'📞 ติดต่อแอดมิน',weight:'bold',size:'xl',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:[{type:'text',text:'เบอร์ติดต่อ '+masked,wrap:true,color:'#49645A'},lineFlexButton('โทรเลย',{type:'uri',uri:'tel:'+phone})]}}}:{type:'text',text:'กรุณารอให้แอดมินส่งคำขอการโทรให้ และคุณจะโทรผ่าน LINE นี้ได้ครับ'};
+    let contacts=[];try{await ensureAdminAccountsSchema(sql);const admins=await sql`SELECT admin_id,full_name,contact_phone FROM admin_accounts WHERE active=TRUE AND phone_enabled=TRUE AND contact_phone IS NOT NULL AND contact_phone<>'' ORDER BY admin_id`;contacts=admins.map(x=>({label:clean(x.admin_id)||clean(x.full_name)||'ADMIN',phone:clean(x.contact_phone).replace(/[^\d+]/g,'')})).filter(x=>x.phone)}catch{}
+    if(!contacts.length)try{const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('CONTACT_PHONE','CONTACT_PHONE_ENABLED')`;const phone=clean(rows.find(x=>x.setting_key==='CONTACT_PHONE')?.setting_value).replace(/[^\d+]/g,''),enabled=clean(rows.find(x=>x.setting_key==='CONTACT_PHONE_ENABLED')?.setting_value)!=='false';if(enabled&&phone)contacts=[{label:'ADMIN',phone}]}catch{}
+    const masked=p=>p.length>=7?p.slice(0,3)+'-'+p.slice(3,6)+'xxxx':p;
+    const body=contacts.flatMap((x,i)=>[{type:'text',text:'📱 เบอร์ติดต่อ '+masked(x.phone)+' ('+x.label+')',size:'sm',color:'#49645A',wrap:true},lineFlexButton('โทรเลย',{type:'uri',uri:'tel:'+x.phone}),...(i<contacts.length-1?[{type:'separator',margin:'md'}]:[])]);
+    const msg=contacts.length?{type:'flex',altText:'ติดต่อแอดมิน',contents:{type:'bubble',styles:{header:{backgroundColor:'#CFEFDD'},body:{backgroundColor:'#F7FCF9'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'📞 ติดต่อแอดมิน',weight:'bold',size:'lg',color:'#075E43'}]},body:{type:'box',layout:'vertical',spacing:'md',contents:body}}}:{type:'flex',altText:'รอการติดต่อจากแอดมิน',contents:{type:'bubble',styles:{header:{backgroundColor:'#FFF4D8'},body:{backgroundColor:'#FFFCF4'}},header:{type:'box',layout:'vertical',contents:[{type:'text',text:'⏳ รอการติดต่อจากแอดมิน',weight:'bold',size:'lg',color:'#8A6500',wrap:true}]},body:{type:'box',layout:'vertical',contents:[{type:'text',text:'กรุณารอให้แอดมินส่งคำขอการโทรให้ แล้วคุณจะโทรผ่าน LINE นี้ได้ครับ',size:'sm',color:'#6B6250',wrap:true}]}}};
     await lineReply(env,event.replyToken,msg);lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
   if(t==='ลงทะเบียน'||t.includes('ลงทะเบียน')){
-    await lineReply(env,event.replyToken,lineLinkFlex('ลงทะเบียนสมาชิก','หลังได้รับรหัสสมาชิกแล้ว กลับมาพิมพ์ “เชื่อมบัญชี”',lineWebBase()+'register.html?v=2.7.04','เปิดหน้าลงทะเบียน'));
+    await lineReply(env,event.replyToken,lineLinkFlex('ลงทะเบียนสมาชิก','หลังได้รับรหัสสมาชิกแล้ว กลับมาพิมพ์ “เชื่อมบัญชี”',lineWebBase()+'register.html?v=2.7.05','เปิดหน้าลงทะเบียน'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(['ตรวจสอบสถานะ','สมาชิก','สถานะสมาชิก','ตรวจสอบสมาชิก'].includes(t)||t.startsWith('สมาชิก ')){
-    await lineReply(env,event.replyToken,lineLinkFlex('ตรวจสอบสถานะสมาชิก','ค้นหาและตรวจสอบสถานะสมาชิก',lineWebBase()+'status.html?v=2.7.04','ตรวจสอบสถานะ'));
+    await lineReply(env,event.replyToken,lineLinkFlex('ตรวจสอบสถานะสมาชิก','ค้นหาและตรวจสอบสถานะสมาชิก',lineWebBase()+'status.html?v=2.7.05','ตรวจสอบสถานะ'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
   if(t==='สิทธิประโยชน์'||t==='สิทธิ'||t.includes('สิทธิประโยชน์')){
-    await lineReply(env,event.replyToken,lineLinkFlex('สิทธิประโยชน์','ดูสิทธิประโยชน์สำหรับสมาชิกที่กำลังเปิดใช้งาน',lineWebBase()+'benefits.html?v=2.7.04','ดูสิทธิประโยชน์'));
+    await lineReply(env,event.replyToken,lineLinkFlex('สิทธิประโยชน์','ดูสิทธิประโยชน์สำหรับสมาชิกที่กำลังเปิดใช้งาน',lineWebBase()+'benefits.html?v=2.7.05','ดูสิทธิประโยชน์'));
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));
     return;
   }
@@ -737,7 +743,7 @@ async function handleLineEvent(event,env,sql,ctx){
     }
     try{
       const token=await createFastLineLinkToken(userId,env);
-      await lineReply(env,event.replyToken,lineLinkFlex('เชื่อมบัญชีสมาชิก','ลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้',lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.7.04','เชื่อมบัญชี'));
+      await lineReply(env,event.replyToken,lineLinkFlex('เชื่อมบัญชีสมาชิก','ลิงก์นี้ใช้ได้ 15 นาที และหลังเชื่อมสำเร็จจะใช้ซ้ำไม่ได้',lineWebBase()+'line-link.html?token='+encodeURIComponent(token)+'&v=2.7.05','เชื่อมบัญชี'));
     }catch(err){
       console.error('LINE account-link token error',err);
       await lineReply(env,event.replyToken,{type:'text',text:'ยังไม่สามารถสร้างลิงก์เชื่อมบัญชีได้ กรุณาลองใหม่อีกครั้ง หรือติดต่อ Admin'});
@@ -777,7 +783,7 @@ async function handleLineEvent(event,env,sql,ctx){
     lineBackground(ctx,saveLineEventNonCritical(event,sql,env));return;
   }
 
-  // V2.7.04: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
+  // V2.7.05: quiet conversation mode. Ordinary member chat is stored without an automatic confirmation bubble.
   const freeText=clean(msgText);
   if(freeText){
     await saveLineAdminMessageNonCritical(sql,userId,freeText,'in',null,{line_message_id:event?.message?.id,message_type:'text'});
@@ -849,9 +855,9 @@ export default {
     const url=new URL(request.url), path=url.pathname.replace(/\/+$/,"")||"/";
     let sql=null;
     try{
-      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.7.04",status:"online",line_webhook:"/api/line/webhook"});
+      if(path==="/") return json(request,{success:true,app:"SK Alumni API",version:"2.7.05",status:"online",line_webhook:"/api/line/webhook"});
       if(path==="/api/line/health"&&request.method==="GET"){
-        return json(request,{success:true,version:"2.7.04",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
+        return json(request,{success:true,version:"2.7.05",webhook:"/api/line/webhook",channel_secret_configured:!!env.LINE_CHANNEL_SECRET,access_token_configured:!!env.LINE_CHANNEL_ACCESS_TOKEN});
       }
       if(path==="/api/line/webhook"&&request.method==="POST"){
         const raw=await request.text();
@@ -887,7 +893,7 @@ export default {
       if(path==="/api/admin/line/messages"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
         await recoverLineAdminMessages(sql);
-        // V2.7.04: durable Inbox + direct LINE-event fallback.
+        // V2.7.05: durable Inbox + direct LINE-event fallback.
         // Even if an older background Inbox insert was missed, the Admin can still see the conversation.
         const rows=await sql`
           WITH durable AS (
@@ -1003,12 +1009,12 @@ export default {
       }
       if(path==="/api/health"&&request.method==="GET"){
         const r=await sql`SELECT current_database() database,NOW() server_time`;
-        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.7.04"});
+        return json(request,{success:true,service:"sk-alumni-api",database:r[0].database,server_time:r[0].server_time,version:"2.7.05"});
       }
 
       if(path==="/api/settings/public"&&request.method==="GET"){
         const rows=await sql`SELECT setting_key,setting_value FROM app_settings WHERE setting_key IN ('APP_NAME','APP_VERSION','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','CONTACT_PHONE','CONTACT_PHONE_ENABLED','ASSOCIATION_ADDRESS','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','HOME_HERO_IMAGE','HOME_HERO_MOBILE_IMAGE') ORDER BY setting_key`;
-        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.7.04';
+        const data={};for(const r of rows)data[r.setting_key]=r.setting_value;data.APP_VERSION='V2.7.05';
         return json(request,{success:true,data});
       }
 
@@ -1114,7 +1120,10 @@ export default {
           await tx`INSERT INTO line_users(line_user_id,follow_status,last_seen_at,created_at,updated_at) VALUES(${uid},'active',NOW(),NOW(),NOW()) ON CONFLICT(line_user_id) DO NOTHING`;
           await tx`UPDATE members SET line_user_id=NULL,updated_at=NOW() WHERE line_user_id=${uid} AND member_code<>${code}`;
           await tx`UPDATE line_users SET member_code=${code},follow_status='active',last_seen_at=NOW(),updated_at=NOW() WHERE line_user_id=${uid}`;
-          await tx`UPDATE members SET line_user_id=${uid},updated_at=NOW() WHERE member_code=${code}`;
+          const profile=await tx`SELECT display_name FROM line_users WHERE line_user_id=${uid} LIMIT 1`,lineId=clean(profile[0]?.display_name);
+          // LINE ID is the LINE profile display name returned by Messaging API.
+          // Refresh it at every confirmed link so an empty or stale admin field is corrected.
+          await tx`UPDATE members SET line_user_id=${uid},line_id=COALESCE(NULLIF(${lineId},''),line_id),updated_at=NOW() WHERE member_code=${code}`;
           await tx`INSERT INTO line_link_tokens(token_hash,line_user_id,expires_at,used_at,created_at) VALUES(${hash},${uid},${verified.expires_at},NOW(),NOW()) ON CONFLICT(token_hash) DO UPDATE SET used_at=NOW()`;
         });
         return json(request,{success:true,message:'เชื่อมบัญชี LINE สำเร็จ',data:{member_code:code,member_name:lineMemberName(m)}});
@@ -1499,7 +1508,7 @@ export default {
 
       if(path==="/api/admin/auth-check"&&request.method==="GET"){
         const denied=await requireAdmin(request,env,sql);if(denied)return denied;
-        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.7.04",admin:a});
+        const a=await resolveAdmin(request,env,sql);return json(request,{success:true,authorized:true,version:"2.7.05",admin:a});
       }
 
       if(path==="/api/admin/members"&&request.method==="GET"){
@@ -1508,7 +1517,7 @@ export default {
         try{await ensureMemberAdminSchema(sql)}catch(e){console.error("ensureMemberAdminSchema",e)}
         let rows=[];
         try{
-          rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code,COALESCE((SELECT line_user_id FROM line_users WHERE member_code=m.member_code ORDER BY updated_at DESC NULLS LAST LIMIT 1),m.line_user_id) AS linked_line_user_id FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
+          rows=await sql`SELECT m.*,a.address_line,a.subdistrict,a.district,a.province,a.postal_code,COALESCE(NULLIF(m.line_id,''),(SELECT display_name FROM line_users WHERE member_code=m.member_code ORDER BY updated_at DESC NULLS LAST LIMIT 1)) AS auto_line_id,COALESCE((SELECT line_user_id FROM line_users WHERE member_code=m.member_code ORDER BY updated_at DESC NULLS LAST LIMIT 1),m.line_user_id) AS linked_line_user_id FROM members m LEFT JOIN addresses a ON a.member_code=m.member_code ORDER BY m.registered_at DESC`;
         }catch(e){
           console.error("admin members address fallback",e);
           rows=await sql`SELECT * FROM members ORDER BY registered_at DESC`;
@@ -1869,26 +1878,26 @@ export default {
       }
       if(path==="/api/admin/accounts"&&request.method==="GET"){
         const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);
-        const rows=await sql`SELECT admin_id,full_name,role,active,created_at,updated_at,last_login_at FROM admin_accounts ORDER BY role DESC,full_name,admin_id`;
+        const rows=await sql`SELECT admin_id,full_name,role,active,contact_phone,phone_enabled,created_at,updated_at,last_login_at FROM admin_accounts ORDER BY role DESC,full_name,admin_id`;
         return json(request,{success:true,data:rows});
       }
       if(path==="/api/admin/accounts"&&request.method==="POST"){
-        const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);const b=await body(request),aid=clean(b.admin_id).toUpperCase(),name=clean(b.full_name),key=clean(b.admin_key),role=clean(b.role)==='owner'?'owner':'admin';
+        const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);const b=await body(request),aid=clean(b.admin_id).toUpperCase(),name=clean(b.full_name),key=clean(b.admin_key),role=clean(b.role)==='owner'?'owner':'admin',phone=clean(b.contact_phone).replace(/[\s-]/g,''),phoneEnabled=!!b.phone_enabled;
         if(!aid||!name||key.length<8)return json(request,{success:false,message:'กรุณากรอก User ID, ชื่อ-นามสกุล และ Key อย่างน้อย 8 ตัวอักษร'},400);const h=await sha256Hex(key);
-        try{await sql`INSERT INTO admin_accounts(admin_id,full_name,key_hash,role,active,created_at,updated_at) VALUES(${aid},${name},${h},${role},TRUE,NOW(),NOW())`;return json(request,{success:true,admin_id:aid},201)}catch(e){return json(request,{success:false,message:e?.code==='23505'?'User ID นี้มีอยู่แล้ว':'เพิ่มบัญชี Admin ไม่สำเร็จ'},e?.code==='23505'?409:500)}
+        if(phone&&!/^\+?\d{9,12}$/.test(phone))return json(request,{success:false,message:'เบอร์โทรแอดมินไม่ถูกต้อง'},400);try{await sql`INSERT INTO admin_accounts(admin_id,full_name,key_hash,role,active,contact_phone,phone_enabled,created_at,updated_at) VALUES(${aid},${name},${h},${role},TRUE,${phone||null},${phoneEnabled&&!!phone},NOW(),NOW())`;return json(request,{success:true,admin_id:aid},201)}catch(e){return json(request,{success:false,message:e?.code==='23505'?'User ID นี้มีอยู่แล้ว':'เพิ่มบัญชี Admin ไม่สำเร็จ'},e?.code==='23505'?409:500)}
       }
       if(/^\/api\/admin\/accounts\/[^/]+$/.test(path)&&request.method==="PUT"){
         const denied=await requireOwner(request,env,sql);if(denied)return denied;await ensureAdminAccountsSchema(sql);
-        const aid=decodeURIComponent(path.split('/').pop()).toUpperCase(),b=await body(request),name=clean(b.full_name),role=clean(b.role)==='owner'?'owner':'admin',active=b.active!==false,key=clean(b.admin_key),newAid=clean(b.new_admin_id).toUpperCase()||aid;
+        const aid=decodeURIComponent(path.split('/').pop()).toUpperCase(),b=await body(request),name=clean(b.full_name),role=clean(b.role)==='owner'?'owner':'admin',active=b.active!==false,key=clean(b.admin_key),newAid=clean(b.new_admin_id).toUpperCase()||aid,phone=clean(b.contact_phone).replace(/[\s-]/g,''),phoneEnabled=!!b.phone_enabled;
         if(!newAid||!name)return json(request,{success:false,message:'กรุณากรอก User ID และชื่อ-นามสกุล'},400);
-        if(key&&key.length<8)return json(request,{success:false,message:'Admin Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);
+        if(key&&key.length<8)return json(request,{success:false,message:'Admin Key ใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'},400);if(phone&&!/^\+?\d{9,12}$/.test(phone))return json(request,{success:false,message:'เบอร์โทรแอดมินไม่ถูกต้อง'},400);
         const h=key?await sha256Hex(key):null;
         const cur=await sql`SELECT admin_id,role,active FROM admin_accounts WHERE admin_id=${aid} LIMIT 1`;if(!cur.length)return json(request,{success:false,message:'ไม่พบบัญชี Admin'},404);
         if(cur[0].role==='owner'&&cur[0].active&&(role!=='owner'||!active)){const owners=await sql`SELECT COUNT(*)::int n FROM admin_accounts WHERE role='owner' AND active=TRUE`;if(Number(owners[0]?.n||0)<=1)return json(request,{success:false,message:'ไม่สามารถปิดหรือลดสิทธิ์ Owner คนสุดท้ายได้'},409)}
         try{
           const rows=h
-            ?await sql`UPDATE admin_accounts SET admin_id=${newAid},full_name=${name},role=${role},active=${active},key_hash=${h},updated_at=NOW() WHERE admin_id=${aid} RETURNING admin_id`
-            :await sql`UPDATE admin_accounts SET admin_id=${newAid},full_name=${name},role=${role},active=${active},updated_at=NOW() WHERE admin_id=${aid} RETURNING admin_id`;
+            ?await sql`UPDATE admin_accounts SET admin_id=${newAid},full_name=${name},role=${role},active=${active},contact_phone=${phone||null},phone_enabled=${phoneEnabled&&!!phone},key_hash=${h},updated_at=NOW() WHERE admin_id=${aid} RETURNING admin_id`
+            :await sql`UPDATE admin_accounts SET admin_id=${newAid},full_name=${name},role=${role},active=${active},contact_phone=${phone||null},phone_enabled=${phoneEnabled&&!!phone},updated_at=NOW() WHERE admin_id=${aid} RETURNING admin_id`;
           return json(request,{success:true,admin_id:rows[0].admin_id});
         }catch(e){return json(request,{success:false,message:e?.code==='23505'?'User ID นี้มีอยู่แล้ว':'แก้ไขบัญชี Admin ไม่สำเร็จ'},e?.code==='23505'?409:500)}
       }
@@ -1913,7 +1922,7 @@ export default {
         if(clean(b.CONTACT_PHONE)&&!/^\+?\d{9,12}$/.test(clean(b.CONTACT_PHONE).replace(/[\s-]/g,'')))return json(request,{success:false,message:'เบอร์โทรแอดมินไม่ถูกต้อง กรุณากรอกตัวเลข 9–12 หลัก'},400);
         const allowed=['APP_NAME','MEMBERSHIP_FEE_YEARLY','MEMBERSHIP_FEE_MONTHLY','PROMPTPAY','BANK_ACCOUNT_NAME','BANK_NAME','BANK_ACCOUNT_NO','CONTACT_EMAIL','CONTACT_PHONE','CONTACT_PHONE_ENABLED','ASSOCIATION_ADDRESS','ASSOCIATION_STAMP','HOME_QUOTE','HOME_QUOTE_BY','HOME_NEWS_TITLE','HOME_HERO_IMAGE','HOME_HERO_MOBILE_IMAGE','ADMIN_SESSION_TIMEOUT_MIN'];
         for(const [k,v] of Object.entries(b)){if(!allowed.includes(k))continue;await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES(${k},${clean(v)},NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`}
-        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.7.04',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
+        await sql`INSERT INTO app_settings(setting_key,setting_value,updated_at) VALUES('APP_VERSION','V2.7.05',NOW()) ON CONFLICT(setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value,updated_at=NOW()`;
         if(Object.prototype.hasOwnProperty.call(b,'MEMBERSHIP_FEE_YEARLY')){const fee=Number(b.MEMBERSHIP_FEE_YEARLY||0)||null;await sql`INSERT INTO payment_topics(topic_id,title,description,amount,active,created_at,updated_at) VALUES('membership','ค่าบำรุงสมาคมศิษย์เก่าฯ รายปี','สนับสนุนสมาคมฯ รายปี',${fee},TRUE,NOW(),NOW()) ON CONFLICT(topic_id) DO UPDATE SET amount=EXCLUDED.amount,active=TRUE,updated_at=NOW()`}
         return json(request,{success:true,message:newAdminKey?"บันทึกการตั้งค่าและเปลี่ยน Admin API Key แล้ว":"บันทึกการตั้งค่าแล้ว",admin_key_changed:!!newAdminKey})
       }

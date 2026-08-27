@@ -11,7 +11,7 @@ function getKey(){for(const k of KEYS){const v=sessionStorage.getItem(k);if(v)re
 function getAdminId(){return (sessionStorage.getItem(ID_KEY)||localStorage.getItem(ID_KEY)||'').toUpperCase()}
 function authHeaders(key=getKey()){return {Authorization:'Bearer '+key,'X-Admin-Key':key,'X-Admin-Id':getAdminId()}}
 function clearSession(){KEYS.forEach(k=>{localStorage.removeItem(k);sessionStorage.removeItem(k)});localStorage.removeItem(ID_KEY);sessionStorage.removeItem(ID_KEY);localStorage.removeItem(LAST);sessionStorage.removeItem(LAST)}
-function loginUrl(){return 'admin.html?v=2.7.04'}
+function loginUrl(){return 'admin.html?v=2.7.05'}
 async function loadProfile(){const key=getKey();if(!key)return null;try{const r=await fetch(API+'/api/admin/me',{cache:'no-store',headers:authHeaders(key)});const j=await r.json();if(r.ok&&j.success){sessionStorage.setItem('sk_alumni_admin_profile',JSON.stringify(j.data||{}));return j.data||null}}catch(_){}return null}
 function touch(force=false){if(!getKey())return;const now=Date.now();if(!force&&now-lastWrite<15000)return;lastWrite=now;localStorage.setItem(LAST,String(now))}
 function expired(){const last=Number(localStorage.getItem(LAST)||0);return !!last && Date.now()-last>timeoutMin*60000}

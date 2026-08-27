@@ -77,6 +77,20 @@ html,body{max-width:100%;overflow-x:hidden}*,*::before,*::after{box-sizing:borde
   .admin-public-footer .apf-sub,.sk-public-admin-footer__values{font-size:8.75px!important;line-height:1.3!important;text-align:left!important}
 }
 
+/* V2.7.05 — every data table stays a real, one-line table on phone portrait and landscape. */
+@media(max-width:900px){
+  .table-wrap,.tablewrap,.table-responsive,.table-scroll{display:block!important;width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-x!important;scrollbar-width:auto!important}
+  .table-wrap>table,.tablewrap>table,.table-responsive>table,.table-scroll>table{width:max-content!important;min-width:max(100%,760px)!important;max-width:none!important;table-layout:auto!important}
+  .table-wrap th,.table-wrap td,.tablewrap th,.tablewrap td,.table-responsive th,.table-responsive td,.table-scroll th,.table-scroll td{white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important;vertical-align:middle!important}
+  .table-wrap .actions,.tablewrap .actions,.table-responsive .actions,.table-scroll .actions{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;width:max-content!important;gap:5px!important}
+  .table-wrap .actions>*,.tablewrap .actions>*,.table-responsive .actions>*,.table-scroll .actions>*{width:auto!important;min-width:0!important;flex:0 0 auto!important}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .table-wrap,.tablewrap,.table-responsive,.table-scroll{max-height:calc(100vh - 170px)!important}
+  .table-wrap>table,.tablewrap>table,.table-responsive>table,.table-scroll>table{min-width:1080px!important}
+  .table-wrap th,.table-wrap td,.tablewrap th,.tablewrap td,.table-responsive th,.table-responsive td,.table-scroll th,.table-scroll td{font-size:12px!important;padding:7px 8px!important}
+}
+
 /* V2.7.02 — keep native date/time controls inside every mobile form. */
 .field,.book-field,.grid2>*,.formgrid>*,.form-grid>*,.address-grid>*,.address-grid-3>*{min-width:0;max-width:100%}
 input[type="date"],input[type="time"],input[type="datetime-local"]{
