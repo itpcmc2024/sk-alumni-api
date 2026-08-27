@@ -1,6 +1,6 @@
 {
   "name": "sk-alumni-api",
-  "version": "2.7.07",
+  "version": "2.7.08",
   "private": true,
   "type": "module",
   "scripts": {
